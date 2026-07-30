@@ -1,0 +1,35 @@
+{
+	"name": "onlineedit",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev --host",
+		"build": "vite build",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "^7.0.1",
+		"@sveltejs/kit": "^2.57.0",
+		"@sveltejs/vite-plugin-svelte": "^7.0.0",
+		"@types/three": "^0.185.1",
+		"svelte": "^5.55.2",
+		"svelte-check": "^4.4.6",
+		"typescript": "^6.0.2",
+		"vite": "^8.0.7"
+	},
+	"dependencies": {
+		"@codemirror/lang-javascript": "^6.2.5",
+		"@jscad/modeling": "^2.13.0",
+		"@threlte/core": "^8.5.16",
+		"@threlte/extras": "^9.21.0",
+		"es-module-lexer": "^2.3.1",
+		"manifold-3d": "^3.5.1",
+		"modern-tar": "^0.8.0",
+		"svelte-codemirror-editor": "^2.1.0",
+		"three": "^0.185.1"
+	}
+}
