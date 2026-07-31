@@ -14,7 +14,7 @@ async function getDirectoryHandleFromOPFS(pathStr:string, opt:{ create:boolean, 
     }
 
     // 4. 按 '/' 分割成路径段
-    const segments = normalized.split('/').filter(seg => seg.length > 0);
+    const segments = normalized.split('/').filter(seg => seg.length > 0 && seg!=='.');
     if (segments.length === 0) {
         return rootHandle;
     }
@@ -23,16 +23,16 @@ async function getDirectoryHandleFromOPFS(pathStr:string, opt:{ create:boolean, 
     let currentHandle = rootHandle;
     console.log(segments)
     for (const segment of segments) {
-        if (segment==="."){
-            continue
-        }
+        //if (segment==="."){
+        //    continue
+        //}
         try {
         // 尝试获取下一级目录
-        currentHandle = await currentHandle.getDirectoryHandle(segment, opt);
+        currentHandle = await currentHandle.getDirectoryHandle(segment, {create:opt.create });
         } catch (error:any) {
         // 如果创建失败或目录不存在，抛出更清晰的错误
         if (error.name === 'NotFoundError' && ! opt.create) {
-            throw new Error(`目录 "${segment}" 不存在（路径：${pathStr}）`);
+            throw new Error(`目录 "${segment}" 不存在(路径：${pathStr})`);
         }
         // 其他错误直接抛出
         throw error;

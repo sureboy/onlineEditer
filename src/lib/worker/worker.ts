@@ -10,12 +10,16 @@ const includeImport:{[key:string]:string} = {
   "manifold-3d":"./lib/manifold/manifold.js"
 }
 //const {handleCurrentMsg} = await import('$lib/function/ImportParser')
-let indexCurrent:currentObj|undefined = undefined
+const globalOption:{indexCurrent?:currentObj,root?:FileSystemDirectoryHandle} = { 
+  //root : await navigator.storage.getDirectory()
+}
+ 
+//let root = await navigator.storage.getDirectory()
 const postMessage =async (e:any)=>{
 
   if (e.path){
     try{
-      const f = await getFileHandleFromOPFS(e.path) 
+      const f = await getFileHandleFromOPFS(e.path,{create:false,root:globalOption.root}) 
       const _f = await  f.getFile()
        
       handleCurrentMsg({db:await _f.text() ,name:e.path},postMessage)
@@ -53,8 +57,8 @@ const getIndex = (c:currentObj )=>{
 }
 const runCode =async (cur:currentObj,basename:string="main")=>{
   try{
-    indexCurrent = getIndex(cur)
-    const u = await indexCurrent.getUri() 
+    globalOption.indexCurrent = getIndex(cur)
+    const u = await globalOption.indexCurrent.getUri() 
     const src=await  import(/* @vite-ignore */u) 
     const list = Object.keys(src)
     if (!list.length){
@@ -86,7 +90,7 @@ const runCode =async (cur:currentObj,basename:string="main")=>{
    
 }
 //console.log("run1")
-self.onmessage = (event: MessageEvent) => { 
+self.onmessage =async (event: MessageEvent) => { 
   console.log("get msg",event.data)
   if (event.data.name && event.data.db){
     const cur = handleCurrentMsg(event.data,postMessage ); 
@@ -95,10 +99,9 @@ self.onmessage = (event: MessageEvent) => {
     }
     return;
   }
-  if (indexCurrent && event.data.basename){
-    runCode(indexCurrent,event.data.basename)
-  }
- 
+  if (globalOption.indexCurrent && event.data.basename){
+    runCode(globalOption.indexCurrent,event.data.basename)
+  } 
 };
 //console.log("run")
 //self.postMessage({start:true})

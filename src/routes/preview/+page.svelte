@@ -10,52 +10,7 @@
   import { T } from '@threlte/core'
   import { OrbitControls } from '@threlte/extras' 
   import * as THREE from 'three';
-    import {getFileHandleFromOPFS} from "$lib/function/OPFS";
-
-import { createTarDecoder } from 'modern-tar'; 
-  //  import Dialog from '$lib/components/Dialog.svelte';
-  async function extractTarStreamToOPFS( tarFile:File) {
-    // 注意：modern-tar 的 unpackTar 函数期望的是未压缩的 TAR 数据[reference:9]
-    // 因此需要先使用 DecompressionStream 解压 GZIP 部分[reference:10]
-        const fileStream = tarFile.stream();
-    // 假设是 .tar.gz，先解压 GZIP
-    //if (tarFile.name.endsWith(".gz"))
-    const decompressedStream = fileStream.pipeThrough(new DecompressionStream('gzip'));
-    // 如果确定是 .tar，用 fileStream 替代 decompressedStream
-    const tarStream = decompressedStream.pipeThrough(createTarDecoder());
-    //const PathName = tarFile.name.split('.').join('_')
-    //const decompressedStream = tarFile.stream()
-    //    .pipeThrough(new DecompressionStream('gzip'));
-    
-    // 将解压后的流（TAR 数据）转换为 Uint8Array
-    //const tarBuffer = new Uint8Array(await new Response(decompressedStream).arrayBuffer());
-    //const tarStream = decompressedStream.pipeThrough(createTarDecoder());
-    // 使用 modern-tar 解包 TAR 数据
-    //const entries = await unpackTar(tarBuffer);
-    const root = await navigator.storage.getDirectory();
-    const reader = tarStream.getReader();
-    try {
-        while (true) {
-            const { value: entry, done } = await reader.read();
-            if (done) break;
-
-            //const path = entry.header.name.replace(/^\.?\/?/, '');
-            //const lastSlash = path.lastIndexOf('/');
-            //const parentDir = lastSlash !== -1 ? path.substring(0, lastSlash) : '';
-
-            if (entry.header.type === 'file') { 
-              console.log(entry)
-              const f =await getFileHandleFromOPFS( entry.header.name,{create:true,root}) 
-              const w =await  f.createWritable() 
-              await entry.body.pipeTo(w); 
-            }
-        }
-    } finally {
-        reader.releaseLock();
-    }
-    //return tarFile.name.split('.')[0]
- 
-}
+   
   const channel = new BroadcastChannel('code-preview');
   channel.onmessage = (event) => {
     // 防止自己发给自己导致死循环（可加 source 判断，但这里忽略）
@@ -157,41 +112,16 @@ const onmessageListen =async (e:MessageEvent)=>{
     DialogDiv.innerHTML=''
     if (k){ 
       //const db = JSON.parse(decodeURIComponent(k))
-      console.log(k) 
-    }else{
-      //const tmpList = []
-      
-      //for(let i=0;i<window.localStorage.length;i++){
-      //  DialogDiv.append(createBtnStartPreview(window.localStorage.key(i)||'Preview'))
-         
-      //} 
-      navigator.storage.getDirectory().then(async root=>{
-        //root.entries()
-        for await (const k of root.keys()){
-          const tagA = document.createElement("a")
-          tagA.textContent = k;
-          DialogDiv.append(tagA)
-          tagA.href=window.location.href+ "#"+k
-        }
-        //root.keys().next()
+      console.log(k)  
+      navigator.storage.getDirectory().then(root=>{
+        root.getDirectoryHandle(k).then(async dir=>{
+          for await(const [k,f] of dir.entries()){
+            if (f.kind==='file'){
+              
+            }
+          }
+        })
       })
-      const openFile = document.createElement('input')
-      openFile.type = "file"
-      //openFile.webkitdirectory =true
-      //openFile.multiple = true
-      openFile.accept=".tar,.gz,.tar.gz"
-      openFile.textContent="open"
-      openFile.addEventListener('change',(event)=>{
-        const files = (event.target as HTMLInputElement).files;
-        if (!files)return; 
-        const file = files[0]
-        console.log(file,files)
-        extractTarStreamToOPFS(file).then(()=>{
-          window.location.reload();
-        })         
-      })
-      DialogDiv.append(openFile)
-      openModal()
     }
 
 
