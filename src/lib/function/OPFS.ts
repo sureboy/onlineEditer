@@ -14,7 +14,7 @@ async function getDirectoryHandleFromOPFS(pathStr:string, opt:{ create:boolean, 
     }
 
     // 4. 按 '/' 分割成路径段
-    const segments = normalized.split('/').filter(seg => seg.length > 0 && seg!=='.');
+    const segments = normalized.split('/').filter(seg => seg.length > 0);
     if (segments.length === 0) {
         return rootHandle;
     }
@@ -43,6 +43,7 @@ async function getDirectoryHandleFromOPFS(pathStr:string, opt:{ create:boolean, 
 }
 export async function getFileHandleFromOPFS(filePath:string,opt:{ create:boolean, root?:FileSystemDirectoryHandle }  = {create:false}) {
     // 1. 解析路径
+    //filePath.indexOf()
     const lastSlashIndex = filePath.lastIndexOf("/");
     const fileName = filePath.substring(lastSlashIndex + 1);
     const dirPath = filePath.substring(0, lastSlashIndex);
@@ -51,5 +52,5 @@ export async function getFileHandleFromOPFS(filePath:string,opt:{ create:boolean
     const directoryHandle = await getDirectoryHandleFromOPFS(dirPath, opt);
 
     // 3. 在父目录下获取文件句柄
-    return await directoryHandle.getFileHandle(fileName, { create:opt.create });
-}
+    return  await directoryHandle.getFileHandle(fileName, { create:opt.create }) 
+} 

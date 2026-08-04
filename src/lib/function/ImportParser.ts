@@ -78,15 +78,18 @@ const getCurrent = (name:string,reqMessage?:(e:{type:"req",path:string})=>void )
             return;
         }
         reqMessage({type:"req",path:name});
+        //console.log("getCur",name)
         const t = setTimeout(()=>{
             waitGetMap.delete(name);
+            //console.log("timeOUt")
             resolve(InitCurrentMap({name}));
         }, 2000);
         waitGetMap.set(name,(c:currentObj)=>{
             clearTimeout(t);
             resolve(c);   
             waitGetMap.delete(name);
-        });        
+        });     
+        console.log("getCur",name)   
     }); 
 };
 const InitCurrentMap = (v:messageObj)=>{
@@ -148,8 +151,9 @@ export const handleCurrentMsg =(
         cur = currentMap.get(message.name)!;        
     }
     reloadCurrent(cur,message,postMessage);
-    if (waitGetMap.has(message.name)){
-        waitGetMap.get(message.name)!(cur);  
-    }
+    //if (waitGetMap.has(message.name)){
+        
+    waitGetMap.get(message.name)?.(cur);  
+    //}
     return cur
 };

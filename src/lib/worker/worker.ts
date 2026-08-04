@@ -2,7 +2,7 @@ import {handleCurrentMsg} from '$lib/function/ImportParser'
 import type {currentObj} from '$lib/function/ImportParser'
 //import { javascript } from '@codemirror/lang-javascript';
 import {getCsgObjArray} from '$lib/function/csgChange'
-import {getFileHandleFromOPFS} from "$lib/function/OPFS";
+//import {getFileHandleFromOPFS} from "$lib/function/OPFS";
 //import modeling from '@jscad/modeling'
 const includeImport:{[key:string]:string} = {
   "@jscad/modeling": "./lib/modeling.esm.js",
@@ -10,33 +10,53 @@ const includeImport:{[key:string]:string} = {
   "manifold-3d":"./lib/manifold/manifold.js"
 }
 //const {handleCurrentMsg} = await import('$lib/function/ImportParser')
-const globalOption:{indexCurrent?:currentObj,root?:FileSystemDirectoryHandle} = { 
-  //root : await navigator.storage.getDirectory()
+const globalOption:{
+  indexCurrent?:currentObj,
+  root?:FileSystemDirectoryHandle,
+  DirHandle?:FileSystemDirectoryHandle} = { 
+  //root : await navigator.storage.getDirectory(),
 }
- 
+//const encoder = new TextEncoder();
 //let root = await navigator.storage.getDirectory()
-const postMessage =async (e:any)=>{
+const postMessage = async (e:any)=>{
+ 
 
-  if (e.path){
+  
+  if (e.path){ 
+    //let name = e.path as string 
+    //if (name.endsWith(".js")){
+    //    name = e.path // (e.path as string).split("/").pop() || e.path
+    //}
+  
+    //console.log(name,e.path,globalOption.DirHandle)
+     // setTimeout( async()=>{
     try{
-      const f = await getFileHandleFromOPFS(e.path,{create:false,root:globalOption.root}) 
-      const _f = await  f.getFile()
-       
-      handleCurrentMsg({db:await _f.text() ,name:e.path},postMessage)
-        
-         
-       
-    }catch(err){
-      //console.log("opfs err")
-      //console.error(err)
+     
+      const f =await globalOption.DirHandle?.getFileHandle(
+        encodeURIComponent(e.path),
+        //name ,
+        {create:false})
+      //const {f,d} = await getFileHandleFromOPFS(e.path,{create:false,root:globalOption.root}) 
+      
+      const _f = await  f?.getFile() 
+      const db = await _f?.text()
+      //console.log(db)
+      //setTimeout(()=>{
+        //console.log("t",name,e.path)
+        const cur = handleCurrentMsg({db ,name:e.path },postMessage) 
+        console.log("time ",cur)
+      //})
+    }catch(err){ 
+      console.error(err)
       //setTimeout(()=>{
         handleCurrentMsg({name:e.path})!.getUri = async ()=>new URL(
         includeImport[e.path] ||e.path  ,
-        new URL(import.meta.url).origin).toString();
-      //})       
+        new URL(import.meta.url).origin).toString();     
+      //})
     }
-    
+      // })
   }
+  
 }
 const getIndex = (c:currentObj )=>{
  
@@ -74,7 +94,7 @@ const runCode =async (cur:currentObj,basename:string="main")=>{
         for (const k of keys){ 
           if (msg[k] && msg[k].buffer){ 
             msg[k] = msg[k].buffer
-            buf.push(msg[k]) 
+            buf.push(msg[k])//  = await navigator.storage.getDirectory(); 
           }
         }; 
         self.postMessage(msg,buf )
@@ -83,22 +103,50 @@ const runCode =async (cur:currentObj,basename:string="main")=>{
       }      
     })
   }catch(err){
-    throw err
-    //console.error(err)
-  }
-   
-   
+    throw err 
+  } 
+} 
+const getCurrentObjFromFileSystem = async (fh: FileSystemFileHandle,name:string)=>{
+  const f = await fh.getFile()
+  const db =  await f.text()
+  return handleCurrentMsg({db,name },postMessage ); 
+  
 }
-//console.log("run1")
 self.onmessage =async (event: MessageEvent) => { 
   console.log("get msg",event.data)
-  if (event.data.name && event.data.db){
-    const cur = handleCurrentMsg(event.data,postMessage ); 
-    if (cur){
-      runCode( cur);
+  if ( event.data.path){
+    if (!globalOption.DirHandle || globalOption.DirHandle.name!==event.data.path ){
+      try{
+        if (!globalOption.root)globalOption.root=await navigator.storage.getDirectory();
+        globalOption.DirHandle = await globalOption.root.getDirectoryHandle(event.data.path);
+      }catch(err){
+        console.error(err)
+      }
+
     }
-    return;
   }
+  if ( globalOption.DirHandle){
+    const name = event.data.name || "./index.js"
+    try{ 
+      const fh = await globalOption.DirHandle.getFileHandle(encodeURIComponent(name))
+      const cur = await getCurrentObjFromFileSystem(fh,name)
+      if (cur){
+        await runCode( cur);
+      }  
+    }catch(err){
+      console.error(err)
+    }
+  }
+    
+    /*
+    const {f,d} =await getFileHandleFromOPFS(event.data.name,{create:true})
+    const h = await f.createSyncAccessHandle()
+
+    const writeBuffer = encoder.encode(event.data.db);
+    h.write(writeBuffer,{at:0});
+    h.truncate(writeBuffer.byteLength);
+    h.flush()*/
+ 
   if (globalOption.indexCurrent && event.data.basename){
     runCode(globalOption.indexCurrent,event.data.basename)
   } 

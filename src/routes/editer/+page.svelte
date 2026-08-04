@@ -1,7 +1,7 @@
 <script lang="ts">
-    import CodeMirror,{debounce} from "$lib/components/CodeMirror.svelte";
+    import CodeMirror from "$lib/components/CodeMirror.svelte";
     import { javascript } from "@codemirror/lang-javascript";
-    import {getFileHandleFromOPFS} from "$lib/function/OPFS";
+    //import {getFileHandleFromOPFSOnlyOneDir} from "$lib/function/OPFS";
     //import { getWorker } from '$lib/worker/globalWorker';
     //import { keymap } from "@codemirror/view";
     import { EditorView } from '@codemirror/view';
@@ -31,8 +31,11 @@ export const main=(opt)=>{
   return [modeling.primitives.cube(option),option]
 }`
     //let value =  "";
-    let tmpPathName = "BasicTemplate/index.js"
-    let FileHandle:FileSystemFileHandle|undefined = undefined
+    const FileInfo:{name:string,path:string,FileHandle?:FileSystemFileHandle,DirHandle?:FileSystemDirectoryHandle} = {
+        path:"BasicTemplate",
+        name:"./index.js" 
+    }
+
  
 
     const updateEditorDoc = (editorView:EditorView,value:string )=>{
@@ -57,7 +60,7 @@ export const main=(opt)=>{
         key: "Mod-s", // Mod 键在 Windows/Linux 下代表 Ctrl，macOS 下代表 Cmd
         run: (editorView:EditorView) => {
             // 在这里实现你的保存逻辑
-            //console.log("执行保存操作，当前代码：", );
+            //console.log("执行保存操作，当前代码：", );tmpPathName
             //value=editorView.state.doc.toString()
             //clearTimeout(tmpTimer)
             //window.localStorage.setItem(tmpPathName,value);
@@ -66,17 +69,36 @@ export const main=(opt)=>{
             
             // 返回 true 表示该快捷键已被处理，可阻止浏览器默认行为
             clearTimeout(timeout)
-            sendCodeToPreview({name:tmpPathName,db:editorView.state.doc.toString()})
+            //sendCodeToPreview({ db:editorView.state.doc.toString(),...FileInfo})
+            saveFile(editorView.state.doc.toString())
+            
             return true;
         }
     }
+    const saveFile = (v:string)=>{
+        getFileHandle().then(({h})=>{
+            //h.createSyncAccessHandle()
+            h.createWritable().then(w=>{
+                w.write(v).then(()=>{
+                    w.close();
+                    sendCodeToPreview( {Modal:true,...FileInfo})
+                })
+            })
+        })  
+    }
     const getFileHandle = async() =>{
         try{
-            if (FileHandle){
-                return {h:FileHandle,f:await FileHandle.getFile()}
+            if (!FileInfo.DirHandle){
+                FileInfo.DirHandle  = await navigator.storage.getDirectory(); 
+                FileInfo.DirHandle = await FileInfo.DirHandle.getDirectoryHandle(
+                    FileInfo.path,{create:true})
             }
-            FileHandle = await getFileHandleFromOPFS(tmpPathName,{create:true})
-            return {h:FileHandle,f:await FileHandle.getFile()}
+            if (!FileInfo.FileHandle){ 
+                FileInfo.FileHandle = await FileInfo.DirHandle.getFileHandle(
+                encodeURIComponent(FileInfo.name),{create:true})  
+            } 
+            //return {h:FileInfo.FileHandle,f:await FileHandle.getFile()}
+            return {h:FileInfo.FileHandle,f:await FileInfo.FileHandle.getFile()}
         }catch(err){
             throw err
         }
@@ -95,8 +117,13 @@ let timeout: number ;
         //eView = cm_view
         const hashPath = window.location.hash.slice(1);
         if (hashPath){
-            tmpPathName = decodeURIComponent(hashPath)  
+            Object.assign(
+                FileInfo , 
+                JSON.parse(decodeURIComponent(hashPath))
+            )
         } 
+        //const i = tmpPathName.indexOf("/")
+        //tmpPathName.
         getFileHandle().then(({f})=>{
             f.text().then(db=>{
                 //value = db ||newPackageCode
@@ -120,14 +147,7 @@ let timeout: number ;
         clearTimeout(timeout)
         //}
         timeout = setTimeout(() => {
-            getFileHandle().then(({h})=>{
-                h.createWritable().then(w=>{
-                    w.write(v).then(()=>{
-                        sendCodeToPreview({name:tmpPathName,db:v,Modal:true})
-                    })
-                })
-            })
-            //timeout=null
+            saveFile(v) 
         },5000)
             
             //window.localStorage.setItem(tmpPathName,value);

@@ -94,7 +94,7 @@ const onmessageListen =async (e:MessageEvent)=>{
     DialogDiv.append(createBtnStartPreview(e.key,"Preview"))
     openModal() 
   } */
-  const createBtnStartPreview = (msg:{name:string,db:string},btnName?:string)=>{
+  const createBtnStartPreview = (msg:{name:string,db:string,path:string},btnName?:string)=>{
     const btn = document.createElement("button")
     btn.textContent =btnName || msg.name
     //tmpList.push(window.localStorage.key(i))
@@ -108,11 +108,17 @@ const onmessageListen =async (e:MessageEvent)=>{
   }
   onMount(() => {
     //worker = new MyWorker();
-    const k = window.location.hash.slice(1)
+    const path = window.location.hash.slice(1)
     DialogDiv.innerHTML=''
-    if (k){ 
+    if (path){
+
+      getWorker(onmessageListen).then( w=>{ 
+        w?.postMessage({path })
+        console.log(path)  
+      })
       //const db = JSON.parse(decodeURIComponent(k))
-      console.log(k)  
+     
+      /*
       navigator.storage.getDirectory().then(root=>{
         root.getDirectoryHandle(k).then(async dir=>{
           for await(const [k,f] of dir.entries()){
@@ -121,7 +127,7 @@ const onmessageListen =async (e:MessageEvent)=>{
             }
           }
         })
-      })
+      })*/
     }
 
 
@@ -145,9 +151,9 @@ const onmessageListen =async (e:MessageEvent)=>{
  
   <T.AmbientLight args={[0x404040, 0.3]} />
 
- <T.DirectionalLight args={[0xffffff, 1]} position={[5, 10, 7]}   />
+  <T.DirectionalLight args={[0xffffff, 1]} position={[5, 10, 7]}   />
   <T.DirectionalLight args={[0xffffff, 0.3]} position={[-5, 5, -5]}/>
-   <T.DirectionalLight args={[0xffffff, 0.4]} position={[0, 5, -10]}/>
+  <T.DirectionalLight args={[0xffffff, 0.4]} position={[0, 5, -10]}/>
 {#if solidControlConfig.grid}
   <T.GridHelper args={[10, 10]} /> 
   {/if}
