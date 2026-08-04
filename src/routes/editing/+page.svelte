@@ -1,12 +1,7 @@
 <script lang="ts">
     import CodeMirror from "$lib/components/CodeMirror.svelte";
-    import { javascript } from "@codemirror/lang-javascript";
-    //import {getFileHandleFromOPFSOnlyOneDir} from "$lib/function/OPFS";
-    //import { getWorker } from '$lib/worker/globalWorker';
-    //import { keymap } from "@codemirror/view";
-    import { EditorView } from '@codemirror/view';
-    //import { CatmullRomCurve3 } from "three";
-    //import { onMount } from 'svelte';
+    import { javascript } from "@codemirror/lang-javascript"; 
+    import { EditorView } from '@codemirror/view'; 
     const newPackageCode:string = `import modeling from '@jscad/modeling';
 import  manifold from 'manifold-3d';
 const Manifold = await  manifold()
@@ -34,10 +29,7 @@ export const main=(opt)=>{
     const FileInfo:{name:string,path:string,FileHandle?:FileSystemFileHandle,DirHandle?:FileSystemDirectoryHandle} = {
         path:"BasicTemplate",
         name:"./index.js" 
-    }
-
- 
-
+    } 
     const updateEditorDoc = (editorView:EditorView,value:string )=>{
         editorView.dispatch({
           changes: {
@@ -58,20 +50,9 @@ export const main=(opt)=>{
     const saveKeymap = {
         // 键名使用小写，用连字符连接
         key: "Mod-s", // Mod 键在 Windows/Linux 下代表 Ctrl，macOS 下代表 Cmd
-        run: (editorView:EditorView) => {
-            // 在这里实现你的保存逻辑
-            //console.log("执行保存操作，当前代码：", );tmpPathName
-            //value=editorView.state.doc.toString()
-            //clearTimeout(tmpTimer)
-            //window.localStorage.setItem(tmpPathName,value);
-            // 例如，可以调用外部保存函数
-            // saveCode(editorView.state.doc.toString());
-            
-            // 返回 true 表示该快捷键已被处理，可阻止浏览器默认行为
-            clearTimeout(timeout)
-            //sendCodeToPreview({ db:editorView.state.doc.toString(),...FileInfo})
-            saveFile(editorView.state.doc.toString())
-            
+        run: (editorView:EditorView) => { 
+            clearTimeout(timeout) 
+            saveFile(editorView.state.doc.toString()) 
             return true;
         }
     }

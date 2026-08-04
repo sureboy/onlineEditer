@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Canvas } from '@threlte/core'
   import Menu from '$lib/components/Menu.svelte' 
-  import {moduleInit} from "$lib/components/MainMenu.svelte";
+  import {moduleInit,SetEditingHashInfo} from "$lib/components/MainMenu.svelte";
   import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte';
   import { csg2Geo } from "$lib/function/csg2Three";
   //import MyWorker from '$lib/worker/worker?worker';
@@ -53,7 +53,10 @@
 const onmessageListen =async (e:MessageEvent)=>{
   if (e.data.module){
     console.log(e.data.module)
-    moduleInit(Object.assign({Clickhandle:ClickhandleWithMainMenu}, e.data.module))
+    moduleInit(Object.assign({
+
+      Clickhandle:ClickhandleWithMainMenu
+    }, e.data.module))
     return
   }
   if (e.data.start){
@@ -111,10 +114,11 @@ const onmessageListen =async (e:MessageEvent)=>{
     const path = window.location.hash.slice(1)
     DialogDiv.innerHTML=''
     if (path){
-
+      SetEditingHashInfo({path})
       getWorker(onmessageListen).then( w=>{ 
         w?.postMessage({path })
         console.log(path)  
+        window.location.hash=""
       })
       //const db = JSON.parse(decodeURIComponent(k))
      
