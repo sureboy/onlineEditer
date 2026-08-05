@@ -38,7 +38,7 @@ interface MeshData {
   indices: Uint16Array | Uint32Array;
   normals?: Float32Array;
   color?: unknown;
-  transforms: unknown;
+  transforms?: unknown;
   [key: string]: any;
 }
 

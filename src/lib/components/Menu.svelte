@@ -1,6 +1,6 @@
 <script lang="ts">
 import Camera from "./Camera.svelte";
-import MainMenu,{moduleInit} from "./MainMenu.svelte";
+import MainMenu  from "./MainMenu.svelte";
 const {Clickhandle}:{Clickhandle:(name:string|{[k:string]:any})=>void } = $props()
 //    const {solidControlConfig}:{solidControlConfig:any} = $props()
     //let {grid,axes} = solidControlConfig;

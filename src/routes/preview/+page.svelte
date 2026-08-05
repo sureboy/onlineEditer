@@ -4,13 +4,19 @@
   import {moduleInit,SetEditingHashInfo} from "$lib/components/MainMenu.svelte";
   import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte';
   import { csg2Geo } from "$lib/function/csg2Three";
+  import {toggleCamera} from "$lib/components/Camera.svelte"
   //import MyWorker from '$lib/worker/worker?worker';
   import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
   import { onMount } from 'svelte';
-  import { T } from '@threlte/core'
-  import { OrbitControls } from '@threlte/extras' 
-  import * as THREE from 'three';
-   
+  import {refreshCamera,refreshCameraInit} from '$lib/components/OrthoScene.svelte'
+ 
+  import {
+    Vector3,
+  
+    //OrbitControls
+  } from 'three';
+    import OrthoScene from '$lib/components/OrthoScene.svelte';
+  //const {Vector3} = THREE;
   const channel = new BroadcastChannel('code-preview');
   channel.onmessage = (event) => {
     // 防止自己发给自己导致死循环（可加 source 判断，但这里忽略）
@@ -43,13 +49,14 @@
   }
   const Clickhandle=(k:string|{[k:string]:any})=>{
     if (typeof k === 'string'){
-        console.log(k)
+        //console.log(k)
+        switchView(k)
         return
     }
     if (k.id in solidControlConfig){
         solidControlConfig[k.id] = k.checked
     }
-}
+  }
 const onmessageListen =async (e:MessageEvent)=>{
   if (e.data.module){
     console.log(e.data.module)
@@ -61,6 +68,8 @@ const onmessageListen =async (e:MessageEvent)=>{
   }
   if (e.data.start){
     geometrys = []
+    GridSize=10
+    MaxSize.set(10,10,10)
     return
     //meshRef?.clear()
     //console.log("start")
@@ -68,7 +77,9 @@ const onmessageListen =async (e:MessageEvent)=>{
   if (e.data.end){
     //geometrys = []
     //meshRef?.clear()
-    console.log("end")
+    switchView('top')
+    refreshCameraInit(MaxSize,isOrthographic)
+    //console.log("end")
     return
     //getSize()
   }
@@ -79,13 +90,29 @@ const onmessageListen =async (e:MessageEvent)=>{
       geometrys.push(geo)
       geo.geometry.computeBoundingBox();
       const box = geo.geometry.boundingBox;
-      const size = new THREE.Vector3();
+      const size = new Vector3();
       //;
-      console.log(box?.getSize(size))
+      box?.getSize(size)
+      //MaxSize.max()
+      if (size.x>MaxSize.x) MaxSize.setX(size.x)
+      if (size.y>MaxSize.y) MaxSize.setY(size.y)
+      if (size.z>MaxSize.z) MaxSize.setZ(size.z)
+
+      let helpSize = size.x>size.z?size.x:size.z;
+      if (size.y>helpSize){
+        helpSize =size.y
+      }
+      if (helpSize>GridSize ){
+        GridSize  = Math.ceil(helpSize )+1
+        //GridSize[0] =GridSize[1]
+      }
+      //console.log(box,size ,GridSize)
       
     } 
   }
 }
+let GridSize = $state(10)
+const MaxSize =new Vector3()
 /*
   const LocalStorageHandle = (e:StorageEvent)=>{
     if (!e.key)return; 
@@ -118,58 +145,102 @@ const onmessageListen =async (e:MessageEvent)=>{
       getWorker(onmessageListen).then( w=>{ 
         w?.postMessage({path })
         console.log(path)  
-        window.location.hash=""
-      })
-      //const db = JSON.parse(decodeURIComponent(k))
-     
-      /*
-      navigator.storage.getDirectory().then(root=>{
-        root.getDirectoryHandle(k).then(async dir=>{
-          for await(const [k,f] of dir.entries()){
-            if (f.kind==='file'){
-              
-            }
-          }
-        })
-      })*/
-    }
-
-
-    //window.addEventListener("storage",LocalStorageHandle)
-    return () => {
-      //worker?.terminate();
-      //worker = null;
-      terminateWorker();
-      //window.removeEventListener("storage",LocalStorageHandle)
+        //window.location.hash=""
+      }) 
+    } 
+    return () => { 
+      terminateWorker(); 
     };
   });
-</script>
-<Canvas>
-   <T.PerspectiveCamera makeDefault position={[10, 10, 10]}
-    oncreate={(ref:any) => {
-        ref.lookAt(0, 1, 0)
-    }}>
-    <!-- 2. 将 OrbitControls 作为相机的子组件 -->
-    <OrbitControls />
-  </T.PerspectiveCamera>
- 
-  <T.AmbientLight args={[0x404040, 0.3]} />
 
-  <T.DirectionalLight args={[0xffffff, 1]} position={[5, 10, 7]}   />
-  <T.DirectionalLight args={[0xffffff, 0.3]} position={[-5, 5, -5]}/>
-  <T.DirectionalLight args={[0xffffff, 0.4]} position={[0, 5, -10]}/>
-{#if solidControlConfig.grid}
-  <T.GridHelper args={[10, 10]} /> 
-  {/if}
-  {#if solidControlConfig.axes}
-  <T.AxesHelper args={[5]} />
-  {/if}
-  {#if geometrys} 
-  {#each geometrys as {geometry,material}} 
-    <T.Mesh {geometry} {material}> 
-    </T.Mesh>
-  {/each}  
-{/if}
+//let QviewDistance = 15;
+let isOrthographic = $state(false);  
+/*
+//let cameraFov:number = 1;// =cameraP.fov;
+const perspectiveViews:{[k:string]:any}  = {
+	front:  { position: new  Vector3(0, 0, 1), up: new Vector3(0, 1, 0) },
+	back:   { position: new Vector3(0, 0, -1),  up: new Vector3(0, 1, 0) },
+	left:   { position: new Vector3(-1, 0, 0),  up: new Vector3(0, 1, 0) },
+	right:  { position: new Vector3(1, 0, 0),  up: new Vector3(0, 1, 0) },
+	top:    { position: new Vector3(0, 1, 0),  up: new Vector3(0, 0, -1) },
+	bottom: { position: new Vector3(0, -1, 0),  up: new Vector3(0, 0, 1) },
+	//isometric: { position: new Vector3(8, 8, 8),  up: new Vector3(0, 1, 0) }
+};
+const orthographicViews:{[k:string]:any} = {
+	front:  { position: new Vector3(0, 0, QviewDistance), up: new Vector3(0, 1, 0) },
+	back:   { position: new Vector3(0, 0, -QviewDistance), up: new Vector3(0, 1, 0) },
+	left:   { position: new Vector3(-QviewDistance, 0, 0), up: new Vector3(0, 1, 0) },
+	right:  { position: new Vector3(QviewDistance, 0, 0), up: new Vector3(0, 1, 0) },
+	top:    { position: new Vector3(0, QviewDistance, 0), up: new Vector3(0, 0, -1) },
+	bottom: { position: new Vector3(0, -QviewDistance, 0), up: new Vector3(0, 0, 1) },
+	//isometric: { position: new Vector3(10, 10, 10), up: new Vector3(0, 1, 0) }
+};
+function getSizeVector  ( position:Vector3){
+	const p = new Vector3(position.x&1^1,position.y&1^1,position.z&1^1);
+	//const  sizeM = getSceneSize(obj);
+	const size = MaxSize.clone().multiply(p).length();
+	console.log("pz",size,position);
+	//HelperGroupUpdate(size/2);
+  //const cam = (camera as PerspectiveCamera|undefined )
+	const fov =  ((camera as PerspectiveCamera|undefined )?.fov || 1)*(Math.PI /180); 	 
+	const z = size /2/Math.tan(fov/2); 
+	return position.multiplyScalar(z);
+};*/
+// const { camera } = useThrelte()
+//let camera:OrthographicCamera|PerspectiveCamera|undefined = $state(undefined)
+//let Controls :Orb|undefined = $state(undefined) ;
+ /*
+const refresh = ()=>{
+ 
+  const size = useSize()
+  const groupSize = (MaxSize.length() || 10)
+  if (isOrthographic){
+    
+    const k = size.width/size.height;
+    const s =groupSize/2;
+    if (camera){
+      camera.clear();
+    }
+    camera = new OrthographicCamera(0,0,0,0,0.1,2000); 
+    camera.left = -s *k;
+    camera.right = s*k;
+    camera.top = s;
+    camera.bottom = -s;
+    camera.position.set(0,0,-s); 
+    QviewDistance = s;
+  }else{
+    isOrthographic=false;
+			if (camera){
+				camera.clear();
+			}
+			camera =new PerspectiveCamera(40, 1, 0.1, 2000);
+			//const  size = getSize(group);
+			//cameraFov = camera.fov;
+			const fov =  camera.fov*(Math.PI /180); 	 
+			camera.position.z = groupSize /2/Math.tan(fov/2); 	
+			//viewDistance =  camera.position.z;	
+			camera.aspect = size.width/size.height	;
+  }
+  		Controls?.target.set(0, 0, 0);
+		Controls?.update();
+
+}*/
+function switchView(direction:string) {
+ if (direction==="camera"){
+
+    isOrthographic = toggleCamera()==='Orthographic'
+  }
+
+  refreshCamera(direction,isOrthographic,MaxSize)
+} 
+//let OrbControlsTarget = [0,0,0]
+
+
+</script>
+
+<Canvas   >
+ <OrthoScene  {solidControlConfig} {geometrys}
+  {isOrthographic} {GridSize}  ></OrthoScene>
 </Canvas> 
 <Dialog title = {"welcome"}><div bind:this={DialogDiv}>test</div></Dialog>
 <Menu {Clickhandle}></Menu>
