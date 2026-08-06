@@ -21,10 +21,10 @@ export function toggleCamera() {
   const kMap:{[k:string]:string} = {
     "x":"right",
     "X":"left",
-    "y":"bottom",
-    "Y":"top",
-    "z":"back",
-    "Z":"front",
+    "z":"bottom",
+    "Z":"top",
+    "y":"back",
+    "Y":"front",
     "U":"camera",
     "V":"camera",
     "R":"refresh",  
@@ -59,17 +59,20 @@ export function toggleCamera() {
     view[1] = button.textContent
   } else{
     view[0] =(isPerspective ? 'Perspective' : 'Orthographic')+" "+ button.textContent
-    view[1] = "[ Z ]"
+    view[1] = ""
   }
 }}" >
 <button id="camera" title="camera"   style="height:48:px;line-height:48px;cursor: pointer;" >{cameraType}</button>
-<button id="front" title="front"    style="height:48:px;line-height:48px;cursor: pointer;">[ Z ]</button>
-<button id="back" title="back"    style="height:48:px;line-height:48px;cursor: pointer;">[ z ]</button>
-<button id="top" title="top"     style="height:48:px;line-height:48px;cursor: pointer;">[ Y ]</button>
-<button id="bottom" title="bottom"   style="height:48:px;line-height:48px;cursor: pointer;">[ y ]</button>
+<button id="front" title="front"    style="height:48:px;line-height:48px;cursor: pointer;">[ Y ]</button>
+<button id="back" title="back"    style="height:48:px;line-height:48px;cursor: pointer;">[ y ]</button>
+
 <button id="left" title="left"     style="height:48:px;line-height:48px;cursor: pointer;">[ X ]</button>
 <button id="right" title="right"   style="height:48:px;line-height:48px;cursor: pointer;">[ x ]</button>
+<button id="top" title="top"     style="height:48:px;line-height:48px;cursor: pointer;">[ Z ]</button>
+<button id="bottom" title="bottom"   style="height:48:px;line-height:48px;cursor: pointer;">[ z ]</button>
+<!--
 <button id="refresh" title="refresh"   style="height:48:px;line-height:48px;cursor: pointer;" >[ R ]</button> 
+-->
 </div>
 <div>
 <p> 

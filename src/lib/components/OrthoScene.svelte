@@ -177,8 +177,11 @@ onMount(()=>{
     <OrbitControls bind:ref={Controls}  target={[0,0,0]} />
   </T.PerspectiveCamera>
  {/if}
+ <T.HemisphereLight args={[0xffffbb, // 天空颜色
+	0xffffbb, // 地面颜色
+	0.6  ]} />
   <T.AmbientLight args={[0x404040, 0.3]} />
-
+ 
   <T.DirectionalLight args={[0xffffff, 1]} position={[5, 10, 7]}   />
   <T.DirectionalLight args={[0xffffff, 0.3]} position={[-5, 5, -5]}/>
   <T.DirectionalLight args={[0xffffff, 0.4]} position={[0, 5, -10]}/>
