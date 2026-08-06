@@ -27,8 +27,7 @@ export function toggleCamera() {
     "Z":"front",
     "U":"camera",
     "V":"camera",
-    "R":"refresh", 
-    
+    "R":"refresh",  
   }
   const handleKeydown = (e:any) => {
 		//console.log(`pressed the ${e.key} key`);

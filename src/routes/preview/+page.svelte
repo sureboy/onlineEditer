@@ -16,6 +16,7 @@
     //OrbitControls
   } from 'three';
     import OrthoScene from '$lib/components/OrthoScene.svelte';
+//    import { booleans } from '@jscad/modeling';
   //const {Vector3} = THREE;
   const channel = new BroadcastChannel('code-preview');
   channel.onmessage = (event) => {
@@ -41,7 +42,13 @@
   };
   let geometrys:{geometry:any,material:any}[] =$state([])
   let DialogDiv:HTMLDivElement
-  const solidControlConfig:{[k:string]:any} = $state({axes:true,grid:true,main:[]})
+  const solidControlConfig:{[k:string]:any} = $state({
+    axes:true,grid:true,main:[],
+    isOrthographic:false,
+    MaxSize :new Vector3(),
+    GridSize:10,
+    //getAspect:()=>{return aspect},
+  })
   const ClickhandleWithMainMenu = (basename:string)=>{
     getWorker().then(w=>{
       w.postMessage({basename})
@@ -68,20 +75,17 @@ const onmessageListen =async (e:MessageEvent)=>{
   }
   if (e.data.start){
     geometrys = []
-    GridSize=10
-    MaxSize.set(10,10,10)
+    solidControlConfig.GridSize=10
+    solidControlConfig.MaxSize.set(10,10,10)
     return
     //meshRef?.clear()
     //console.log("start")
   }
-  if (e.data.end){
-    //geometrys = []
-    //meshRef?.clear()
-    switchView('top')
-    refreshCameraInit(MaxSize,isOrthographic)
-    //console.log("end")
+  if (e.data.end){ 
+    refreshCameraInit(solidControlConfig as any)
+ 
     return
-    //getSize()
+ 
   }
   if ('index' in e.data){
     //console.log(e.data)
@@ -94,16 +98,16 @@ const onmessageListen =async (e:MessageEvent)=>{
       //;
       box?.getSize(size)
       //MaxSize.max()
-      if (size.x>MaxSize.x) MaxSize.setX(size.x)
-      if (size.y>MaxSize.y) MaxSize.setY(size.y)
-      if (size.z>MaxSize.z) MaxSize.setZ(size.z)
+      if (size.x>solidControlConfig.MaxSize.x) solidControlConfig.MaxSize.setX(size.x)
+      if (size.y>solidControlConfig.MaxSize.y) solidControlConfig.MaxSize.setY(size.y)
+      if (size.z>solidControlConfig.MaxSize.z) solidControlConfig.MaxSize.setZ(size.z)
 
       let helpSize = size.x>size.z?size.x:size.z;
       if (size.y>helpSize){
         helpSize =size.y
       }
-      if (helpSize>GridSize ){
-        GridSize  = Math.ceil(helpSize )+1
+      if (helpSize>solidControlConfig.GridSize ){
+        solidControlConfig.GridSize  = Math.ceil(helpSize )+1
         //GridSize[0] =GridSize[1]
       }
       //console.log(box,size ,GridSize)
@@ -111,8 +115,8 @@ const onmessageListen =async (e:MessageEvent)=>{
     } 
   }
 }
-let GridSize = $state(10)
-const MaxSize =new Vector3()
+//let GridSize = $state(10)
+//const MaxSize =new Vector3()
 /*
   const LocalStorageHandle = (e:StorageEvent)=>{
     if (!e.key)return; 
@@ -154,7 +158,7 @@ const MaxSize =new Vector3()
   });
 
 //let QviewDistance = 15;
-let isOrthographic = $state(false);  
+//let isOrthographic = $state(false);  
 /*
 //let cameraFov:number = 1;// =cameraP.fov;
 const perspectiveViews:{[k:string]:any}  = {
@@ -228,20 +232,24 @@ const refresh = ()=>{
 function switchView(direction:string) {
  if (direction==="camera"){
 
-    isOrthographic = toggleCamera()==='Orthographic'
+    solidControlConfig.isOrthographic = toggleCamera()==='Orthographic'
+    setTimeout(()=>{
+      refreshCameraInit(solidControlConfig as any)
+    })
+    return;
   }
 
-  refreshCamera(direction,isOrthographic,MaxSize)
+  refreshCamera(direction,solidControlConfig.isOrthographic,solidControlConfig.MaxSize)
 } 
 //let OrbControlsTarget = [0,0,0]
 
 
 </script>
-
-<Canvas   >
- <OrthoScene  {solidControlConfig} {geometrys}
-  {isOrthographic} {GridSize}  ></OrthoScene>
+<div style="width: 100vw; height: 100vh;">
+<Canvas  >
+ <OrthoScene  {solidControlConfig} {geometrys} ></OrthoScene>
 </Canvas> 
+</div>
 <Dialog title = {"welcome"}><div bind:this={DialogDiv}>test</div></Dialog>
 <Menu {Clickhandle}></Menu>
 <style>
