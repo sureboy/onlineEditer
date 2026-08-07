@@ -5,7 +5,7 @@ let solidName:HTMLElement;
 let editingHashInfo = $state("")
 let open = $state( true)
 export const SetEditingHashInfo = (opt:any)=>{
-  editingHashInfo = JSON.stringify(opt)
+  editingHashInfo =encodeURIComponent(JSON.stringify(opt))
 }
 export const moduleInit = (opt:{
   //moduleInfo?:any,

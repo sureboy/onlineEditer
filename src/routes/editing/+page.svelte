@@ -2,6 +2,7 @@
     import CodeMirror from "$lib/components/CodeMirror.svelte";
     import { javascript } from "@codemirror/lang-javascript"; 
     import { EditorView } from '@codemirror/view'; 
+       import { helpPanel } from "$lib/function/helpPanel"; 
     const newPackageCode:string = `import modeling from '@jscad/modeling';
 import  manifold from 'manifold-3d';
 const Manifold = await  manifold()
@@ -89,6 +90,7 @@ let timeout: number ;
 
 <CodeMirror 
     //bind:value={value} 
+     extensions={[helpPanel()]}
     keybindings= {[saveKeymap]}
     lang={javascript()}
     styles={{
