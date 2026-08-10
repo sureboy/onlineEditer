@@ -2,7 +2,7 @@
     import CodeMirror from "$lib/components/CodeMirror.svelte";
     import { javascript } from "@codemirror/lang-javascript"; 
     import { EditorView } from '@codemirror/view'; 
-    import { helpPanel,appendChildToDom } from "$lib/function/helpPanel"; 
+    import { helpPanel,appendChildToDom } from "$lib/function/helpPanel";  
     const newPackageCode:string = `/*
 import modeling from '@jscad/modeling';
 import  manifold from 'manifold-3d';
@@ -28,7 +28,7 @@ export const main=(opt)=>{
   return [modeling.primitives.cube(option),option]
 }
 */`
-    //let value =  "";
+
     const FileInfo:{
         create?:boolean,
         name?:string,
@@ -216,11 +216,64 @@ export const main=(opt)=>{
             throw err
         }
     }
-let timeout: number ;
+    let timeout: number;
+    let firstChange = false;
+ 
+//  import type {   Extension } from "@codemirror/state"; 
+import { autocompletion,CompletionContext } from '@codemirror/autocomplete'; 
+import jscadCompletions from '$lib/assets/jscadCompletions.json';
+import { snippets } from '@codemirror/lang-javascript';
+import type {CompletionResult} from '@codemirror/autocomplete'
+//const baseExtensions = 
+let jscadKey = "modeling."
+const jscadCompletionsOption = jscadCompletions 
+    .map(item => ({ 
+           label: item.label,
+      type: item.type,
+      info: item.detail
+    }))
+function jscadModelingCompletionSource (context:CompletionContext): CompletionResult | null  {
+    let word = context.matchBefore(/[\w.]+/);
+    if (!word || (word.from == word.to && !context.explicit)) return null;
+    const k  =word.text.split(".").pop()
+    if ( word.text.startsWith(jscadKey) && k) {
+        const options = jscadCompletionsOption.filter(item => item.label.startsWith(k))
+
+        if (context){
+            console.log(word.text,k,options,context)
+            return { from: word.from+jscadKey.length, options,validFor: /^[\w.]*$/ };
+        }
+    }
+    return {
+        from: word.from,
+        options:snippets 
+    };
+   
+};
+// 提取所有从 '@jscad/modeling' 导入的本地绑定名
+function getJscadImportAliases(doc: string) {
+  //const aliases: string[] = [];
+
+  // 1. 匹配默认导入: import modeling from '@jscad/modeling'
+  const defaultImport = /import\s+(\w+)\s+from\s+['"]@jscad\/modeling['"]/g;
+  let match: RegExpExecArray | null;
+  while ((match = defaultImport.exec(doc)) !== null) {
+    return match[1]+"."
+    //aliases.push(match[1]);
+  }
+
+ 
+  return jscadKey
+  //return aliases;
+}
 </script>
 
 <CodeMirror  
-    extensions={[helpPanel()]}
+    extensions={[helpPanel(),autocompletion({
+            override:[ 
+                jscadModelingCompletionSource
+        ]
+        }), ]}
     keybindings= {[saveKeymap]}
     lang={javascript()}
     styles={{
@@ -246,8 +299,16 @@ let timeout: number ;
     }}
     bounce={0} 
     onchange = {(v)=>{ 
+        
+        if (!firstChange){
+            firstChange=true
+            jscadKey = getJscadImportAliases(v)
+            return
+        }
+        //console.log("change")
         clearTimeout(timeout) 
         timeout = setTimeout(() => {
+            jscadKey= getJscadImportAliases(v)
             saveFile(v) 
         },5000) 
     }} 
