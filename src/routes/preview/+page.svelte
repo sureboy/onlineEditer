@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Canvas } from '@threlte/core'
-  import Menu from '$lib/components/Menu.svelte' 
-  import {moduleInit,SetEditingHashInfo} from "$lib/components/MainMenu.svelte";
+  import Menu,{SetEditingHashInfo} from '$lib/components/Menu.svelte' 
+  import {moduleInit} from "$lib/components/MainMenu.svelte";
   import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte';
   import { csg2Geo } from "$lib/function/csg2Three";
   import {toggleCamera} from "$lib/components/Camera.svelte"

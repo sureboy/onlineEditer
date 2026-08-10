@@ -4,7 +4,31 @@ import { showPanel, EditorView, keymap } from "@codemirror/view";
 import type {   Panel } from "@codemirror/view";
 // 1. 定义用于切换面板状态的效果 (Effect)
 const toggleHelpEffect = StateEffect.define<boolean>();
-
+//let select:HTMLSelectElement|undefined = undefined
+//let content:HTMLSpanElement|undefined=undefined
+let dom:HTMLDivElement|undefined = undefined
+/*
+export const updateSelect =(path:string,name:string,files:string[])=>{
+    if (!select)return
+    select.innerHTML = ''
+    files.forEach((text) => {
+        let opt = document.createElement("option");
+        opt.textContent = text; 
+        opt.defaultSelected=text===name 
+        select?.appendChild(opt);
+    });
+    select.onchange=(e)=>{
+        window.location.hash = encodeURIComponent(JSON.stringify({name:select?.value||"",path})) 
+        window.location.reload()
+    }
+}*/
+export const appendChildToDom = (...childrenNode:HTMLElement[])=>{
+    if (!dom)return
+    dom.innerHTML=""
+    childrenNode.forEach(v=>{
+        dom?.appendChild(v)
+    }) 
+}
 // 2. 定义状态字段 (StateField) 来管理面板的显示/隐藏
 const helpPanelStateField = StateField.define<boolean>({
     create: () => true,
@@ -24,29 +48,30 @@ const helpPanelStateField = StateField.define<boolean>({
 
 // 3. 创建面板的 DOM 元素
 function createHelpPanel(view: EditorView): Panel {
-    let dom = document.createElement("div");
+    dom = document.createElement("div");
     dom.className = "cm-menu-panel";
-
+/*
     // 创建下拉列表
-    let select = document.createElement("select");
-    let options = ["基础语法", "快捷键", "常见问题"];
-    options.forEach((text) => {
-        let opt = document.createElement("option");
-        opt.textContent = text;
-        select.appendChild(opt);
-    });
+    select = document.createElement("select");
+    
 
     // 创建一个用于显示帮助内容的区域
-    let content = document.createElement("span");
-    content.textContent = "当前帮助内容：基础语法";
-
-    // 监听下拉变化
-    select.addEventListener("change", () => {
-        content.textContent = `当前帮助内容：${select.value}`;
-    });
+    content = document.createElement("span");
+    content.style.marginRight = '6px';
+    //content.appendChild(createButton("del"))
+    dom.appendChild(createButton("delete","X",(e)=>{
+        const fileName = select?.value
+        if (fileName && window.confirm(`delete ${fileName} ?`)){
+            
+        }
+        
+    }))
+   
 
     dom.appendChild(select);
     dom.appendChild(content);
+    dom.appendChild(createButton("save","✓"))
+    */
     return { top: true, dom };
 }
 

@@ -1,20 +1,19 @@
 <script lang="ts" module>
+let Details:HTMLDetailsElement
 let menu:HTMLElement
 let tmpDiv:HTMLButtonElement 
 let solidName:HTMLElement;
-let editingHashInfo = $state("")
-let open = $state( true)
-export const SetEditingHashInfo = (opt:any)=>{
-  editingHashInfo =encodeURIComponent(JSON.stringify(opt))
-}
+ 
 export const moduleInit = (opt:{
   //moduleInfo?:any,
   list:string[],
   basename:string,
   Clickhandle?:(name:string)=>void} )=>{ 
   menu.innerHTML="" 
-  open=false;
+  //open=true;
+  Details
   //tmpDiv.
+  Details.style.display="inline"
   solidName.textContent = opt.basename 
   //console.log("change Main name",solidName)
   opt.list.forEach(m=>{
@@ -30,9 +29,15 @@ export const moduleInit = (opt:{
   //menu.append(tmpDiv)
 }
 </script>
+<script lang="ts">
+  import { onMount } from 'svelte';
+  onMount(()=>{
+    Details.style.display="none"
+  })
+</script>
 
-
-<details   {open} >
+ 
+<details  bind:this={Details} >
   <summary bind:this={solidName} style="cursor: pointer;height:48px;text-align: left;line-height: 48px;"  >
 ...
 </summary> 
@@ -41,11 +46,8 @@ export const moduleInit = (opt:{
     ...
   </button> 
 </div> 
-<div style="color:white;text-align: center;">
-  <a  
-  style="color:white;cursor: pointer;height:48px;text-align: left;line-height: 48px;"  
-   href="/editing#{editingHashInfo}" target="_blank"> {editingHashInfo?'Editing':'New'} </a>
-   </div>
+
 </details>
+ 
  
  

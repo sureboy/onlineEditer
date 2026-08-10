@@ -86,6 +86,7 @@ const getLocaldb =async () => {
           window.location.reload();
         })         
     }} />
+    <a href="/edit">Create a project</a>
 </p>
 </div>
 <h1>实例</h1>
