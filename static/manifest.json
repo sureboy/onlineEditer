@@ -1,0 +1,39 @@
+{
+    "name": "solidJSCAD",
+    "short_name": "solidJSCAD",
+    "icons": [
+        {
+            "src": "./favicon_64x64.png",
+            "sizes": "64x64",
+            "type": "image/png"
+        },
+        {
+            "src": "./favicon_128x128.png",
+            "type": "image/png",
+            "sizes": "128x128"
+        },
+        {
+            "src": "./favicon_192x192.png",
+            "type": "image/png",
+            "sizes": "192x192"
+        },
+        {
+            "src": "./favicon_256x256.png",
+            "type": "image/png",
+            "sizes": "256x256",
+            "purpose":"maskable"
+        },
+        {
+            "src": "./favicon.png",
+            "type": "image/png",
+            "sizes": "512x512",
+            "purpose":"maskable"
+        }
+    ],
+    "start_url": "/",
+    "display": "standalone", 
+    "description":"solidJSCAD",
+    "lang":"en", 
+    "scope":"/" 
+}
+  

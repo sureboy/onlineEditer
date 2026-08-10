@@ -219,60 +219,38 @@ export const main=(opt)=>{
 let timeout: number ;
 </script>
 
-<CodeMirror 
-    //bind:value={value} 
-     extensions={[helpPanel()]}
+<CodeMirror  
+    extensions={[helpPanel()]}
     keybindings= {[saveKeymap]}
     lang={javascript()}
     styles={{
     "& .cm-editor": { padding: "0",border: "none" },  
     }} 
-    onready = {async (cm_view)=>{  
-        //eView = cm_view
+    onready = {async (cm_view)=>{   
         const hashPath = window.location.hash.slice(1);
         if (hashPath){
             Object.assign(
                 FileInfo , 
                 JSON.parse(decodeURIComponent(hashPath))
-            )
-       
-
-            //const i = tmpPathName.indexOf("/")
-            //tmpPathName.
+            ) 
             await getFileHandle().then(({f})=>{
-                f?.text().then(db=>{
-                    //value = db ||newPackageCode
+                f?.text().then(db=>{ 
                     updateEditorDoc(cm_view,db ||newPackageCode)
                 })
             }).catch((res)=>{
-                console.error(res)
-                //value = newPackageCode
+                console.error(res) 
                 updateEditorDoc(cm_view,newPackageCode)
             })
-        } 
-      
-        initPanel(cm_view)
- 
+        }       
+        initPanel(cm_view) 
     }}
-    bounce={0}
-    //nodebounce={true}
-    onchange = {(v)=>{
-
-        //SaveTmpDBToLocal() 
-        //debounce(()=>{
-            //value = v;
-        //if (timeout){
-        clearTimeout(timeout)
-        //}
+    bounce={0} 
+    onchange = {(v)=>{ 
+        clearTimeout(timeout) 
         timeout = setTimeout(() => {
             saveFile(v) 
-        },5000)
-            
-            //window.localStorage.setItem(tmpPathName,value);
-        //},1000)()
-        
-    }}
-   
+        },5000) 
+    }} 
  />
  
   

@@ -26,6 +26,6 @@ const {Clickhandle}:{Clickhandle:(name:string|{[k:string]:any})=>void } = $props
 <div style="color:white;text-align: left;">
   <a  
   style="color:white;cursor: pointer;height:48px;text-align: left;line-height: 48px;"  
-   href="/edit#{editingHashInfo}" target="_blank"> {editingHashInfo?'Edit':'New'} </a>
+   href="/edit#{editingHashInfo}" > {editingHashInfo?'Edit':'New'} </a>
    </div>
 </div>

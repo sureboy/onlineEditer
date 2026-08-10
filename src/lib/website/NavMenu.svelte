@@ -3,8 +3,7 @@
 
   // 菜单项列表
   const menuItems = [
-    { key: 'start', label: '开始',url:"/" },
-    { key: 'new', label: '新建',url:"/#new" },
+    { key: 'start', label: '开始',url:"/edit/" },
     { key: 'help', label: '文档',url:"/docs/" }
   ];
 

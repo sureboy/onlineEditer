@@ -153,15 +153,18 @@ function switchView(direction:string) {
 
 
 </script>
-<div style="width: 100vw; height: 100vh;">
+<div   class="preview">
 <Canvas  >
  <OrthoScene  {solidControlConfig} {geometrys} ></OrthoScene>
 </Canvas> 
-</div>
+
 <Dialog title = {"welcome"}><div bind:this={DialogDiv}>test</div></Dialog>
 <Menu {Clickhandle}></Menu>
+</div>
 <style>
-  :root {
+.preview {
+  width: 100vw; 
+  height: 100vh;
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
