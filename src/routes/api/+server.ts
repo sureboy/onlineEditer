@@ -36,15 +36,17 @@ const getFunction = (obj:object,func:(value:any )=>void,parent:string[]=[])=>{
 }
 export const GET: RequestHandler =async (e) => { 
     const key = e.url.searchParams.get("key")  
+    const as = e.url.searchParams.get("as")  || ""
     //const jscad = modeling as {[k:string]:any}
     const list:any[] = []
     getFunction(modeling,(value)=>{
         //console.log(f,typeof f,p )
         list.push(value)
-    },[])
+    },[as])
    
     return json({ 
-      modeling:list
+        key,
+        list
     },{headers:{
       "Access-Control-Allow-Origin":"*",
     }}) 

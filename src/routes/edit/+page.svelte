@@ -224,8 +224,12 @@ import { autocompletion,CompletionContext } from '@codemirror/autocomplete';
 import jscadCompletions from '$lib/assets/jscadCompletions.json';
 import { snippets } from '@codemirror/lang-javascript';
 import type {CompletionResult} from '@codemirror/autocomplete'
+//import { initSync, parse } from 'es-module-lexer';
+
+
 //import { javascriptLanguage } from '@codemirror/lang-javascript';
 //const baseExtensions = 
+let cadImport:{[k:string]:any} = {}
 let jscadKey = "modeling."
 let jscadCompletionsOption = jscadCompletions 
     .map(item => ({ 
@@ -236,7 +240,31 @@ let jscadCompletionsOption = jscadCompletions
 function jscadModelingCompletionSource (context:CompletionContext): CompletionResult | null  {
     let word = context.matchBefore(/[\w.]+/);
     if (!word || (word.from == word.to && !context.explicit)) return null;
-    
+  
+    //const importKey = 
+    let opt = cadImport[word.text.slice(0,word.text.indexOf('.'))] as any[]
+    if (opt){
+        const lastd =word.text.lastIndexOf(".")
+        
+        const k = word.text.slice(lastd+1)
+        console.log(lastd,k)
+        opt = opt.filter(item => item.label.startsWith(word.text))
+        if (k){
+            return { 
+                from: word.from , 
+                options: opt,
+                validFor: /^[\w.]*$/ 
+            };
+        }else{
+            //return null
+            return { 
+                from: word.from , 
+                options: opt.filter(item =>  item.label.lastIndexOf(".") ===lastd ),
+                validFor: /^[\w.]*$/ 
+            };
+        }
+    }
+    /*
     if ( word.text.startsWith(jscadKey) ) {
         const wordList = word.text.split(".")
         const first = wordList.shift()
@@ -251,7 +279,7 @@ function jscadModelingCompletionSource (context:CompletionContext): CompletionRe
             const options = jscadCompletionsOption.filter(item => item.label.split(".").length===1 )
             return { from: word.from+jscadKey.length, options,validFor: /^[\w.]*$/ };
         }
-    }
+    }*/
     return null
    
 };
@@ -264,6 +292,34 @@ function javascriptCompletionSource (context:CompletionContext): CompletionResul
     };
    
 };
+
+function getImportAliases(doc: string) {
+  const aliases: {as:string,key:string}[] = [];
+
+ 
+  // 1. 匹配默认导入: import modeling from '@jscad/modeling'
+  const defaultImport = /import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g;
+  let match: RegExpExecArray | null;
+  while ((match = defaultImport.exec(doc)) !== null) {
+    const importInfo = {as:match[1],key:match[2]}
+    aliases.push(importInfo)
+    //aliases.push(match[1]);
+    if (!cadImport[importInfo.as]){
+        cadImport[importInfo.as]=[]
+        const searchParams = new URLSearchParams(importInfo);
+        fetch("/api?"+searchParams.toString()).then(r=>{
+            r.json().then(v=>{
+                console.log(v)
+                cadImport[importInfo.as] = v.list
+            })
+        })
+    }
+  }
+
+ 
+  //return jscadKey
+  return aliases;
+}
 // 提取所有从 '@jscad/modeling' 导入的本地绑定名
 function getJscadImportAliases(doc: string) {
   //const aliases: string[] = [];
@@ -317,12 +373,15 @@ function getJscadImportAliases(doc: string) {
         
         if (!firstChange){
             firstChange=true
+            //initSync()
+            const aliases = getImportAliases(v)
+            console.log(aliases)
             jscadKey = getJscadImportAliases(v)
-            fetch("/api").then(r=>{
-                r.json().then(v=>{
-                    jscadCompletionsOption = v['modeling'] as any[]
-                })
-            })
+            //fetch("/api").then(r=>{
+            //    r.json().then(v=>{
+            //        jscadCompletionsOption = v['modeling'] as any[]
+            //    })
+            //})
             return
         }
         //console.log("change")
