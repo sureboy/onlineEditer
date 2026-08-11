@@ -224,9 +224,10 @@ import { autocompletion,CompletionContext } from '@codemirror/autocomplete';
 import jscadCompletions from '$lib/assets/jscadCompletions.json';
 import { snippets } from '@codemirror/lang-javascript';
 import type {CompletionResult} from '@codemirror/autocomplete'
+//import { javascriptLanguage } from '@codemirror/lang-javascript';
 //const baseExtensions = 
 let jscadKey = "modeling."
-const jscadCompletionsOption = jscadCompletions 
+let jscadCompletionsOption = jscadCompletions 
     .map(item => ({ 
            label: item.label,
       type: item.type,
@@ -235,15 +236,28 @@ const jscadCompletionsOption = jscadCompletions
 function jscadModelingCompletionSource (context:CompletionContext): CompletionResult | null  {
     let word = context.matchBefore(/[\w.]+/);
     if (!word || (word.from == word.to && !context.explicit)) return null;
-    const k  =word.text.split(".").pop()
-    if ( word.text.startsWith(jscadKey) && k) {
-        const options = jscadCompletionsOption.filter(item => item.label.startsWith(k))
-
-        if (context){
-            console.log(word.text,k,options,context)
+    
+    if ( word.text.startsWith(jscadKey) ) {
+        const wordList = word.text.split(".")
+        const first = wordList.shift()
+        const k  =wordList.join(".")
+        if (k){
+            const options = jscadCompletionsOption.filter(item => item.label.startsWith(k))
+            if (context){
+                console.log(word.text,k,options,context)
+                return { from: word.from+jscadKey.length, options,validFor: /^[\w.]*$/ };
+            }
+        }else{
+            const options = jscadCompletionsOption.filter(item => item.label.split(".").length===1 )
             return { from: word.from+jscadKey.length, options,validFor: /^[\w.]*$/ };
         }
     }
+    return null
+   
+};
+function javascriptCompletionSource (context:CompletionContext): CompletionResult | null  {
+    let word = context.matchBefore(/\w+/);
+    if (!word || (word.from == word.to && !context.explicit)) return null;
     return {
         from: word.from,
         options:snippets 
@@ -254,6 +268,7 @@ function jscadModelingCompletionSource (context:CompletionContext): CompletionRe
 function getJscadImportAliases(doc: string) {
   //const aliases: string[] = [];
 
+ 
   // 1. 匹配默认导入: import modeling from '@jscad/modeling'
   const defaultImport = /import\s+(\w+)\s+from\s+['"]@jscad\/modeling['"]/g;
   let match: RegExpExecArray | null;
@@ -271,7 +286,7 @@ function getJscadImportAliases(doc: string) {
 <CodeMirror  
     extensions={[helpPanel(),autocompletion({
             override:[ 
-                jscadModelingCompletionSource
+                jscadModelingCompletionSource,javascriptCompletionSource
         ]
         }), ]}
     keybindings= {[saveKeymap]}
@@ -303,6 +318,11 @@ function getJscadImportAliases(doc: string) {
         if (!firstChange){
             firstChange=true
             jscadKey = getJscadImportAliases(v)
+            fetch("/api").then(r=>{
+                r.json().then(v=>{
+                    jscadCompletionsOption = v['modeling'] as any[]
+                })
+            })
             return
         }
         //console.log("change")
