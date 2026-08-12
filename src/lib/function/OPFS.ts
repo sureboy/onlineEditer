@@ -1,3 +1,121 @@
+import { createTarPacker,createTarDecoder } from 'modern-tar';
+
+export async function extractTarStreamToOPFS( tarFile:File) { 
+    const fileStream = tarFile.stream(); 
+    const decompressedStream = fileStream.pipeThrough(new DecompressionStream('gzip')); 
+    const tarStream = decompressedStream.pipeThrough(createTarDecoder());
+    const PathName = tarFile.name.split('.')[0]
+    //const decompressedStream = tarFile.stream()
+    //    .pipeThrough(new DecompressionStream('gzip'));
+    
+    // 将解压后的流（TAR 数据）转换为 Uint8Array
+    //const tarBuffer = new Uint8Array(await new Response(decompressedStream).arrayBuffer());
+    //const tarStream = decompressedStream.pipeThrough(createTarDecoder());
+    // 使用 modern-tar 解包 TAR 数据
+    //const entries = await unpackTar(tarBuffer);
+    const root = await navigator.storage.getDirectory();
+    const dirHandle =await root.getDirectoryHandle(PathName,{create:true})
+    const reader = tarStream.getReader();
+    try {
+        while (true) {
+            const { value: entry, done } = await reader.read();
+            if (done) break;
+
+            //const path = entry.header.name.replace(/^\.?\/?/, '');
+            //const lastSlash = path.lastIndexOf('/');
+            //const parentDir = lastSlash !== -1 ? path.substring(0, lastSlash) : '';
+
+            if (entry.header.type === 'file') { 
+              console.log(entry)
+              const f = await dirHandle.getFileHandle(encodeURIComponent(entry.header.name),{create:true})
+              //dirHandle.getFileHandle()
+              //const f =await getFileHandleFromOPFS( entry.header.name,{create:true,root}) 
+              const w =await  f.createWritable() 
+              await entry.body.pipeTo(w); 
+            }
+        }
+    } finally {
+        reader.releaseLock();
+    } 
+}
+type TarFileEntry = {
+  header: {
+    name: string;
+    size: number;
+    type: 'file'; // 这里固定为 'file'，因为只产出文件
+  };
+  body: Uint8Array;
+};
+  /**
+ * 递归遍历 OPFS 目录，生成所有文件条目
+ */
+async function* walkDirectory(dirHandle:FileSystemDirectoryHandle, path = ''):AsyncGenerator<TarFileEntry, void, unknown> {
+  for await (const [name, handle] of dirHandle.entries()) {
+    const entryPath =decodeURIComponent(name) // path ? `${path}/${name}` : name;
+    if (handle.kind === 'file') {
+      // 如果是目录，递归遍历
+
+      //yield* walkDirectory(handle, entryPath);
+    //} else {
+      // 如果是文件，读取内容并生成条目
+      const file = await handle.getFile();
+      const arrayBuffer = await file.arrayBuffer();
+      yield {
+        header: {
+          name: entryPath,
+          size: file.size,
+          type: 'file',
+        },
+        body: new Uint8Array(arrayBuffer),
+      };
+    }
+  }
+}
+
+/**
+ * 打包 OPFS 目录为 tar.gz 并下载
+ */
+export async function downloadOpfsAsTarGz(rootDirHandle:FileSystemDirectoryHandle, archiveName = 'archive.tar.gz') {
+  // 1. 创建 tar 打包器
+  const { readable, controller } = createTarPacker();
+
+  // 2. 异步遍历目录并添加文件到 tar 包
+  (async () => {
+    try {
+      for await (const entry of walkDirectory(rootDirHandle)) {
+        const fileStream = controller.add(entry.header);
+        const writer = fileStream.getWriter();
+        await writer.write(entry.body);
+        await writer.close();
+      }
+    } finally {
+      // 所有文件添加完成后，必须 finalize
+      controller.finalize();
+    }
+  })();
+
+  // 3. 使用浏览器原生 API 进行 gzip 压缩
+  const compressedStream = readable.pipeThrough(new CompressionStream('gzip'));
+
+  // 4. 将压缩流转换为 Blob 并触发下载
+  const reader = compressedStream.getReader();
+  const chunks = [];
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+  }
+  const blob = new Blob(chunks, { type: 'application/gzip' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = archiveName;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+/*
 async function getDirectoryHandleFromOPFS(pathStr:string, opt:{ create:boolean, root?:FileSystemDirectoryHandle }  = {create:false}) {
     // 1. 获取根目录句柄
     const rootHandle = opt.root || await navigator.storage.getDirectory();
@@ -41,7 +159,7 @@ async function getDirectoryHandleFromOPFS(pathStr:string, opt:{ create:boolean, 
 
     return currentHandle;
 }
-export async function getFileHandleFromOPFS(filePath:string,opt:{ create:boolean, root?:FileSystemDirectoryHandle }  = {create:false}) {
+export async function getFileHandleFromOPFS_(filePath:string,opt:{ create:boolean, root?:FileSystemDirectoryHandle }  = {create:false}) {
     // 1. 解析路径
     //filePath.indexOf()
     const lastSlashIndex = filePath.lastIndexOf("/");
@@ -54,3 +172,5 @@ export async function getFileHandleFromOPFS(filePath:string,opt:{ create:boolean
     // 3. 在父目录下获取文件句柄
     return  await directoryHandle.getFileHandle(fileName, { create:opt.create }) 
 } 
+
+*/

@@ -5,6 +5,7 @@ import {
     Vector3,
     OrthographicCamera,
     PerspectiveCamera, 
+     WebGLRenderer
 } from 'three';
 let camera:OrthographicCamera|PerspectiveCamera|undefined = $state(undefined)
 let Controls :Orb|undefined = $state(undefined) ;
@@ -141,8 +142,13 @@ export const refreshCamera = (direction:string,isOrthographic:boolean,MaxSize:Ve
     //isOrthographic:boolean,
     geometrys:{geometry:any,material:any}[] 
 } = $props()
-const {size}= useThrelte()
+const Context= useThrelte()
+const getContext = ()=>{
+  return Context
+}
 onMount(()=>{
+  const {size} = Context
+  solidControlConfig['getContext']=getContext
    solidControlConfig["getAspect"]=()=>{
     console.log(size.current)
     return size.current.width/size.current.height

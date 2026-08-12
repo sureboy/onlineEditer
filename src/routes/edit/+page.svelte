@@ -221,7 +221,7 @@ export const main=(opt)=>{
  
 //  import type {   Extension } from "@codemirror/state"; 
 import { autocompletion,CompletionContext } from '@codemirror/autocomplete'; 
-import jscadCompletions from '$lib/assets/jscadCompletions.json';
+//import jscadCompletions from '$lib/assets/jscadCompletions.json';
 import { snippets } from '@codemirror/lang-javascript';
 import type {CompletionResult} from '@codemirror/autocomplete'
 //import { initSync, parse } from 'es-module-lexer';
@@ -230,13 +230,6 @@ import type {CompletionResult} from '@codemirror/autocomplete'
 //import { javascriptLanguage } from '@codemirror/lang-javascript';
 //const baseExtensions = 
 let cadImport:{[k:string]:any} = {}
-let jscadKey = "modeling."
-let jscadCompletionsOption = jscadCompletions 
-    .map(item => ({ 
-           label: item.label,
-      type: item.type,
-      info: item.detail
-    }))
 function jscadModelingCompletionSource (context:CompletionContext): CompletionResult | null  {
     let word = context.matchBefore(/[\w.]+/);
     if (!word || (word.from == word.to && !context.explicit)) return null;
@@ -294,7 +287,7 @@ function javascriptCompletionSource (context:CompletionContext): CompletionResul
 };
 
 function getImportAliases(doc: string) {
-  const aliases: {as:string,key:string}[] = [];
+  //const aliases: {as:string,key:string}[] = [];
 
  
   // 1. 匹配默认导入: import modeling from '@jscad/modeling'
@@ -302,7 +295,7 @@ function getImportAliases(doc: string) {
   let match: RegExpExecArray | null;
   while ((match = defaultImport.exec(doc)) !== null) {
     const importInfo = {as:match[1],key:match[2]}
-    aliases.push(importInfo)
+    //aliases.push(importInfo)
     //aliases.push(match[1]);
     if (!cadImport[importInfo.as]){
         cadImport[importInfo.as]=[]
@@ -318,8 +311,9 @@ function getImportAliases(doc: string) {
 
  
   //return jscadKey
-  return aliases;
+  //return aliases;
 }
+/*
 // 提取所有从 '@jscad/modeling' 导入的本地绑定名
 function getJscadImportAliases(doc: string) {
   //const aliases: string[] = [];
@@ -336,7 +330,7 @@ function getJscadImportAliases(doc: string) {
  
   return jscadKey
   //return aliases;
-}
+}*/
 </script>
 
 <CodeMirror  
@@ -374,9 +368,9 @@ function getJscadImportAliases(doc: string) {
         if (!firstChange){
             firstChange=true
             //initSync()
-            const aliases = getImportAliases(v)
-            console.log(aliases)
-            jscadKey = getJscadImportAliases(v)
+              getImportAliases(v)
+            //console.log(aliases)
+            //jscadKey = getJscadImportAliases(v)
             //fetch("/api").then(r=>{
             //    r.json().then(v=>{
             //        jscadCompletionsOption = v['modeling'] as any[]
@@ -387,7 +381,8 @@ function getJscadImportAliases(doc: string) {
         //console.log("change")
         clearTimeout(timeout) 
         timeout = setTimeout(() => {
-            jscadKey= getJscadImportAliases(v)
+            getImportAliases(v)
+            //jscadKey= getJscadImportAliases(v)
             saveFile(v) 
         },5000) 
     }} 

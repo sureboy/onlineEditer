@@ -1,8 +1,13 @@
 import type { RequestHandler } from './$types';
 import modeling from '@jscad/modeling';
-import { error,json } from '@sveltejs/kit';
-import { label } from 'three/tsl';
+import  * as manifold from 'manifold-3d';
+import { error,json } from '@sveltejs/kit'; 
 //import { mod } from 'three/tsl';
+//const Manifold = await  manifold()
+//Manifold.setup()
+const importMap:{[k:string]:any} = {
+    '@jscad/modeling':modeling,
+    'manifold-3d':manifold}
 export const OPTIONS = async () => {
   return new Response(null, {
     status: 204,
@@ -36,18 +41,30 @@ const getFunction = (obj:object,func:(value:any )=>void,parent:string[]=[])=>{
 }
 export const GET: RequestHandler =async (e) => { 
     const key = e.url.searchParams.get("key")  
+    if (!key  ){
+        error(404); 
+    }
+         
+    const mod = importMap[key]
+    if (!mod){
+        error(404); 
+    }
     const as = e.url.searchParams.get("as")  || ""
     //const jscad = modeling as {[k:string]:any}
+    importMap[key]
     const list:any[] = []
-    getFunction(modeling,(value)=>{
+    getFunction(typeof mod==="function"?mod():mod,(value)=>{
         //console.log(f,typeof f,p )
         list.push(value)
     },[as])
-   
+
     return json({ 
         key,
         list
     },{headers:{
-      "Access-Control-Allow-Origin":"*",
+    "Access-Control-Allow-Origin":"*",
     }}) 
+         
+    
+    
 };

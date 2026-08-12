@@ -3,46 +3,7 @@ import NavMenu from '$lib/website/NavMenu.svelte';
 import List from '$lib/website/List.svelte';
 import type {itemType} from '$lib/website/List.svelte'
 //import {getFileHandleFromOPFS} from "$lib/function/OPFS"; 
-import { createTarDecoder } from 'modern-tar'; 
-
-async function extractTarStreamToOPFS( tarFile:File) { 
-    const fileStream = tarFile.stream(); 
-    const decompressedStream = fileStream.pipeThrough(new DecompressionStream('gzip')); 
-    const tarStream = decompressedStream.pipeThrough(createTarDecoder());
-    const PathName = tarFile.name.split('.')[0]
-    //const decompressedStream = tarFile.stream()
-    //    .pipeThrough(new DecompressionStream('gzip'));
-    
-    // 将解压后的流（TAR 数据）转换为 Uint8Array
-    //const tarBuffer = new Uint8Array(await new Response(decompressedStream).arrayBuffer());
-    //const tarStream = decompressedStream.pipeThrough(createTarDecoder());
-    // 使用 modern-tar 解包 TAR 数据
-    //const entries = await unpackTar(tarBuffer);
-    const root = await navigator.storage.getDirectory();
-    const dirHandle =await root.getDirectoryHandle(PathName,{create:true})
-    const reader = tarStream.getReader();
-    try {
-        while (true) {
-            const { value: entry, done } = await reader.read();
-            if (done) break;
-
-            //const path = entry.header.name.replace(/^\.?\/?/, '');
-            //const lastSlash = path.lastIndexOf('/');
-            //const parentDir = lastSlash !== -1 ? path.substring(0, lastSlash) : '';
-
-            if (entry.header.type === 'file') { 
-              console.log(entry)
-              const f = await dirHandle.getFileHandle(encodeURIComponent(entry.header.name),{create:true})
-              //dirHandle.getFileHandle()
-              //const f =await getFileHandleFromOPFS( entry.header.name,{create:true,root}) 
-              const w =await  f.createWritable() 
-              await entry.body.pipeTo(w); 
-            }
-        }
-    } finally {
-        reader.releaseLock();
-    } 
-  }
+import { extractTarStreamToOPFS } from '$lib/function/OPFS'; 
 
 const getLocaldb =async () => {
     const localList:itemType[]= []
@@ -51,7 +12,7 @@ const getLocaldb =async () => {
         const l = localList.length;
         const item = {
             title:k,
-            url:"/preview#"+k,del:()=>{ 
+            url:"/preview#"+encodeURIComponent(k),del:()=>{ 
             if (!window.confirm("delete "+k))return;
             root.removeEntry(k,{recursive:true})
             //window.location.reload(); 

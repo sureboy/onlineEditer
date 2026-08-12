@@ -36,10 +36,12 @@
   let geometrys:{geometry:any,material:any}[] =$state([])
 
   const solidControlConfig:{[k:string]:any} = $state({
+    title:"welcome",
     axes:true,grid:true,main:[],
     isOrthographic:false,
     MaxSize :new Vector3(),
     GridSize:10,
+    show:false
     //getAspect:()=>{return aspect},
   })
   const ClickhandleWithMainMenu = (basename:string)=>{
@@ -76,7 +78,7 @@ const onmessageListen =async (e:MessageEvent)=>{
   }
   if (e.data.end){ 
     refreshCameraInit(solidControlConfig as any)
- 
+    solidControlConfig.show = true
     return
  
   }
@@ -87,8 +89,7 @@ const onmessageListen =async (e:MessageEvent)=>{
       geometrys.push(geo)
       geo.geometry.computeBoundingBox();
       const box = geo.geometry.boundingBox;
-      const size = new Vector3();
-      //;
+      const size = new Vector3(); 
       box?.getSize(size)
       //MaxSize.max()
       if (size.x>solidControlConfig.MaxSize.x) solidControlConfig.MaxSize.setX(size.x)
@@ -122,9 +123,10 @@ const onmessageListen =async (e:MessageEvent)=>{
   }
   onMount(() => {
     //worker = new MyWorker();
-    const path = window.location.hash.slice(1)
+    let path =decodeURIComponent(window.location.hash.slice(1))
     if (DialogDiv)DialogDiv.innerHTML=''
     if (path){
+      solidControlConfig.title = path
       SetEditingHashInfo({path})
       getWorker(onmessageListen).then( w=>{ 
         w?.postMessage({path })
@@ -138,28 +140,33 @@ const onmessageListen =async (e:MessageEvent)=>{
   });
  
 function switchView(direction:string) {
- if (direction==="camera"){
-
+  if (direction==="camera"){ 
     solidControlConfig.isOrthographic = toggleCamera()==='Orthographic'
     setTimeout(()=>{
       refreshCameraInit(solidControlConfig as any)
     })
     return;
-  }
-
+  } 
   refreshCamera(direction,solidControlConfig.isOrthographic,solidControlConfig.MaxSize)
-} 
-//let OrbControlsTarget = [0,0,0]
-
-
+}  
+const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
+  const {axes,grid } = solidControlConfig 
+  solidControlConfig.axes=false;
+  solidControlConfig.grid=false;
+  setTimeout(async ()=>{
+    await fn(solidControlConfig['getContext']?.()) 
+    solidControlConfig.axes=axes;
+    solidControlConfig.grid=grid; 
+  }) 
+}
 </script>
 <div   class="preview">
-<Canvas  >
+<Canvas   >
  <OrthoScene  {solidControlConfig} {geometrys} ></OrthoScene>
 </Canvas> 
 
-<Dialog title = {"welcome"}><div bind:this={DialogDiv}>test</div></Dialog>
-<Menu {Clickhandle}></Menu>
+<Dialog title = {solidControlConfig.title}><div bind:this={DialogDiv}>test</div></Dialog>
+<Menu show={solidControlConfig.show} {Clickhandle}  {DownHandle} ></Menu>
 </div>
 <style>
 .preview {

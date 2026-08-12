@@ -1,5 +1,5 @@
 <script lang="ts" module>
-let Details:HTMLDetailsElement
+//let Details:HTMLDetailsElement
 let menu:HTMLElement
 let tmpDiv:HTMLButtonElement 
 let solidName:HTMLElement;
@@ -10,10 +10,8 @@ export const moduleInit = (opt:{
   basename:string,
   Clickhandle?:(name:string)=>void} )=>{ 
   menu.innerHTML="" 
-  //open=true;
-  Details
-  //tmpDiv.
-  Details.style.display="inline"
+ 
+  //Details.style.display="inline"
   solidName.textContent = opt.basename 
   //console.log("change Main name",solidName)
   opt.list.forEach(m=>{
@@ -30,14 +28,11 @@ export const moduleInit = (opt:{
 }
 </script>
 <script lang="ts">
-  import { onMount } from 'svelte';
-  onMount(()=>{
-    Details.style.display="none"
-  })
+  const { show } :{  
+   show:boolean
+} = $props()
 </script>
-
- 
-<details  bind:this={Details} >
+<details   style="display:{show?"inline":'none'};"  >
   <summary bind:this={solidName} style="cursor: pointer;height:48px;text-align: left;line-height: 48px;"  >
 ...
 </summary> 
