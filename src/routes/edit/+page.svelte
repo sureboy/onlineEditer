@@ -293,19 +293,25 @@ function getImportAliases(doc: string) {
   // 1. 匹配默认导入: import modeling from '@jscad/modeling'
   const defaultImport = /import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g;
   let match: RegExpExecArray | null;
+ 
   while ((match = defaultImport.exec(doc)) !== null) {
     const importInfo = {as:match[1],key:match[2]}
     //aliases.push(importInfo)
     //aliases.push(match[1]);
     if (!cadImport[importInfo.as]){
         cadImport[importInfo.as]=[]
-        const searchParams = new URLSearchParams(importInfo);
-        fetch("/api?"+searchParams.toString()).then(r=>{
+        //const searchParams = new URLSearchParams(importInfo);
+        fetch(`/${encodeURIComponent(importInfo.key)}.json`).then(r=>{
             r.json().then(v=>{
-                console.log(v)
-                cadImport[importInfo.as] = v.list
+                
+                cadImport[importInfo.as] = v[importInfo.key].map((l:any)=>{
+                    l.label = importInfo.as +'.'+l.label
+                    return l
+                })
+                //cadImport[importInfo.as] = v.list
             })
-        })
+        }) 
+        
     }
   }
 
