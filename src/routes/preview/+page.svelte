@@ -123,6 +123,9 @@ const onmessageListen =async (e:MessageEvent)=>{
   }
   onMount(() => {
     //worker = new MyWorker();
+    try{
+
+   
     let path =decodeURIComponent(window.location.hash.slice(1))
     if (DialogDiv)DialogDiv.innerHTML=''
     if (path){
@@ -137,6 +140,9 @@ const onmessageListen =async (e:MessageEvent)=>{
     return () => { 
       terminateWorker(); 
     };
+    }catch(err){
+      console.error(err)
+    }
   });
  
 function switchView(direction:string) {

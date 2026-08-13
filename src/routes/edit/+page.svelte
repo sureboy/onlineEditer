@@ -140,7 +140,7 @@ export const main=(opt)=>{
             clearTimeout(timeout) 
             saveFile(editorView.state.doc.toString()) 
             if (window.confirm(`Preview ${FileInfo.path} ?`)){
-                window.location.href="/preview#"+FileInfo.path
+                window.location.href="/preview#"+encodeURIComponent(FileInfo.path)
             }
                 
         }))
@@ -313,24 +313,7 @@ function getImportAliases(doc: string) {
   //return jscadKey
   //return aliases;
 }
-/*
-// 提取所有从 '@jscad/modeling' 导入的本地绑定名
-function getJscadImportAliases(doc: string) {
-  //const aliases: string[] = [];
 
- 
-  // 1. 匹配默认导入: import modeling from '@jscad/modeling'
-  const defaultImport = /import\s+(\w+)\s+from\s+['"]@jscad\/modeling['"]/g;
-  let match: RegExpExecArray | null;
-  while ((match = defaultImport.exec(doc)) !== null) {
-    return match[1]+"."
-    //aliases.push(match[1]);
-  }
-
- 
-  return jscadKey
-  //return aliases;
-}*/
 </script>
 
 <CodeMirror  
