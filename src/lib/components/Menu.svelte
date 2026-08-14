@@ -9,18 +9,14 @@ export const SetEditingHashInfo = (opt:any)=>{
   editingHashInfo =encodeURIComponent(JSON.stringify(opt))
 }
 </script>
-<script lang="ts">
-import Camera from "./Camera.svelte";
-import MainMenu  from "./MainMenu.svelte"; 
-    import DownMenu from "./DownMenu.svelte";
+<script lang="ts"> 
+import MainMenu  from "./MainMenu.svelte";  
 const {
-  Clickhandle,
-  DownHandle,
-  show
+  
+  children,
 }:{
-  show:false
-  DownHandle: any,
-  Clickhandle:(name:string|{[k:string]:any})=>void
+  children?:any,
+ 
 } = $props() 
 </script>
 <svelte:head><title>{title}</title></svelte:head>
@@ -31,10 +27,9 @@ const {
     <a style="color:white;cursor: pointer;height:48px;text-align: left;line-height: 48px;" 
     href="/docs/" data-sveltekit-reload >Docs</a>
 </div>
-<MainMenu  {show}   ></MainMenu>
-<Camera {Clickhandle} ></Camera>
-<DownMenu  {show} {title} {DownHandle}
-  ></DownMenu>
+
+
+{@render children?.()} 
 <div style="color:white;text-align: left;">
   <a  
   style="color:white;cursor: pointer;height:48px;text-align: left;line-height: 48px;"  

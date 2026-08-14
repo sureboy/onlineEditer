@@ -13,6 +13,9 @@
     Vector3, 
   } from 'three';
   import OrthoScene from '$lib/components/OrthoScene.svelte'; 
+  import DownMenu from "$lib/components/DownMenu.svelte";
+  import Camera from "$lib/components/Camera.svelte";
+  import MainMenu  from "$lib/components/MainMenu.svelte";  
   const channel = new BroadcastChannel('code-preview');
     let DialogDiv:HTMLDivElement|undefined=undefined
   channel.onmessage = (event) => { 
@@ -37,7 +40,8 @@
 
   const solidControlConfig:{[k:string]:any} = $state({
     title:"welcome",
-    axes:true,grid:true,main:[],
+    Light:true,
+    Axes:true,Grid:true,main:[],
     isOrthographic:false,
     MaxSize :new Vector3(),
     GridSize:10,
@@ -49,7 +53,8 @@
       w.postMessage({basename})
     })
   }
-  const Clickhandle=(k:string|{[k:string]:any})=>{
+  const Clickhandle=(k:string|{[k:string]:any}|null)=>{
+    if (!k)return;
     if (typeof k === 'string'){
         //console.log(k)
         switchView(k)
@@ -156,13 +161,13 @@ function switchView(direction:string) {
   refreshCamera(direction,solidControlConfig.isOrthographic,solidControlConfig.MaxSize)
 }  
 const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
-  const {axes,grid } = solidControlConfig 
-  solidControlConfig.axes=false;
-  solidControlConfig.grid=false;
+  const {Axes,Grid } = solidControlConfig 
+  solidControlConfig.Axes=false;
+  solidControlConfig.Grid=false;
   setTimeout(async ()=>{
     await fn(solidControlConfig['getContext']?.()) 
-    solidControlConfig.axes=axes;
-    solidControlConfig.grid=grid; 
+    solidControlConfig.Axes=Axes;
+    solidControlConfig.Grid=Grid; 
   }) 
 }
 </script>
@@ -172,7 +177,12 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
 </Canvas> 
 
 <Dialog title = {solidControlConfig.title}><div bind:this={DialogDiv}>test</div></Dialog>
-<Menu show={solidControlConfig.show} {Clickhandle}  {DownHandle} ></Menu>
+<Menu    >
+<MainMenu  show={solidControlConfig.show}   ></MainMenu>
+<Camera {Clickhandle} ></Camera>
+  <DownMenu  show={solidControlConfig.show} title = {solidControlConfig.title} {DownHandle}
+  ></DownMenu>
+</Menu>
 </div>
 <style>
 .preview {

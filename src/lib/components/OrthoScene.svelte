@@ -183,23 +183,30 @@ onMount(()=>{
     <OrbitControls bind:ref={Controls}  target={[0,0,0]} />
   </T.PerspectiveCamera>
  {/if}
- <T.HemisphereLight args={[0xffffbb, // 天空颜色
-	0xffffbb, // 地面颜色
-	0.6  ]} />
-  <T.AmbientLight args={[0x404040, 0.3]} />
+ {#if solidControlConfig.Light}
+  <T.DirectionalLight args={[0xffffff,1]} position={[0, 0, solidControlConfig.GridSize/2]}   />
+  <T.DirectionalLight args={[0xffffff, 0.8]} position={[0,solidControlConfig.GridSize/2, 0]}   />
+  <T.DirectionalLight args={[0xffffff, 0.6]} position={[solidControlConfig.GridSize/2, 0, 0]}   />
+  <T.DirectionalLight args={[0xffffff, 0.3]} position={[0, 0, -solidControlConfig.GridSize/2]}   />
+  <T.DirectionalLight args={[0xffffff, 0.5]} position={[0, -solidControlConfig.GridSize/2, 0]}   />
+  <T.DirectionalLight args={[0xffffff, 0.7]} position={[-solidControlConfig.GridSize/2, 0, 0]}   />
+ {/if}
+{#if solidControlConfig.Grid}
  
-  <T.DirectionalLight args={[0xffffff, 1]} position={[5, 10, 7]}   />
-  <T.DirectionalLight args={[0xffffff, 0.3]} position={[-5, 5, -5]}/>
-  <T.DirectionalLight args={[0xffffff, 0.4]} position={[0, 5, -10]}/>
-{#if solidControlConfig.grid}
+
+
   <T.GridHelper args={[solidControlConfig.GridSize,solidControlConfig.GridSize]} /> 
   {/if}
-  {#if solidControlConfig.axes}
-  <T.AxesHelper args={[solidControlConfig.GridSize/2]} />
+  {#if solidControlConfig.Axes}
+  <T.AxesHelper args={[solidControlConfig.GridSize/2+1]} />
   {/if}
   {#if geometrys} 
   {#each geometrys as {geometry,material}} 
+  
     <T.Mesh {geometry} {material}  > 
-    </T.Mesh>
+        {#if !solidControlConfig.Light}
+      <T.MeshNormalMaterial flatShading ></T.MeshNormalMaterial>
+        {/if}
+    </T.Mesh> 
   {/each}  
 {/if}
