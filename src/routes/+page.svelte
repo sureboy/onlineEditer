@@ -1,10 +1,20 @@
 <script lang="ts">
-import NavMenu from '$lib/website/NavMenu.svelte'; 
+ 
+import NavMenu from '$lib/components/NavMenu.svelte'; 
 import List from '$lib/website/List.svelte';
 import type {itemType} from '$lib/website/List.svelte'
-//import {getFileHandleFromOPFS} from "$lib/function/OPFS"; 
+ 
 import { extractTarStreamToOPFS } from '$lib/function/OPFS'; 
+import { onMount } from 'svelte';
 
+onMount(() => {
+    window.addEventListener("hashchange",(ev)=>{
+        console.log(window.location.hash)
+        const btn = document.getElementById(location.hash.slice(1))
+        btn?.click()
+    })
+    
+});
 const getLocaldb =async () => {
     const localList:itemType[]= []
     const root = await navigator.storage.getDirectory()  
@@ -22,11 +32,17 @@ const getLocaldb =async () => {
     return localList
 } 
 </script>
-<svelte:head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</svelte:head>
+ 
 <div style="display: block;  "> 
-<NavMenu />
+<NavMenu menuItems = {[
+
+    { key: 'start', label: '开始',url:"/edit/" },
+    { key: 'open', label: '打开',url:"/#open", click:()=>{
+        const btn = document.getElementById("open")
+        btn?.click()
+    } },
+    { key: 'help', label: '文档',url:"/docs/" }
+  ]} />
 <div style=" padding:25px 5px 5px 5px;"> 
 <div><h1>SolidJScad </h1>
    
@@ -38,7 +54,7 @@ const getLocaldb =async () => {
 </p>
 
 <p>
-    <input type="file" id="uploadTarGzFile" onchange={(event)=>{
+    <input type="file" id="open"  onchange={(event)=>{
         const files = (event.target as HTMLInputElement).files;
         if (!files)return; 
         const file = files[0]

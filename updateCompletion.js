@@ -12,7 +12,7 @@ const getFunction = (obj,func ,parent=[] )=>{
                 func({label:p.join("."),type:'variable',info: val.join("\n")})
             }else{
                 
-                func({label:p.join("."),type:'property',info: Object.keys(val).join("\n")})
+                func({label:p.join("."),type:'property', info:  Object.keys(val).join("\n")})
                 getFunction(val,func,p)
             }
         }else{

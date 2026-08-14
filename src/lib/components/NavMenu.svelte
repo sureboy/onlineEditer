@@ -2,11 +2,11 @@
    import { onMount } from 'svelte';
 
   // 菜单项列表
-  const menuItems = [
+  const menuItems_ = [
     { key: 'start', label: '开始',url:"/edit/" },
     { key: 'help', label: '文档',url:"/docs/" }
   ];
-
+let { menuItems }: { menuItems:{key:string,label:string,url:string,click?:(e?:any)=>void,active?:boolean}[]}  = $props();
   // 当前激活的菜单项 key
   let activeKey = $state('start');
   // 移动端菜单是否展开（默认折叠，节省空间）
@@ -82,13 +82,16 @@
         {#each menuItems as item}
           <li
             class="nav-item"
-            class:active={activeKey === item.key}
+            class:active={ item.active}
             role="listitem"
           >
             <a
               href="{item.url}"
               class="nav-link"
-              //on:click|preventDefault={() => setActive(item.key)}
+              
+              onclick = {()=>{
+                item.click?.()
+              }}  
             >
               {item.label}
             </a>

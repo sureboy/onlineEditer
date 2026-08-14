@@ -10,7 +10,7 @@ export const SetEditingHashInfo = (opt:any)=>{
 }
 </script>
 <script lang="ts"> 
-import MainMenu  from "./MainMenu.svelte";  
+ 
 const {
   
   children,

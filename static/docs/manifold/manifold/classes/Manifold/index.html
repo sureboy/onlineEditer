@@ -1,0 +1,1093 @@
+<!doctype html>
+<html lang="zh-CN" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-manifold/manifold/classes/Manifold" data-has-hydrated="false">
+<head>
+<meta charset="UTF-8">
+<meta name="generator" content="Docusaurus v3.9.2">
+<title data-rh="true">Manifold | solidJSCAD</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://solidjscad.com/docs/manifold/manifold/classes/Manifold"><meta data-rh="true" property="og:locale" content="zh_CN"><meta data-rh="true" name="docusaurus_locale" content="zh-CN"><meta data-rh="true" name="docsearch:language" content="zh-CN"><meta data-rh="true" name="keywords" content="参数化建模, 3D建模, 在线建模, JavaScript 3D, SolidJScad, 代码生成3D, STL导出, 三维设计, 开源建模工具,技术文档,教程"><meta data-rh="true" name="author" content="Zaddone"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Manifold | solidJSCAD"><meta data-rh="true" name="description" content="manifold-3d"><meta data-rh="true" property="og:description" content="manifold-3d"><link data-rh="true" rel="icon" href="/docs/img/favicon.png"><link data-rh="true" rel="canonical" href="https://solidjscad.com/docs/manifold/manifold/classes/Manifold"><link data-rh="true" rel="alternate" href="https://solidjscad.com/docs/manifold/manifold/classes/Manifold" hreflang="zh-CN"><link data-rh="true" rel="alternate" href="https://solidjscad.com/docs/manifold/manifold/classes/Manifold" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"manifold-3d","item":"https://solidjscad.com/docs/manifold/"},{"@type":"ListItem","position":2,"name":"manifold-3d","item":"https://solidjscad.com/docs/manifold/manifold/"},{"@type":"ListItem","position":3,"name":"Manifold","item":"https://solidjscad.com/docs/manifold/manifold/classes/Manifold"}]}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"solidjscad 参数化3D建模","url":"https://solidjscad.com","inLanguage":"zh-CN"}</script><link rel="stylesheet" href="/docs/assets/css/styles.8c1dd5bc.css">
+<script src="/docs/assets/js/runtime~main.c45ae627.js" defer="defer"></script>
+<script src="/docs/assets/js/main.08051fab.js" defer="defer"></script>
+</head>
+<body class="navigation-with-keyboard">
+<svg style="display: none;"><defs>
+<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")),document.documentElement.setAttribute("data-theme-choice",t||"system")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><link rel="preload" as="image" href="/docs/img/favicon.png"><div role="region" aria-label="跳到主要内容"><a class="skipToContent_fXgn" href="#__docusaurus_skipToContent_fallback">跳到主要内容</a></div><nav aria-label="主导航" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="切换导航栏" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a href="https://solidjscad.com/home/" target="_blank" rel="noopener noreferrer" class="navbar__brand"><div class="navbar__logo"><img src="/docs/img/favicon.png" alt="SolidJSCAD" class="themedComponent_mlkZ themedComponent--light_NVdE"><img src="/docs/img/favicon.png" alt="SolidJSCAD" class="themedComponent_mlkZ themedComponent--dark_xIcU"></div><b class="navbar__title text--truncate">SolidJSCAD</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/docs/">Docs</a><a href="https://solidjscad.com/" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">Start<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type="button" disabled="" title="system mode" aria-label="切换浅色/暗黑模式（当前为system mode）"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_Bca1"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_z2l0"><div class="docsWrapper_hBAB"><button aria-label="回到顶部" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type="button"></button><div class="docRoot_UBD9"><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class="sidebarViewport_aRkj"><div class="sidebar_njMd"><nav aria-label="文档侧边栏" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/docs/"><span title="SolidJSCAD 简介" class="linkLabel_WmDU">SolidJSCAD 简介</span></a></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist" href="/docs/category/javascript-基础教程"><span title="JavaScript 基础教程" class="categoryLinkLabel_W154">JavaScript 基础教程</span></a><button aria-label="展开侧边栏分类 &#x27;JavaScript 基础教程&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist" href="/docs/category/jscad-api教程"><span title="JSCAD API教程" class="categoryLinkLabel_W154">JSCAD API教程</span></a><button aria-label="展开侧边栏分类 &#x27;JSCAD API教程&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--active" href="/docs/manifold/"><span title="manifold-3d" class="categoryLinkLabel_W154">manifold-3d</span></a><button aria-label="折叠侧边栏分类 &#x27;manifold-3d&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--active" tabindex="0" href="/docs/manifold/manifold/"><span title="manifold-3d" class="categoryLinkLabel_W154">manifold-3d</span></a><button aria-label="折叠侧边栏分类 &#x27;manifold-3d&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-3 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret menu__link--active" role="button" aria-expanded="true" tabindex="0" href="/docs/manifold/manifold/classes/CrossSection"><span title="classes" class="categoryLinkLabel_W154">classes</span></a></div><ul class="menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-4 menu__list-item"><a class="menu__link" tabindex="0" href="/docs/manifold/manifold/classes/CrossSection"><span title="CrossSection" class="linkLabel_WmDU">CrossSection</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-4 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/docs/manifold/manifold/classes/Manifold"><span title="Manifold" class="linkLabel_WmDU">Manifold</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-4 menu__list-item"><a class="menu__link" tabindex="0" href="/docs/manifold/manifold/classes/Mesh"><span title="Mesh" class="linkLabel_WmDU">Mesh</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-3 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" tabindex="0" href="/docs/manifold/manifold/functions/default"><span title="functions" class="categoryLinkLabel_W154">functions</span></a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-3 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" tabindex="0" href="/docs/manifold/manifold/interfaces/ManifoldToplevel"><span title="interfaces" class="categoryLinkLabel_W154">interfaces</span></a></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-3 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--sublist-caret" role="button" aria-expanded="false" tabindex="0" href="/docs/manifold/manifold/type-aliases/Box"><span title="type-aliases" class="categoryLinkLabel_W154">type-aliases</span></a></div></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist" tabindex="0" href="/docs/manifold/manifold-encapsulated-types/"><span title="manifold-encapsulated-types" class="categoryLinkLabel_W154">manifold-encapsulated-types</span></a><button aria-label="展开侧边栏分类 &#x27;manifold-encapsulated-types&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist" tabindex="0" href="/docs/manifold/manifold-global-types/"><span title="manifold-global-types" class="categoryLinkLabel_W154">manifold-global-types</span></a><button aria-label="展开侧边栏分类 &#x27;manifold-global-types&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist" href="/docs/category/python教程"><span title="python教程" class="categoryLinkLabel_W154">python教程</span></a><button aria-label="展开侧边栏分类 &#x27;python教程&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/docs/PrivacyPolicy"><span title="隐私政策" class="linkLabel_WmDU">隐私政策</span></a></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/docs/UserAgreement"><span title="用户协议" class="linkLabel_WmDU">用户协议</span></a></li></ul></nav></div></div></aside><main class="docMainContainer_TBSr"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_VOVn"><div class="docItemContainer_Djhp"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_Z_bl" aria-label="页面路径"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="主页面" class="breadcrumbs__link" href="/docs/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_YNFT"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/docs/manifold/"><span>manifold-3d</span></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/docs/manifold/manifold/"><span>manifold-3d</span></a></li><li class="breadcrumbs__item"><span class="breadcrumbs__link">classes</span></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">Manifold</span></li></ul></nav><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type="button" class="clean-btn tocCollapsibleButton_TO0P">本页总览</button></div><div class="theme-doc-markdown markdown"><header><h1>Manifold</h1></header><p><a class="" href="/docs/manifold/"><strong>manifold-3d</strong></a></p>
+<hr>
+<p><a class="" href="/docs/manifold/">manifold-3d</a> / <a class="" href="/docs/manifold/manifold/">manifold</a> / Manifold</p>
+<h1>Class: Manifold</h1>
+<p>Defined in: manifold-3d/manifold.d.ts:417</p>
+<p>该库中带方向的二维流形三角网格的内部表示形式 —— 一种用于实体对象的简单边界表示法。使用此类来存储实体并对其执行操作；输入输出可借助 MeshGL 实现，若仅需基础几何功能，也可考虑使用 Mesh 类。</p>
+<p>除存储几何数据外，一个 Manifold（流形）还可存储任意数量的顶点属性。这些属性可以是任意内容（例如法向量、UV 坐标、颜色等），但本库对此完全无感知。所有属性仅为按通道编号索引的浮点数值，需由用户自行将通道编号与具体含义关联。</p>
+<p>Manifold 支持顶点属性共享以实现高效存储，也允许单个几何顶点关联多个属性顶点，从而能够在不破坏流形特性的前提下实现属性的突变（例如在布尔交集运算处）。</p>
+<p>流形还会通过 OriginalIDs（原始标识）以及可通过 MeshGL 访问的 faceIDs（面标识）和变换信息，跟踪自身与输入数据的关联关系。这使得经过多次运算后，对象级别的属性仍能与输出结果重新关联，这一点对于材质处理尤为实用。由于不同对象的属性不会混合，因此无需要求不同输入源之间的通道保持含义一致。</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="see">See<a href="#see" class="hash-link" aria-label="See的直接链接" title="See的直接链接" translate="no">​</a></h2>
+<p><a href="https://manifoldcad.org/docs/html/classmanifold_1_1_manifold.html" target="_blank" rel="noopener noreferrer" class="">C++ API: Manifold Class Reference</a></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="constructors">Constructors<a href="#constructors" class="hash-link" aria-label="Constructors的直接链接" title="Constructors的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="decompose">decompose()<a href="#decompose" class="hash-link" aria-label="decompose()的直接链接" title="decompose()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>decompose</strong>(): <code>Manifold</code>[]</p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:985</p>
+<p>该操作会返回一个<strong>拓扑上相互分离的流形向量</strong>。
+若所有物体都是连通的，则该向量长度为 1，仅包含原流形的一个副本。
+此操作是 <strong>Compose()</strong> 的逆运算。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns">Returns<a href="#returns" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code>[]</p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="compose"><del>compose()</del><a href="#compose" class="hash-link" aria-label="compose的直接链接" title="compose的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>compose</strong>(<code>manifolds</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:975</p>
+<p>根据一组其他流形构建新的流形。这是一个<strong>纯拓扑操作</strong>，因此应注意避免生成重叠的结果。该操作是 <strong>Decompose()</strong> 的逆运算。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters">Parameters<a href="#parameters" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="manifolds">manifolds<a href="#manifolds" class="hash-link" aria-label="manifolds的直接链接" title="manifolds的直接链接" translate="no">​</a></h5>
+<p>readonly <code>Manifold</code>[]</p>
+<p>A list of Manifolds to lazy-union together.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-1">Returns<a href="#returns-1" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="deprecated">Deprecated<a href="#deprecated" class="hash-link" aria-label="Deprecated的直接链接" title="Deprecated的直接链接" translate="no">​</a></h4>
+<p>Please use <a href="#add" class="">add</a> or <a href="#union" class="">union</a> instead.</p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="cube">cube()<a href="#cube" class="hash-link" aria-label="cube()的直接链接" title="cube()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>cube</strong>(<code>size?</code>, <code>center?</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:450</p>
+<p>构建一个单位立方体（所有边长均为1），默认位于第一卦限，且与原点相接。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-1">Parameters<a href="#parameters-1" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="size">size?<a href="#size" class="hash-link" aria-label="size?的直接链接" title="size?的直接链接" translate="no">​</a></h5>
+<p><code>number</code> | readonly [<code>number</code>, <code>number</code>, <code>number</code>]</p>
+<p>The X, Y, and Z dimensions of the box.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="center">center?<a href="#center" class="hash-link" aria-label="center?的直接链接" title="center?的直接链接" translate="no">​</a></h5>
+<p><code>boolean</code></p>
+<p>Set to true to shift the center to the origin.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-2">Returns<a href="#returns-2" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="cylinder">cylinder()<a href="#cylinder" class="hash-link" aria-label="cylinder()的直接链接" title="cylinder()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>cylinder</strong>(<code>height</code>, <code>radiusLow</code>, <code>radiusHigh?</code>, <code>circularSegments?</code>, <code>center?</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:466</p>
+<p>这是一个用于<strong>圆形拉伸</strong>常见场景的便捷构造函数。
+如果同时指定两个半径，还可以生成<strong>圆锥体</strong>。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-2">Parameters<a href="#parameters-2" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="height">height<a href="#height" class="hash-link" aria-label="height的直接链接" title="height的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Z-extent</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="radiuslow">radiusLow<a href="#radiuslow" class="hash-link" aria-label="radiusLow的直接链接" title="radiusLow的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Radius of bottom circle. Must be positive.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="radiushigh">radiusHigh?<a href="#radiushigh" class="hash-link" aria-label="radiusHigh?的直接链接" title="radiusHigh?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Radius of top circle. Can equal zero. Default is equal to
+radiusLow.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="circularsegments">circularSegments?<a href="#circularsegments" class="hash-link" aria-label="circularSegments?的直接链接" title="circularSegments?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>环绕圆周使用的线段数量。
+默认值由静态默认参数计算得出。</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="center-1">center?<a href="#center-1" class="hash-link" aria-label="center?的直接链接" title="center?的直接链接" translate="no">​</a></h5>
+<p><code>boolean</code></p>
+<p>Set to true to shift the center to the origin. Default is
+origin at the bottom.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-3">Returns<a href="#returns-3" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="levelset">levelSet()<a href="#levelset" class="hash-link" aria-label="levelSet()的直接链接" title="levelSet()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>levelSet</strong>(<code>sdf</code>, <code>bounds</code>, <code>edgeLength</code>, <code>level?</code>, <code>tolerance?</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:599</p>
+<p>根据输入的<strong>符号距离函数（SDF）<strong>构建等值面网格。
+该过程采用一种</strong>四面体行进算法</strong>（类似于立方体行进算法，但更适合生成流形结构）。它不使用立方体网格，而是采用<strong>体心立方网格</strong>（两组错位的立方体网格）。
+这意味着如果你的函数内部区域超出了指定边界，你会看到类似蛋格的形状封闭住流形，这是由底层网格结构导致的。</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-3">Parameters<a href="#parameters-3" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="sdf">sdf<a href="#sdf" class="hash-link" aria-label="sdf的直接链接" title="sdf的直接链接" translate="no">​</a></h5>
+<p>(<code>point</code>) =&gt; <code>number</code></p>
+<p>符号距离函数，用于返回三维空间（ℝ³）中给定点的符号距离。
+正值表示点在内部，负值表示点在外部。</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="bounds">bounds<a href="#bounds" class="hash-link" aria-label="bounds的直接链接" title="bounds的直接链接" translate="no">​</a></h5>
+<p><a class="" href="/docs/manifold/manifold/type-aliases/Box"><code>Box</code></a></p>
+<p>An axis-aligned box that defines the extent of the grid.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="edgelength">edgeLength<a href="#edgelength" class="hash-link" aria-label="edgeLength的直接链接" title="edgeLength的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Approximate maximum edge length of the triangles in the
+final result. This affects grid spacing, and hence has a strong effect on
+performance.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="level">level?<a href="#level" class="hash-link" aria-label="level?的直接链接" title="level?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>You can inset your Mesh by using a positive value, or outset
+it with a negative value.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="tolerance">tolerance?<a href="#tolerance" class="hash-link" aria-label="tolerance?的直接链接" title="tolerance?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Ensure each vertex is within this distance of the true
+surface. Defaults to -1, which will return the interpolated
+crossing-point based on the two nearest grid points. Small positive values
+will require more sdf evaluations per output vertex.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-4">Returns<a href="#returns-4" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="sphere">sphere()<a href="#sphere" class="hash-link" aria-label="sphere()的直接链接" title="sphere()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>sphere</strong>(<code>radius</code>, <code>circularSegments?</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:481</p>
+<p>Constructs a geodesic sphere of a given radius.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-4">Parameters<a href="#parameters-4" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="radius">radius<a href="#radius" class="hash-link" aria-label="radius的直接链接" title="radius的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Radius of the sphere. Must be positive.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="circularsegments-1">circularSegments?<a href="#circularsegments-1" class="hash-link" aria-label="circularSegments?的直接链接" title="circularSegments?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Number of segments along its
+diameter. This number will always be rounded up to the nearest factor of
+four, as this sphere is constructed by refining an octahedron. This means
+there are a circle of vertices on all three of the axis planes. Default is
+calculated by the static Defaults.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-5">Returns<a href="#returns-5" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="tetrahedron">tetrahedron()<a href="#tetrahedron" class="hash-link" aria-label="tetrahedron()的直接链接" title="tetrahedron()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>tetrahedron</strong>(): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:440</p>
+<p>Constructs a tetrahedron centered at the origin with one vertex at (1,1,1)
+and the rest at similarly symmetric points.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-6">Returns<a href="#returns-6" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="properties">Properties<a href="#properties" class="hash-link" aria-label="Properties的直接链接" title="Properties的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="calculatecurvature">calculateCurvature()<a href="#calculatecurvature" class="hash-link" aria-label="calculateCurvature()的直接链接" title="calculateCurvature()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>calculateCurvature</strong>(<code>gaussianIdx</code>, <code>meanIdx</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:787</p>
+<p>Curvature is the inverse of the radius of curvature, and signed such that
+positive is convex and negative is concave. There are two orthogonal
+principal curvatures at any point on a manifold, with one maximum and the
+other minimum. Gaussian curvature is their product, while mean
+curvature is their sum. This approximates them for every vertex and assigns
+them as vertex properties on the given channels.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-5">Parameters<a href="#parameters-5" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="gaussianidx">gaussianIdx<a href="#gaussianidx" class="hash-link" aria-label="gaussianIdx的直接链接" title="gaussianIdx的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>The property channel index in which to store the
+Gaussian curvature. An index &lt; 0 will be ignored (stores nothing). The
+property set will be automatically expanded to include the channel
+index specified.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="meanidx">meanIdx<a href="#meanidx" class="hash-link" aria-label="meanIdx的直接链接" title="meanIdx的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>The property channel index in which to store the mean
+curvature. An index &lt; 0 will be ignored (stores nothing). The property
+set will be automatically expanded to include the channel index
+specified.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-7">Returns<a href="#returns-7" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="calculatenormals">calculateNormals()<a href="#calculatenormals" class="hash-link" aria-label="calculateNormals()的直接链接" title="calculateNormals()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>calculateNormals</strong>(<code>normalIdx</code>, <code>minSharpAngle</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:806</p>
+<p>Fills in vertex properties for normal vectors, calculated from the mesh
+geometry. Flat faces composed of three or more triangles will remain flat.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-6">Parameters<a href="#parameters-6" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="normalidx">normalIdx<a href="#normalidx" class="hash-link" aria-label="normalIdx的直接链接" title="normalIdx的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>The property channel in which to store the X
+values of the normals. The X, Y, and Z channels will be sequential. The
+property set will be automatically expanded to include up through normalIdx</p>
+<ul>
+<li class="">2.</li>
+</ul>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="minsharpangle">minSharpAngle<a href="#minsharpangle" class="hash-link" aria-label="minSharpAngle的直接链接" title="minSharpAngle的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Any edges with angles greater than this value will
+remain sharp, getting different normal vector properties on each side of
+the edge. By default, no edges are sharp and all normals are shared. With a
+value of zero, the model is faceted and all normals match their triangle
+normals, but in this case it would be better not to calculate normals at
+all.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-8">Returns<a href="#returns-8" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="setproperties">setProperties()<a href="#setproperties" class="hash-link" aria-label="setProperties()的直接链接" title="setProperties()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>setProperties</strong>(<code>numProp</code>, <code>propFunc</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:764</p>
+<p>Create a new copy of this manifold with updated vertex properties by
+supplying a function that takes the existing position and properties as
+input. You may specify any number of output properties, allowing creation
+and removal of channels. Note: undefined behavior will result if you read
+past the number of input properties or write past the number of output
+properties.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-7">Parameters<a href="#parameters-7" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="numprop">numProp<a href="#numprop" class="hash-link" aria-label="numProp的直接链接" title="numProp的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>The new number of properties per vertex.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="propfunc">propFunc<a href="#propfunc" class="hash-link" aria-label="propFunc的直接链接" title="propFunc的直接链接" translate="no">​</a></h5>
+<p>(<code>newProp</code>, <code>position</code>, <code>oldProp</code>) =&gt; <code>void</code></p>
+<p>A function that modifies the properties of a given vertex.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-9">Returns<a href="#returns-9" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="basics">Basics<a href="#basics" class="hash-link" aria-label="Basics的直接链接" title="Basics的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="constructor">Constructor<a href="#constructor" class="hash-link" aria-label="Constructor的直接链接" title="Constructor的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>new Manifold</strong>(<code>mesh</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:431</p>
+<p>Convert a Mesh into a Manifold, retaining its properties and merging only
+the positions according to the merge vectors. Will throw an error if the
+result is not an oriented 2-manifold. Will collapse degenerate triangles
+and unnecessary vertices.</p>
+<p>All fields are read, making this structure suitable for a lossless
+round-trip of data from getMesh(). For multi-material input, use
+reserveIDs() to set a unique originalID for each material, and sort the
+materials into triangle runs.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-8">Parameters<a href="#parameters-8" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="mesh">mesh<a href="#mesh" class="hash-link" aria-label="mesh的直接链接" title="mesh的直接链接" translate="no">​</a></h5>
+<p><a class="" href="/docs/manifold/manifold/classes/Mesh"><code>Mesh</code></a></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-10">Returns<a href="#returns-10" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="delete">delete()<a href="#delete" class="hash-link" aria-label="delete()的直接链接" title="delete()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>delete</strong>(): <code>void</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1166</p>
+<p>Frees the WASM memory of this Manifold, since these cannot be
+garbage-collected automatically.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-11">Returns<a href="#returns-11" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>void</code></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="boolean">Boolean<a href="#boolean" class="hash-link" aria-label="Boolean的直接链接" title="Boolean的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="add">add()<a href="#add" class="hash-link" aria-label="add()的直接链接" title="add()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>add</strong>(<code>other</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:815</p>
+<p>Boolean union</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-9">Parameters<a href="#parameters-9" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="other">other<a href="#other" class="hash-link" aria-label="other的直接链接" title="other的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-12">Returns<a href="#returns-12" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="intersect">intersect()<a href="#intersect" class="hash-link" aria-label="intersect()的直接链接" title="intersect()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>intersect</strong>(<code>other</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:829</p>
+<p>Boolean intersection</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-10">Parameters<a href="#parameters-10" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="other-1">other<a href="#other-1" class="hash-link" aria-label="other的直接链接" title="other的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-13">Returns<a href="#returns-13" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="minkowskidifference">minkowskiDifference()<a href="#minkowskidifference" class="hash-link" aria-label="minkowskiDifference()的直接链接" title="minkowskiDifference()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>minkowskiDifference</strong>(<code>other</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:926</p>
+<p>Subtract the sweep of the other manifold across this manifold&#x27;s surface.
+This corresponds to the morphological erosion of the manifold.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-11">Parameters<a href="#parameters-11" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="other-2">other<a href="#other-2" class="hash-link" aria-label="other的直接链接" title="other的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<p>The other manifold to minkowski subtract from this one.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-14">Returns<a href="#returns-14" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="minkowskisum">minkowskiSum()<a href="#minkowskisum" class="hash-link" aria-label="minkowskiSum()的直接链接" title="minkowskiSum()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>minkowskiSum</strong>(<code>other</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:917</p>
+<p>Compute the minkowski sum of this manifold with another.
+This corresponds to the morphological dilation of the manifold.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-12">Parameters<a href="#parameters-12" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="other-3">other<a href="#other-3" class="hash-link" aria-label="other的直接链接" title="other的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<p>The other manifold to minkowski sum to this one.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-15">Returns<a href="#returns-15" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="split">split()<a href="#split" class="hash-link" aria-label="split()的直接链接" title="split()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>split</strong>(<code>cutter</code>): [<code>Manifold</code>, <code>Manifold</code>]</p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:881</p>
+<p>Split cuts this manifold in two using the cutter manifold. The first result
+is the intersection, second is the difference. This is more efficient than
+doing them separately.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-13">Parameters<a href="#parameters-13" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="cutter">cutter<a href="#cutter" class="hash-link" aria-label="cutter的直接链接" title="cutter的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-16">Returns<a href="#returns-16" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p>[<code>Manifold</code>, <code>Manifold</code>]</p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="splitbyplane">splitByPlane()<a href="#splitbyplane" class="hash-link" aria-label="splitByPlane()的直接链接" title="splitByPlane()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>splitByPlane</strong>(<code>normal</code>, <code>originOffset</code>): [<code>Manifold</code>, <code>Manifold</code>]</p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:894</p>
+<p>Convenient version of Split() for a half-space.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-14">Parameters<a href="#parameters-14" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="normal">normal<a href="#normal" class="hash-link" aria-label="normal的直接链接" title="normal的直接链接" translate="no">​</a></h5>
+<p>readonly [<code>number</code>, <code>number</code>, <code>number</code>]</p>
+<p>This vector is normal to the cutting plane and its length
+does
+not matter. The first result is in the direction of this vector, the second
+result is on the opposite side.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="originoffset">originOffset<a href="#originoffset" class="hash-link" aria-label="originOffset的直接链接" title="originOffset的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>The distance of the plane from the origin in the
+direction of the normal vector.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-17">Returns<a href="#returns-17" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p>[<code>Manifold</code>, <code>Manifold</code>]</p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="subtract">subtract()<a href="#subtract" class="hash-link" aria-label="subtract()的直接链接" title="subtract()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>subtract</strong>(<code>other</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:822</p>
+<p>Boolean difference</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-15">Parameters<a href="#parameters-15" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="other-4">other<a href="#other-4" class="hash-link" aria-label="other的直接链接" title="other的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-18">Returns<a href="#returns-18" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="trimbyplane">trimByPlane()<a href="#trimbyplane" class="hash-link" aria-label="trimByPlane()的直接链接" title="trimByPlane()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>trimByPlane</strong>(<code>normal</code>, <code>originOffset</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:908</p>
+<p>Removes everything behind the given half-space plane.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-16">Parameters<a href="#parameters-16" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="normal-1">normal<a href="#normal-1" class="hash-link" aria-label="normal的直接链接" title="normal的直接链接" translate="no">​</a></h5>
+<p>readonly [<code>number</code>, <code>number</code>, <code>number</code>]</p>
+<p>This vector is normal to the cutting plane and its length
+does not matter. The result is in the direction of this vector from the
+plane.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="originoffset-1">originOffset<a href="#originoffset-1" class="hash-link" aria-label="originOffset的直接链接" title="originOffset的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>The distance of the plane from the origin in the
+direction of the normal vector.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-19">Returns<a href="#returns-19" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="difference">difference()<a href="#difference" class="hash-link" aria-label="difference()的直接链接" title="difference()的直接链接" translate="no">​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="call-signature">Call Signature<a href="#call-signature" class="hash-link" aria-label="Call Signature的直接链接" title="Call Signature的直接链接" translate="no">​</a></h4>
+<blockquote>
+<p><code>static</code> <strong>difference</strong>(<code>a</code>, <code>b</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:843</p>
+<p>Boolean difference of the manifold b from the manifold a</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-17">Parameters<a href="#parameters-17" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="a">a<a href="#a" class="hash-link" aria-label="a的直接链接" title="a的直接链接" translate="no">​</a></h6>
+<p><code>Manifold</code></p>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="b">b<a href="#b" class="hash-link" aria-label="b的直接链接" title="b的直接链接" translate="no">​</a></h6>
+<p><code>Manifold</code></p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-20">Returns<a href="#returns-20" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="call-signature-1">Call Signature<a href="#call-signature-1" class="hash-link" aria-label="Call Signature的直接链接" title="Call Signature的直接链接" translate="no">​</a></h4>
+<blockquote>
+<p><code>static</code> <strong>difference</strong>(<code>manifolds</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:864</p>
+<p>Boolean difference of the tail of a list of manifolds from its head</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-18">Parameters<a href="#parameters-18" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="manifolds-1">manifolds<a href="#manifolds-1" class="hash-link" aria-label="manifolds的直接链接" title="manifolds的直接链接" translate="no">​</a></h6>
+<p>readonly <code>Manifold</code>[]</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-21">Returns<a href="#returns-21" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="intersection">intersection()<a href="#intersection" class="hash-link" aria-label="intersection()的直接链接" title="intersection()的直接链接" translate="no">​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="call-signature-2">Call Signature<a href="#call-signature-2" class="hash-link" aria-label="Call Signature的直接链接" title="Call Signature的直接链接" translate="no">​</a></h4>
+<blockquote>
+<p><code>static</code> <strong>intersection</strong>(<code>a</code>, <code>b</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:850</p>
+<p>Boolean intersection of the manifolds a and b</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-19">Parameters<a href="#parameters-19" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="a-1">a<a href="#a-1" class="hash-link" aria-label="a的直接链接" title="a的直接链接" translate="no">​</a></h6>
+<p><code>Manifold</code></p>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="b-1">b<a href="#b-1" class="hash-link" aria-label="b的直接链接" title="b的直接链接" translate="no">​</a></h6>
+<p><code>Manifold</code></p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-22">Returns<a href="#returns-22" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="call-signature-3">Call Signature<a href="#call-signature-3" class="hash-link" aria-label="Call Signature的直接链接" title="Call Signature的直接链接" translate="no">​</a></h4>
+<blockquote>
+<p><code>static</code> <strong>intersection</strong>(<code>manifolds</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:871</p>
+<p>Boolean intersection of a list of manifolds</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-20">Parameters<a href="#parameters-20" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="manifolds-2">manifolds<a href="#manifolds-2" class="hash-link" aria-label="manifolds的直接链接" title="manifolds的直接链接" translate="no">​</a></h6>
+<p>readonly <code>Manifold</code>[]</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-23">Returns<a href="#returns-23" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="union">union()<a href="#union" class="hash-link" aria-label="union()的直接链接" title="union()的直接链接" translate="no">​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="call-signature-4">Call Signature<a href="#call-signature-4" class="hash-link" aria-label="Call Signature的直接链接" title="Call Signature的直接链接" translate="no">​</a></h4>
+<blockquote>
+<p><code>static</code> <strong>union</strong>(<code>a</code>, <code>b</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:836</p>
+<p>Boolean union of the manifolds a and b</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-21">Parameters<a href="#parameters-21" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="a-2">a<a href="#a-2" class="hash-link" aria-label="a的直接链接" title="a的直接链接" translate="no">​</a></h6>
+<p><code>Manifold</code></p>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="b-2">b<a href="#b-2" class="hash-link" aria-label="b的直接链接" title="b的直接链接" translate="no">​</a></h6>
+<p><code>Manifold</code></p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-24">Returns<a href="#returns-24" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="call-signature-5">Call Signature<a href="#call-signature-5" class="hash-link" aria-label="Call Signature的直接链接" title="Call Signature的直接链接" translate="no">​</a></h4>
+<blockquote>
+<p><code>static</code> <strong>union</strong>(<code>manifolds</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:857</p>
+<p>Boolean union of a list of manifolds</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-22">Parameters<a href="#parameters-22" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="manifolds-3">manifolds<a href="#manifolds-3" class="hash-link" aria-label="manifolds的直接链接" title="manifolds的直接链接" translate="no">​</a></h6>
+<p>readonly <code>Manifold</code>[]</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-25">Returns<a href="#returns-25" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="convex-hull">Convex Hull<a href="#convex-hull" class="hash-link" aria-label="Convex Hull的直接链接" title="Convex Hull的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="hull">hull()<a href="#hull" class="hash-link" aria-label="hull()的直接链接" title="hull()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>hull</strong>(): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:954</p>
+<p>Compute the convex hull of all points in this Manifold.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-26">Returns<a href="#returns-26" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="hull-1">hull()<a href="#hull-1" class="hash-link" aria-label="hull()的直接链接" title="hull()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>hull</strong>(<code>points</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:962</p>
+<p>Compute the convex hull of all points contained within a set of Manifolds
+and point vectors.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-23">Parameters<a href="#parameters-23" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="points">points<a href="#points" class="hash-link" aria-label="points的直接链接" title="points的直接链接" translate="no">​</a></h5>
+<p>readonly (<code>Manifold</code> | <a class="" href="/docs/manifold/manifold/type-aliases/Vec3"><code>Vec3</code></a>)[]</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-27">Returns<a href="#returns-27" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="information">Information<a href="#information" class="hash-link" aria-label="Information的直接链接" title="Information的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="boundingbox">boundingBox()<a href="#boundingbox" class="hash-link" aria-label="boundingBox()的直接链接" title="boundingBox()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>boundingBox</strong>(): <a class="" href="/docs/manifold/manifold/type-aliases/Box"><code>Box</code></a></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1031</p>
+<p>Returns the axis-aligned bounding box of all the Manifold&#x27;s vertices.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-28">Returns<a href="#returns-28" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><a class="" href="/docs/manifold/manifold/type-aliases/Box"><code>Box</code></a></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="genus">genus()<a href="#genus" class="hash-link" aria-label="genus()的直接链接" title="genus()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>genus</strong>(): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1069</p>
+<p>The genus is a topological property of the manifold, representing the
+number of &quot;handles&quot;. A sphere is 0, torus 1, etc. It is only meaningful for
+a single mesh, so it is best to call Decompose() first.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-29">Returns<a href="#returns-29" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="isempty">isEmpty()<a href="#isempty" class="hash-link" aria-label="isEmpty()的直接链接" title="isEmpty()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>isEmpty</strong>(): <code>boolean</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:993</p>
+<p>Does the Manifold have any triangles?</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-30">Returns<a href="#returns-30" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>boolean</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="numedge">numEdge()<a href="#numedge" class="hash-link" aria-label="numEdge()的直接链接" title="numEdge()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>numEdge</strong>(): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1011</p>
+<p>The number of edges in the Manifold.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-31">Returns<a href="#returns-31" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="numprop-1">numProp()<a href="#numprop-1" class="hash-link" aria-label="numProp()的直接链接" title="numProp()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>numProp</strong>(): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1017</p>
+<p>The number of properties per vertex in the Manifold.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-32">Returns<a href="#returns-32" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="numpropvert">numPropVert()<a href="#numpropvert" class="hash-link" aria-label="numPropVert()的直接链接" title="numPropVert()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>numPropVert</strong>(): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1025</p>
+<p>The number of property vertices in the Manifold. This will always be &gt;=
+numVert, as some physical vertices may be duplicated to account for
+different properties on different neighboring triangles.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-33">Returns<a href="#returns-33" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="numtri">numTri()<a href="#numtri" class="hash-link" aria-label="numTri()的直接链接" title="numTri()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>numTri</strong>(): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1005</p>
+<p>The number of triangles in the Manifold.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-34">Returns<a href="#returns-34" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="numvert">numVert()<a href="#numvert" class="hash-link" aria-label="numVert()的直接链接" title="numVert()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>numVert</strong>(): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:999</p>
+<p>The number of vertices in the Manifold.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-35">Returns<a href="#returns-35" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="status">status()<a href="#status" class="hash-link" aria-label="status()的直接链接" title="status()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>status</strong>(): <a class="" href="/docs/manifold/manifold/type-aliases/ErrorStatus"><code>ErrorStatus</code></a></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1101</p>
+<p>Returns the reason for an input Mesh producing an empty Manifold. This
+Status will carry on through operations like NaN propogation, ensuring an
+errored mesh doesn&#x27;t get mysteriously lost. Empty meshes may still show
+NoError, for instance the intersection of non-overlapping meshes.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-36">Returns<a href="#returns-36" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><a class="" href="/docs/manifold/manifold/type-aliases/ErrorStatus"><code>ErrorStatus</code></a></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="tolerance-1">tolerance()<a href="#tolerance-1" class="hash-link" aria-label="tolerance()的直接链接" title="tolerance()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>tolerance</strong>(): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1042</p>
+<p>Returns the tolerance of this Manifold&#x27;s vertices, which tracks the
+approximate rounding error over all the transforms and operations that have
+led to this state. Any triangles that are colinear within this tolerance
+are considered degenerate and removed. This is the value of ε
+defining
+<a href="https://github.com/elalish/manifold/wiki/Manifold-Library#definition-of-%CE%B5-valid" target="_blank" rel="noopener noreferrer" class="">ε-valid</a>.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-37">Returns<a href="#returns-37" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="input--output">Input &amp; Output<a href="#input--output" class="hash-link" aria-label="Input &amp; Output的直接链接" title="Input &amp; Output的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="getmesh">getMesh()<a href="#getmesh" class="hash-link" aria-label="getMesh()的直接链接" title="getMesh()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>getMesh</strong>(<code>normalIdx?</code>): <a class="" href="/docs/manifold/manifold/classes/Mesh"><code>Mesh</code></a></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1120</p>
+<p>Returns a Mesh that is designed to easily push into a renderer, including
+all interleaved vertex properties that may have been input. It also
+includes relations to all the input meshes that form a part of this result
+and the transforms applied to each.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-24">Parameters<a href="#parameters-24" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="normalidx-1">normalIdx?<a href="#normalidx-1" class="hash-link" aria-label="normalIdx?的直接链接" title="normalIdx?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>If the original MeshGL inputs that formed this manifold
+had properties corresponding to normal vectors, you can specify the first
+of the three consecutive property channels forming the (x, y, z) normals,
+which will cause this output MeshGL to automatically update these normals
+according to the applied transforms and front/back side. normalIdx + 3 must
+be &lt;= numProp, and all original MeshGLs must use the same channels for
+their normals.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-38">Returns<a href="#returns-38" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><a class="" href="/docs/manifold/manifold/classes/Mesh"><code>Mesh</code></a></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="ofmesh">ofMesh()<a href="#ofmesh" class="hash-link" aria-label="ofMesh()的直接链接" title="ofMesh()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>ofMesh</strong>(<code>mesh</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:540</p>
+<p>Convert a Mesh into a Manifold, retaining its properties and merging only
+the positions according to the merge vectors. Will throw an error if the
+result is not an oriented 2-manifold. Will collapse degenerate triangles
+and unnecessary vertices.</p>
+<p>All fields are read, making this structure suitable for a lossless
+round-trip of data from getMesh(). For multi-material input, use
+reserveIDs() to set a unique originalID for each material, and sort the
+materials into triangle runs.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-25">Parameters<a href="#parameters-25" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="mesh-1">mesh<a href="#mesh-1" class="hash-link" aria-label="mesh的直接链接" title="mesh的直接链接" translate="no">​</a></h5>
+<p><a class="" href="/docs/manifold/manifold/classes/Mesh"><code>Mesh</code></a></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-39">Returns<a href="#returns-39" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="measurement">Measurement<a href="#measurement" class="hash-link" aria-label="Measurement的直接链接" title="Measurement的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="mingap">minGap()<a href="#mingap" class="hash-link" aria-label="minGap()的直接链接" title="minGap()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>minGap</strong>(<code>other</code>, <code>searchLength</code>): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1091</p>
+<p>Returns the minimum gap between two manifolds. Returns a float between
+0 and searchLength.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-26">Parameters<a href="#parameters-26" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="other-5">other<a href="#other-5" class="hash-link" aria-label="other的直接链接" title="other的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="searchlength">searchLength<a href="#searchlength" class="hash-link" aria-label="searchLength的直接链接" title="searchLength的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-40">Returns<a href="#returns-40" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="surfacearea">surfaceArea()<a href="#surfacearea" class="hash-link" aria-label="surfaceArea()的直接链接" title="surfaceArea()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>surfaceArea</strong>(): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1076</p>
+<p>Returns the surface area of the manifold.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-41">Returns<a href="#returns-41" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="volume">volume()<a href="#volume" class="hash-link" aria-label="volume()的直接链接" title="volume()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>volume</strong>(): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1083</p>
+<p>Returns the volume of the manifold.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-42">Returns<a href="#returns-42" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="mesh-id">Mesh ID<a href="#mesh-id" class="hash-link" aria-label="Mesh ID的直接链接" title="Mesh ID的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="asoriginal">asOriginal()<a href="#asoriginal" class="hash-link" aria-label="asOriginal()的直接链接" title="asOriginal()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>asOriginal</strong>(): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1139</p>
+<p>If you copy a manifold, but you want this new copy to have new properties
+(e.g. a different UV mapping), you can reset its IDs to a new original,
+meaning it will now be referenced by its descendants instead of the meshes
+it was built from, allowing you to differentiate the copies when applying
+your properties to the final result.</p>
+<p>This function also condenses all coplanar faces in the relation, and
+collapses those edges. If you want to have inconsistent properties across
+these faces, meaning you want to preserve some of these edges, you should
+instead call GetMesh(), calculate your properties and use these to
+construct a new manifold.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-43">Returns<a href="#returns-43" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="originalid">originalID()<a href="#originalid" class="hash-link" aria-label="originalID()的直接链接" title="originalID()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>originalID</strong>(): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1148</p>
+<p>If this mesh is an original, this returns its ID that can be referenced
+by product manifolds. If this manifold is a product, this
+returns -1.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-44">Returns<a href="#returns-44" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="reserveids">reserveIDs()<a href="#reserveids" class="hash-link" aria-label="reserveIDs()的直接链接" title="reserveIDs()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>reserveIDs</strong>(<code>count</code>): <code>number</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1157</p>
+<p>Returns the first of n sequential new unique mesh IDs for marking sets of
+triangles that can be looked up after further operations. Assign to
+Mesh.runOriginalID vector.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-27">Parameters<a href="#parameters-27" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="count">count<a href="#count" class="hash-link" aria-label="count的直接链接" title="count的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-45">Returns<a href="#returns-45" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>number</code></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="polygons">Polygons<a href="#polygons" class="hash-link" aria-label="Polygons的直接链接" title="Polygons的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="project">project()<a href="#project" class="hash-link" aria-label="project()的直接链接" title="project()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>project</strong>(): <a class="" href="/docs/manifold/manifold/classes/CrossSection"><code>CrossSection</code></a></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:945</p>
+<p>Returns a cross section representing the projected outline of this object
+onto the X-Y plane.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-46">Returns<a href="#returns-46" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><a class="" href="/docs/manifold/manifold/classes/CrossSection"><code>CrossSection</code></a></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="slice">slice()<a href="#slice" class="hash-link" aria-label="slice()的直接链接" title="slice()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>slice</strong>(<code>height</code>): <a class="" href="/docs/manifold/manifold/classes/CrossSection"><code>CrossSection</code></a></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:937</p>
+<p>Returns the cross section of this object parallel to the X-Y plane at the
+specified height. Using a height equal to the bottom
+of the bounding box will return the bottom faces, while using a height
+equal to the top of the bounding box will return empty.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-28">Parameters<a href="#parameters-28" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="height-1">height<a href="#height-1" class="hash-link" aria-label="height的直接链接" title="height的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Z-level of slice.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-47">Returns<a href="#returns-47" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><a class="" href="/docs/manifold/manifold/classes/CrossSection"><code>CrossSection</code></a></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="extrude">extrude()<a href="#extrude" class="hash-link" aria-label="extrude()的直接链接" title="extrude()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>extrude</strong>(<code>polygons</code>, <code>height</code>, <code>nDivisions?</code>, <code>twistDegrees?</code>, <code>scaleTop?</code>, <code>center?</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:504</p>
+<p>Constructs a manifold from a set of polygons/cross-section by extruding
+them along the Z-axis.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-29">Parameters<a href="#parameters-29" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="polygons-1">polygons<a href="#polygons-1" class="hash-link" aria-label="polygons的直接链接" title="polygons的直接链接" translate="no">​</a></h5>
+<p><a class="" href="/docs/manifold/manifold/classes/CrossSection"><code>CrossSection</code></a> | <a class="" href="/docs/manifold/manifold/type-aliases/Polygons"><code>Polygons</code></a></p>
+<p>A set of non-overlapping polygons to extrude.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="height-2">height<a href="#height-2" class="hash-link" aria-label="height的直接链接" title="height的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Z-extent of extrusion.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="ndivisions">nDivisions?<a href="#ndivisions" class="hash-link" aria-label="nDivisions?的直接链接" title="nDivisions?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Number of extra copies of the crossSection to insert into
+the shape vertically; especially useful in combination with twistDegrees to
+avoid interpolation artifacts. Default is none.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="twistdegrees">twistDegrees?<a href="#twistdegrees" class="hash-link" aria-label="twistDegrees?的直接链接" title="twistDegrees?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Amount to twist the top crossSection relative to the
+bottom, interpolated linearly for the divisions in between.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="scaletop">scaleTop?<a href="#scaletop" class="hash-link" aria-label="scaleTop?的直接链接" title="scaleTop?的直接链接" translate="no">​</a></h5>
+<p><code>number</code> | readonly [<code>number</code>, <code>number</code>]</p>
+<p>Amount to scale the top (independently in X and Y). If the
+scale is <!-- -->0<!-- -->, a pure cone is formed with only a single vertex at the
+top. Default <!-- -->1<!-- -->.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="center-2">center?<a href="#center-2" class="hash-link" aria-label="center?的直接链接" title="center?的直接链接" translate="no">​</a></h5>
+<p><code>boolean</code></p>
+<p>If true, the extrusion is centered on the z-axis through the
+origin
+as opposed to resting on the XY plane as is default.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-48">Returns<a href="#returns-48" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="revolve">revolve()<a href="#revolve" class="hash-link" aria-label="revolve()的直接链接" title="revolve()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>revolve</strong>(<code>polygons</code>, <code>circularSegments?</code>, <code>revolveDegrees?</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:522</p>
+<p>Constructs a manifold from a set of polygons/cross-section by revolving
+them around the Y-axis and then setting this as the Z-axis of the resulting
+manifold. If the polygons cross the Y-axis, only the part on the positive X
+side is used. Geometrically valid input will result in geometrically valid
+output.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-30">Parameters<a href="#parameters-30" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="polygons-2">polygons<a href="#polygons-2" class="hash-link" aria-label="polygons的直接链接" title="polygons的直接链接" translate="no">​</a></h5>
+<p><a class="" href="/docs/manifold/manifold/classes/CrossSection"><code>CrossSection</code></a> | <a class="" href="/docs/manifold/manifold/type-aliases/Polygons"><code>Polygons</code></a></p>
+<p>A set of non-overlapping polygons to revolve.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="circularsegments-2">circularSegments?<a href="#circularsegments-2" class="hash-link" aria-label="circularSegments?的直接链接" title="circularSegments?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Number of segments along its diameter. Default is
+calculated by the static Defaults.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="revolvedegrees">revolveDegrees?<a href="#revolvedegrees" class="hash-link" aria-label="revolveDegrees?的直接链接" title="revolveDegrees?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>Number of degrees to revolve. Default is 360 degrees.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-49">Returns<a href="#returns-49" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="smoothing">Smoothing<a href="#smoothing" class="hash-link" aria-label="Smoothing的直接链接" title="Smoothing的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="refine">refine()<a href="#refine" class="hash-link" aria-label="refine()的直接链接" title="refine()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>refine</strong>(<code>n</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:722</p>
+<p>Increase the density of the mesh by splitting every edge into n pieces. For
+instance, with n = 2, each triangle will be split into 4 triangles. These
+will all be coplanar (and will not be immediately collapsed) unless the
+Mesh/Manifold has halfedgeTangents specified (e.g. from the Smooth()
+constructor), in which case the new vertices will be moved to the
+interpolated surface according to their barycentric coordinates.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-31">Parameters<a href="#parameters-31" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="n">n<a href="#n" class="hash-link" aria-label="n的直接链接" title="n的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>The number of pieces to split every edge into. Must be &gt; 1.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-50">Returns<a href="#returns-50" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="refinetolength">refineToLength()<a href="#refinetolength" class="hash-link" aria-label="refineToLength()的直接链接" title="refineToLength()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>refineToLength</strong>(<code>length</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:735</p>
+<p>Increase the density of the mesh by splitting each edge into pieces of
+roughly the input length. Interior verts are added to keep the rest of the
+triangulation edges also of roughly the same length. If halfedgeTangents
+are present (e.g. from the Smooth() constructor), the new vertices will be
+moved to the interpolated surface according to their barycentric
+coordinates.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-32">Parameters<a href="#parameters-32" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="length">length<a href="#length" class="hash-link" aria-label="length的直接链接" title="length的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>The length that edges will be broken down to.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-51">Returns<a href="#returns-51" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="refinetotolerance">refineToTolerance()<a href="#refinetotolerance" class="hash-link" aria-label="refineToTolerance()的直接链接" title="refineToTolerance()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>refineToTolerance</strong>(<code>tolerance</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:750</p>
+<p>Increase the density of the mesh by splitting each edge into pieces such
+that any point on the resulting triangles is roughly within tolerance of
+the smoothly curved surface defined by the tangent vectors. This means
+tightly curving regions will be divided more finely than smoother regions.
+If halfedgeTangents are not present, the result will simply be a copy of
+the original. Quads will ignore their interior triangle bisector.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-33">Parameters<a href="#parameters-33" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="tolerance-2">tolerance<a href="#tolerance-2" class="hash-link" aria-label="tolerance的直接链接" title="tolerance的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>The desired maximum distance between the faceted mesh
+produced and the exact smoothly curving surface. All vertices are exactly
+on the surface, within rounding error.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-52">Returns<a href="#returns-52" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="smoothbynormals">smoothByNormals()<a href="#smoothbynormals" class="hash-link" aria-label="smoothByNormals()的直接链接" title="smoothByNormals()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>smoothByNormals</strong>(<code>normalIdx</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:689</p>
+<p>Smooths out the Manifold by filling in the halfedgeTangent vectors. The
+geometry will remain unchanged until Refine or RefineToLength is called to
+interpolate the surface. This version uses the supplied vertex normal
+properties to define the tangent vectors.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-34">Parameters<a href="#parameters-34" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="normalidx-2">normalIdx<a href="#normalidx-2" class="hash-link" aria-label="normalIdx的直接链接" title="normalIdx的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>The first property channel of the normals. NumProp must be
+at least normalIdx + 3. Any vertex where multiple normals exist and don&#x27;t
+agree will result in a sharp edge.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-53">Returns<a href="#returns-53" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="smoothout">smoothOut()<a href="#smoothout" class="hash-link" aria-label="smoothOut()的直接链接" title="smoothOut()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>smoothOut</strong>(<code>minSharpAngle?</code>, <code>minSmoothness?</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:709</p>
+<p>Smooths out the Manifold by filling in the halfedgeTangent vectors. The
+geometry will remain unchanged until Refine or RefineToLength is called to
+interpolate the surface. This version uses the geometry of the triangles
+and pseudo-normals to define the tangent vectors.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-35">Parameters<a href="#parameters-35" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="minsharpangle-1">minSharpAngle?<a href="#minsharpangle-1" class="hash-link" aria-label="minSharpAngle?的直接链接" title="minSharpAngle?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>degrees, default 60. Any edges with angles greater
+than this value will remain sharp. The rest will be smoothed to G1
+continuity, with the caveat that flat faces of three or more triangles will
+always remain flat. With a value of zero, the model is faceted, but in this
+case there is no point in smoothing.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="minsmoothness">minSmoothness?<a href="#minsmoothness" class="hash-link" aria-label="minSmoothness?的直接链接" title="minSmoothness?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>range: 0 - 1, default 0. The smoothness applied to
+sharp angles. The default gives a hard edge, while values &gt; 0 will give a
+small fillet on these sharp edges. A value of 1 is equivalent to a
+minSharpAngle of 180 - all edges will be smooth.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-54">Returns<a href="#returns-54" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="smooth">smooth()<a href="#smooth" class="hash-link" aria-label="smooth()的直接链接" title="smooth()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><code>static</code> <strong>smooth</strong>(<code>mesh</code>, <code>sharpenedEdges?</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:572</p>
+<p>Constructs a smooth version of the input mesh by creating tangents; this
+method will throw if you have supplied tangents with your mesh already. The
+actual triangle resolution is unchanged; use the Refine() method to
+interpolate to a higher-resolution curve.</p>
+<p>By default, every edge is calculated for maximum smoothness (very much
+approximately), attempting to minimize the maximum mean Curvature
+magnitude. No higher-order derivatives are considered, as the interpolation
+is independent per triangle, only sharing constraints on their boundaries.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-36">Parameters<a href="#parameters-36" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="mesh-2">mesh<a href="#mesh-2" class="hash-link" aria-label="mesh的直接链接" title="mesh的直接链接" translate="no">​</a></h5>
+<p><a class="" href="/docs/manifold/manifold/classes/Mesh"><code>Mesh</code></a></p>
+<p>input Mesh.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="sharpenededges">sharpenedEdges?<a href="#sharpenededges" class="hash-link" aria-label="sharpenedEdges?的直接链接" title="sharpenedEdges?的直接链接" translate="no">​</a></h5>
+<p>readonly <a class="" href="/docs/manifold/manifold/type-aliases/Smoothness"><code>Smoothness</code></a>[]</p>
+<p>If desired, you can supply a vector of sharpened
+halfedges, which should in general be a small subset of all halfedges.
+Order of entries doesn&#x27;t matter, as each one specifies the desired
+smoothness (between zero and one, with one the default for all unspecified
+halfedges) and the halfedge index (3 * triangle index + [0,1,2] where 0 is
+the edge between triVert 0 and 1, etc).</p>
+<p>At a smoothness value of zero, a sharp crease is made. The smoothness is
+interpolated along each edge, so the specified value should be thought of
+as an average. Where exactly two sharpened edges meet at a vertex, their
+tangents are rotated to be colinear so that the sharpened edge can be
+continuous. Vertices with only one sharpened edge are completely smooth,
+allowing sharpened edges to smoothly vanish at termination. A single vertex
+can be sharpened by sharping all edges that are incident on it, allowing
+cones to be formed.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-55">Returns<a href="#returns-55" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="transformations">Transformations<a href="#transformations" class="hash-link" aria-label="Transformations的直接链接" title="Transformations的直接链接" translate="no">​</a></h2>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="mirror">mirror()<a href="#mirror" class="hash-link" aria-label="mirror()的直接链接" title="mirror()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>mirror</strong>(<code>normal</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:664</p>
+<p>Mirror this Manifold over the plane described by the unit form of the given
+normal vector. If the length of the normal is zero, an empty Manifold is
+returned. This operation can be chained. Transforms are combined and
+applied lazily.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-37">Parameters<a href="#parameters-37" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="normal-2">normal<a href="#normal-2" class="hash-link" aria-label="normal的直接链接" title="normal的直接链接" translate="no">​</a></h5>
+<p>readonly [<code>number</code>, <code>number</code>, <code>number</code>]</p>
+<p>The normal vector of the plane to be mirrored over</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-56">Returns<a href="#returns-56" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="rotate">rotate()<a href="#rotate" class="hash-link" aria-label="rotate()的直接链接" title="rotate()的直接链接" translate="no">​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="call-signature-6">Call Signature<a href="#call-signature-6" class="hash-link" aria-label="Call Signature的直接链接" title="Call Signature的直接链接" translate="no">​</a></h4>
+<blockquote>
+<p><strong>rotate</strong>(<code>v</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:643</p>
+<p>Applies an Euler or Tait-Bryan angle rotation to the manifold.  This
+operation can be chained. Transforms are combined and applied lazily.</p>
+<p>We use degrees so that we can minimize rounding error, and eliminate it
+completely for any multiples of 90 degrees. Additionally, more efficient
+code paths are used to update the manifold when the transforms only rotate
+by multiples of 90 degrees.</p>
+<p>From the reference frame of the model being rotated, rotations are applied
+in <em>z-y&#x27;-x&quot;</em> order. That is yaw first, then pitch and finally roll.</p>
+<p>From the global reference frame, a model will be rotated in <em>x-y-z</em> order.
+That is about the global X axis, then global Y axis, and finally global Z.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-38">Parameters<a href="#parameters-38" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="v">v<a href="#v" class="hash-link" aria-label="v的直接链接" title="v的直接链接" translate="no">​</a></h6>
+<p>readonly [<code>number</code>, <code>number</code>, <code>number</code>]</p>
+<p>[X, Y, Z] rotation in degrees.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-57">Returns<a href="#returns-57" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="call-signature-7">Call Signature<a href="#call-signature-7" class="hash-link" aria-label="Call Signature的直接链接" title="Call Signature的直接链接" translate="no">​</a></h4>
+<blockquote>
+<p><strong>rotate</strong>(<code>x</code>, <code>y?</code>, <code>z?</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:644</p>
+<p>Applies an Euler or Tait-Bryan angle rotation to the manifold.  This
+operation can be chained. Transforms are combined and applied lazily.</p>
+<p>We use degrees so that we can minimize rounding error, and eliminate it
+completely for any multiples of 90 degrees. Additionally, more efficient
+code paths are used to update the manifold when the transforms only rotate
+by multiples of 90 degrees.</p>
+<p>From the reference frame of the model being rotated, rotations are applied
+in <em>z-y&#x27;-x&quot;</em> order. That is yaw first, then pitch and finally roll.</p>
+<p>From the global reference frame, a model will be rotated in <em>x-y-z</em> order.
+That is about the global X axis, then global Y axis, and finally global Z.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-39">Parameters<a href="#parameters-39" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="x">x<a href="#x" class="hash-link" aria-label="x的直接链接" title="x的直接链接" translate="no">​</a></h6>
+<p><code>number</code></p>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="y">y?<a href="#y" class="hash-link" aria-label="y?的直接链接" title="y?的直接链接" translate="no">​</a></h6>
+<p><code>number</code></p>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="z">z?<a href="#z" class="hash-link" aria-label="z?的直接链接" title="z?的直接链接" translate="no">​</a></h6>
+<p><code>number</code></p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-58">Returns<a href="#returns-58" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="scale">scale()<a href="#scale" class="hash-link" aria-label="scale()的直接链接" title="scale()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>scale</strong>(<code>v</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:653</p>
+<p>Scale this Manifold in space. This operation can be chained. Transforms are
+combined and applied lazily.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-40">Parameters<a href="#parameters-40" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="v-1">v<a href="#v-1" class="hash-link" aria-label="v的直接链接" title="v的直接链接" translate="no">​</a></h5>
+<p><code>number</code> | readonly [<code>number</code>, <code>number</code>, <code>number</code>]</p>
+<p>The vector to multiply every vertex by per component.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-59">Returns<a href="#returns-59" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="settolerance">setTolerance()<a href="#settolerance" class="hash-link" aria-label="setTolerance()的直接链接" title="setTolerance()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>setTolerance</strong>(<code>tolerance</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1049</p>
+<p>Return a copy of the manifold with the set tolerance value.
+This performs mesh simplification when the tolerance value is increased.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-41">Parameters<a href="#parameters-41" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="tolerance-3">tolerance<a href="#tolerance-3" class="hash-link" aria-label="tolerance的直接链接" title="tolerance的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-60">Returns<a href="#returns-60" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="simplify">simplify()<a href="#simplify" class="hash-link" aria-label="simplify()的直接链接" title="simplify()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>simplify</strong>(<code>tolerance?</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:1061</p>
+<p>Return a copy of the manifold simplified to the given tolerance, but with
+its actual tolerance value unchanged. The result will contain a subset of
+the original verts and all surfaces will have moved by less than tolerance.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-42">Parameters<a href="#parameters-42" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="tolerance-4">tolerance?<a href="#tolerance-4" class="hash-link" aria-label="tolerance?的直接链接" title="tolerance?的直接链接" translate="no">​</a></h5>
+<p><code>number</code></p>
+<p>The maximum distance between the original and simplified
+meshes. If not given or is less than the current tolerance, the current
+tolerance is used.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-61">Returns<a href="#returns-61" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="transform">transform()<a href="#transform" class="hash-link" aria-label="transform()的直接链接" title="transform()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>transform</strong>(<code>m</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:613</p>
+<p>Transform this Manifold in space. Stored in column-major order. This
+operation can be chained. Transforms are combined and applied lazily.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-43">Parameters<a href="#parameters-43" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="m">m<a href="#m" class="hash-link" aria-label="m的直接链接" title="m的直接链接" translate="no">​</a></h5>
+<p><a class="" href="/docs/manifold/manifold/type-aliases/Mat4"><code>Mat4</code></a></p>
+<p>The affine transformation matrix to apply to all the vertices. The
+last row is ignored.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-62">Returns<a href="#returns-62" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="translate">translate()<a href="#translate" class="hash-link" aria-label="translate()的直接链接" title="translate()的直接链接" translate="no">​</a></h3>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="call-signature-8">Call Signature<a href="#call-signature-8" class="hash-link" aria-label="Call Signature的直接链接" title="Call Signature的直接链接" translate="no">​</a></h4>
+<blockquote>
+<p><strong>translate</strong>(<code>v</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:622</p>
+<p>Move this Manifold in space. This operation can be chained. Transforms are
+combined and applied lazily.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-44">Parameters<a href="#parameters-44" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="v-2">v<a href="#v-2" class="hash-link" aria-label="v的直接链接" title="v的直接链接" translate="no">​</a></h6>
+<p>readonly [<code>number</code>, <code>number</code>, <code>number</code>]</p>
+<p>The vector to add to every vertex.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-63">Returns<a href="#returns-63" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="call-signature-9">Call Signature<a href="#call-signature-9" class="hash-link" aria-label="Call Signature的直接链接" title="Call Signature的直接链接" translate="no">​</a></h4>
+<blockquote>
+<p><strong>translate</strong>(<code>x</code>, <code>y?</code>, <code>z?</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:623</p>
+<p>Move this Manifold in space. This operation can be chained. Transforms are
+combined and applied lazily.</p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-45">Parameters<a href="#parameters-45" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h5>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="x-1">x<a href="#x-1" class="hash-link" aria-label="x的直接链接" title="x的直接链接" translate="no">​</a></h6>
+<p><code>number</code></p>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="y-1">y?<a href="#y-1" class="hash-link" aria-label="y?的直接链接" title="y?的直接链接" translate="no">​</a></h6>
+<p><code>number</code></p>
+<h6 class="anchor anchorTargetStickyNavbar_Vzrq" id="z-1">z?<a href="#z-1" class="hash-link" aria-label="z?的直接链接" title="z?的直接链接" translate="no">​</a></h6>
+<p><code>number</code></p>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-64">Returns<a href="#returns-64" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h5>
+<p><code>Manifold</code></p>
+<hr>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="warp">warp()<a href="#warp" class="hash-link" aria-label="warp()的直接链接" title="warp()的直接链接" translate="no">​</a></h3>
+<blockquote>
+<p><strong>warp</strong>(<code>warpFunc</code>): <code>Manifold</code></p>
+</blockquote>
+<p>Defined in: manifold-3d/manifold.d.ts:676</p>
+<p>This function does not change the topology, but allows the vertices to be
+moved according to any arbitrary input function. It is easy to create a
+function that warps a geometrically valid object into one which overlaps,
+but that is not checked here, so it is up to the user to choose their
+function with discretion.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="parameters-46">Parameters<a href="#parameters-46" class="hash-link" aria-label="Parameters的直接链接" title="Parameters的直接链接" translate="no">​</a></h4>
+<h5 class="anchor anchorTargetStickyNavbar_Vzrq" id="warpfunc">warpFunc<a href="#warpfunc" class="hash-link" aria-label="warpFunc的直接链接" title="warpFunc的直接链接" translate="no">​</a></h5>
+<p>(<code>vert</code>) =&gt; <code>void</code></p>
+<p>A function that modifies a given vertex position.</p>
+<h4 class="anchor anchorTargetStickyNavbar_Vzrq" id="returns-65">Returns<a href="#returns-65" class="hash-link" aria-label="Returns的直接链接" title="Returns的直接链接" translate="no">​</a></h4>
+<p><code>Manifold</code></p></div></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="文件选项卡"><a class="pagination-nav__link pagination-nav__link--prev" href="/docs/manifold/manifold/classes/CrossSection"><div class="pagination-nav__sublabel">上一页</div><div class="pagination-nav__label">CrossSection</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/docs/manifold/manifold/classes/Mesh"><div class="pagination-nav__sublabel">下一页</div><div class="pagination-nav__label">Mesh</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#see" class="table-of-contents__link toc-highlight">See</a></li><li><a href="#constructors" class="table-of-contents__link toc-highlight">Constructors</a><ul><li><a href="#decompose" class="table-of-contents__link toc-highlight">decompose()</a></li><li><a href="#compose" class="table-of-contents__link toc-highlight"><del>compose()</del></a></li><li><a href="#cube" class="table-of-contents__link toc-highlight">cube()</a></li><li><a href="#cylinder" class="table-of-contents__link toc-highlight">cylinder()</a></li><li><a href="#levelset" class="table-of-contents__link toc-highlight">levelSet()</a></li><li><a href="#sphere" class="table-of-contents__link toc-highlight">sphere()</a></li><li><a href="#tetrahedron" class="table-of-contents__link toc-highlight">tetrahedron()</a></li></ul></li><li><a href="#properties" class="table-of-contents__link toc-highlight">Properties</a><ul><li><a href="#calculatecurvature" class="table-of-contents__link toc-highlight">calculateCurvature()</a></li><li><a href="#calculatenormals" class="table-of-contents__link toc-highlight">calculateNormals()</a></li><li><a href="#setproperties" class="table-of-contents__link toc-highlight">setProperties()</a></li></ul></li><li><a href="#basics" class="table-of-contents__link toc-highlight">Basics</a><ul><li><a href="#constructor" class="table-of-contents__link toc-highlight">Constructor</a></li><li><a href="#delete" class="table-of-contents__link toc-highlight">delete()</a></li></ul></li><li><a href="#boolean" class="table-of-contents__link toc-highlight">Boolean</a><ul><li><a href="#add" class="table-of-contents__link toc-highlight">add()</a></li><li><a href="#intersect" class="table-of-contents__link toc-highlight">intersect()</a></li><li><a href="#minkowskidifference" class="table-of-contents__link toc-highlight">minkowskiDifference()</a></li><li><a href="#minkowskisum" class="table-of-contents__link toc-highlight">minkowskiSum()</a></li><li><a href="#split" class="table-of-contents__link toc-highlight">split()</a></li><li><a href="#splitbyplane" class="table-of-contents__link toc-highlight">splitByPlane()</a></li><li><a href="#subtract" class="table-of-contents__link toc-highlight">subtract()</a></li><li><a href="#trimbyplane" class="table-of-contents__link toc-highlight">trimByPlane()</a></li><li><a href="#difference" class="table-of-contents__link toc-highlight">difference()</a></li><li><a href="#intersection" class="table-of-contents__link toc-highlight">intersection()</a></li><li><a href="#union" class="table-of-contents__link toc-highlight">union()</a></li></ul></li><li><a href="#convex-hull" class="table-of-contents__link toc-highlight">Convex Hull</a><ul><li><a href="#hull" class="table-of-contents__link toc-highlight">hull()</a></li><li><a href="#hull-1" class="table-of-contents__link toc-highlight">hull()</a></li></ul></li><li><a href="#information" class="table-of-contents__link toc-highlight">Information</a><ul><li><a href="#boundingbox" class="table-of-contents__link toc-highlight">boundingBox()</a></li><li><a href="#genus" class="table-of-contents__link toc-highlight">genus()</a></li><li><a href="#isempty" class="table-of-contents__link toc-highlight">isEmpty()</a></li><li><a href="#numedge" class="table-of-contents__link toc-highlight">numEdge()</a></li><li><a href="#numprop-1" class="table-of-contents__link toc-highlight">numProp()</a></li><li><a href="#numpropvert" class="table-of-contents__link toc-highlight">numPropVert()</a></li><li><a href="#numtri" class="table-of-contents__link toc-highlight">numTri()</a></li><li><a href="#numvert" class="table-of-contents__link toc-highlight">numVert()</a></li><li><a href="#status" class="table-of-contents__link toc-highlight">status()</a></li><li><a href="#tolerance-1" class="table-of-contents__link toc-highlight">tolerance()</a></li></ul></li><li><a href="#input--output" class="table-of-contents__link toc-highlight">Input &amp; Output</a><ul><li><a href="#getmesh" class="table-of-contents__link toc-highlight">getMesh()</a></li><li><a href="#ofmesh" class="table-of-contents__link toc-highlight">ofMesh()</a></li></ul></li><li><a href="#measurement" class="table-of-contents__link toc-highlight">Measurement</a><ul><li><a href="#mingap" class="table-of-contents__link toc-highlight">minGap()</a></li><li><a href="#surfacearea" class="table-of-contents__link toc-highlight">surfaceArea()</a></li><li><a href="#volume" class="table-of-contents__link toc-highlight">volume()</a></li></ul></li><li><a href="#mesh-id" class="table-of-contents__link toc-highlight">Mesh ID</a><ul><li><a href="#asoriginal" class="table-of-contents__link toc-highlight">asOriginal()</a></li><li><a href="#originalid" class="table-of-contents__link toc-highlight">originalID()</a></li><li><a href="#reserveids" class="table-of-contents__link toc-highlight">reserveIDs()</a></li></ul></li><li><a href="#polygons" class="table-of-contents__link toc-highlight">Polygons</a><ul><li><a href="#project" class="table-of-contents__link toc-highlight">project()</a></li><li><a href="#slice" class="table-of-contents__link toc-highlight">slice()</a></li><li><a href="#extrude" class="table-of-contents__link toc-highlight">extrude()</a></li><li><a href="#revolve" class="table-of-contents__link toc-highlight">revolve()</a></li></ul></li><li><a href="#smoothing" class="table-of-contents__link toc-highlight">Smoothing</a><ul><li><a href="#refine" class="table-of-contents__link toc-highlight">refine()</a></li><li><a href="#refinetolength" class="table-of-contents__link toc-highlight">refineToLength()</a></li><li><a href="#refinetotolerance" class="table-of-contents__link toc-highlight">refineToTolerance()</a></li><li><a href="#smoothbynormals" class="table-of-contents__link toc-highlight">smoothByNormals()</a></li><li><a href="#smoothout" class="table-of-contents__link toc-highlight">smoothOut()</a></li><li><a href="#smooth" class="table-of-contents__link toc-highlight">smooth()</a></li></ul></li><li><a href="#transformations" class="table-of-contents__link toc-highlight">Transformations</a><ul><li><a href="#mirror" class="table-of-contents__link toc-highlight">mirror()</a></li><li><a href="#rotate" class="table-of-contents__link toc-highlight">rotate()</a></li><li><a href="#scale" class="table-of-contents__link toc-highlight">scale()</a></li><li><a href="#settolerance" class="table-of-contents__link toc-highlight">setTolerance()</a></li><li><a href="#simplify" class="table-of-contents__link toc-highlight">simplify()</a></li><li><a href="#transform" class="table-of-contents__link toc-highlight">transform()</a></li><li><a href="#translate" class="table-of-contents__link toc-highlight">translate()</a></li><li><a href="#warp" class="table-of-contents__link toc-highlight">warp()</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer footer--dark"><div class="container container-fluid"><div class="footer__bottom text--center"><div class="footer__copyright">Copyright © 2026 solidJSCAD. Built with Docusaurus.</div></div></div></footer></div>
+</body>
+</html>

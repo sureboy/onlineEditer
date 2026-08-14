@@ -25,9 +25,20 @@ export const updateSelect =(path:string,name:string,files:string[])=>{
 export const appendChildToDom = (...childrenNode:HTMLElement[])=>{
     if (!dom)return
     dom.innerHTML=""
-    childrenNode.forEach(v=>{
-        dom?.appendChild(v)
-    }) 
+    dom.append(...childrenNode)
+ 
+    const docs = document.createElement("a")
+    docs.href = "/docs/"
+    docs.target = "_blank"
+    docs.textContent="Docs"
+    
+    docs.style.marginRight="6px"
+    docs.style.float = "right"
+    const home = docs.cloneNode() as HTMLAnchorElement
+    home.href="/"
+    home.textContent="Home"
+    dom.append(home,docs)
+    //dom.appendChild(docs)
 }
 // 2. 定义状态字段 (StateField) 来管理面板的显示/隐藏
 const helpPanelStateField = StateField.define<boolean>({

@@ -67,7 +67,6 @@ export const main=(opt)=>{
         return input
     }
     const initPanel =async (editorView:EditorView)=>{
-         
         if (!FileInfo.DirHandle){
             const input = createInputElement()
             if (FileInfo.path){
@@ -232,9 +231,7 @@ import type {CompletionResult} from '@codemirror/autocomplete'
 let cadImport:{[k:string]:any} = {}
 function jscadModelingCompletionSource (context:CompletionContext): CompletionResult | null  {
     let word = context.matchBefore(/[\w.]+/);
-    if (!word || (word.from == word.to && !context.explicit)) return null;
-  
-    //const importKey = 
+    if (!word || (word.from == word.to && !context.explicit)) return null; 
     let opt = cadImport[word.text.slice(0,word.text.indexOf('.'))] as any[]
     if (opt){
         const lastd =word.text.lastIndexOf(".")
@@ -252,7 +249,7 @@ function jscadModelingCompletionSource (context:CompletionContext): CompletionRe
             //return null
             return { 
                 from: word.from , 
-                options: opt.filter(item =>  item.label.lastIndexOf(".") ===lastd ),
+                options: opt.filter(item =>  item.label.lastIndexOf(".") ===lastd ) ,
                 validFor: /^[\w.]*$/ 
             };
         }
@@ -305,7 +302,9 @@ function getImportAliases(doc: string) {
             r.json().then(v=>{
                 
                 cadImport[importInfo.as] = v[importInfo.key].map((l:any)=>{
-                    l.label = importInfo.as +'.'+l.label
+                    l.oriLabel = l.label
+                    
+                    l.label = importInfo.as +'.'+l.oriLabel
                     return l
                 })
                 //cadImport[importInfo.as] = v.list
