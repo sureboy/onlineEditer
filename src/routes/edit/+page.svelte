@@ -298,7 +298,7 @@ function getImportAliases(doc: string) {
     if (!cadImport[importInfo.as]){
         cadImport[importInfo.as]=[]
         //const searchParams = new URLSearchParams(importInfo);
-        fetch(`/completion_${encodeURIComponent(importInfo.key)}.json`).then(r=>{
+        fetch(`/${importInfo.key.replace(/[^a-zA-Z0-9\-_]/g, '')}.json`).then(r=>{
             r.json().then(v=>{
                 
                 cadImport[importInfo.as] = v[importInfo.key].map((l:any)=>{

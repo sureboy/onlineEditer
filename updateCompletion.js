@@ -23,7 +23,7 @@ const getFunction = (obj,func ,parent=[] )=>{
 }
 const main = ()=>{
     const db = {'@jscad/modeling':[]}
-    const file = path.join("static",`completion_${encodeURIComponent("@jscad/modeling")}.json`)
+    const file = path.join("static",`${"@jscad/modeling".replace(/[^a-zA-Z0-9\-_]/g, '')}.json`)
     //fs.rmSync(file)
 
     
