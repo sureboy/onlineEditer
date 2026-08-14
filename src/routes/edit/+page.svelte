@@ -93,13 +93,24 @@ export const main=(opt)=>{
         const content = document.createElement("span");
         content.style.marginRight = '6px';
         let isSelect = false
-        for await (const _k of  FileInfo.DirHandle?.keys()){
+        for await (const [_k,f] of  FileInfo.DirHandle?.entries()){
             //files.push(decodeURIComponent(k))
+            if (f.kind==="directory"){
+                continue;
+            } 
             const k = decodeURIComponent(_k)
             let opt = document.createElement("option");
             opt.textContent = k; 
             opt.value = k
             opt.defaultSelected=k===FileInfo.name 
+            if (!opt.defaultSelected){
+                f.getFile().then(file=>{
+                    file.text().then(doc=>{
+                        getImport(doc)
+                    })
+                    
+                }) 
+            }
             if (!isSelect)
                 isSelect = opt.defaultSelected
             select.appendChild(opt);
@@ -226,9 +237,12 @@ import type {CompletionResult} from '@codemirror/autocomplete'
 //import { initSync, parse } from 'es-module-lexer';
 
 
-//import { javascriptLanguage } from '@codemirror/lang-javascript';
+import { javascriptLanguage, } from '@codemirror/lang-javascript';
+//import {TreeCursor}  from '@codemirror/lang-javascript'
+import { type TreeCursor } from '@lezer/common'; 
 //const baseExtensions = 
 let cadImport:{[k:string]:any} = {}
+let VariableList:any[] = []
 function jscadModelingCompletionSource (context:CompletionContext): CompletionResult | null  {
     let word = context.matchBefore(/[\w.]+/);
     if (!word || (word.from == word.to && !context.explicit)) return null; 
@@ -253,67 +267,192 @@ function jscadModelingCompletionSource (context:CompletionContext): CompletionRe
                 validFor: /^[\w.]*$/ 
             };
         }
+    }else{
+        opt = VariableList.filter(item=>item.label.startsWith(word.text))
+        if (opt.length>0)
+        return { 
+            from: word.from , 
+            options: opt  ,
+            validFor: /^[\w.]*$/ 
+        };
     }
-    /*
-    if ( word.text.startsWith(jscadKey) ) {
-        const wordList = word.text.split(".")
-        const first = wordList.shift()
-        const k  =wordList.join(".")
-        if (k){
-            const options = jscadCompletionsOption.filter(item => item.label.startsWith(k))
-            if (context){
-                console.log(word.text,k,options,context)
-                return { from: word.from+jscadKey.length, options,validFor: /^[\w.]*$/ };
-            }
-        }else{
-            const options = jscadCompletionsOption.filter(item => item.label.split(".").length===1 )
-            return { from: word.from+jscadKey.length, options,validFor: /^[\w.]*$/ };
-        }
-    }*/
-    return null
-   
-};
-function javascriptCompletionSource (context:CompletionContext): CompletionResult | null  {
-    let word = context.matchBefore(/\w+/);
-    if (!word || (word.from == word.to && !context.explicit)) return null;
+ 
     return {
         from: word.from,
         options:snippets 
     };
    
 };
-
-function getImportAliases(doc: string) {
-  //const aliases: {as:string,key:string}[] = [];
-
  
-  // 1. 匹配默认导入: import modeling from '@jscad/modeling'
-  const defaultImport = /import\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g;
-  let match: RegExpExecArray | null;
- 
-  while ((match = defaultImport.exec(doc)) !== null) {
-    const importInfo = {as:match[1],key:match[2]}
-    //aliases.push(importInfo)
-    //aliases.push(match[1]);
-    if (!cadImport[importInfo.as]){
-        cadImport[importInfo.as]=[]
-        //const searchParams = new URLSearchParams(importInfo);
-        fetch(`/${importInfo.key.replace(/[^a-zA-Z0-9\-_]/g, '')}.json`).then(r=>{
-            r.json().then(v=>{
+const handleTreeCursorImport  = (iter:TreeCursor,doc: string)=>{
+    const importInfo = {as:'',key:''}
+    do {
+        switch (iter.name as string){
+            case "VariableDefinition":
+                importInfo.as = doc.slice(iter.from, iter.to)
+                VariableList.push({type:'variable',label:importInfo.as})
+                break;
+            case "String":
+                importInfo.key = doc.slice(iter.from, iter.to)
+                break;
+        }
+    } while (iter.nextSibling());
+    iter.parent()
+    fetch(`/${importInfo.key.replace(/[^a-zA-Z0-9\-_]/g, '')}.json`).then(r=>{
+        if (!r.ok)return;
+        r.json().then(v=>{
+            
+            cadImport[importInfo.as] = v.list.map((l:any)=>{
+                l.oriLabel = l.label
                 
-                cadImport[importInfo.as] = v[importInfo.key].map((l:any)=>{
-                    l.oriLabel = l.label
-                    
-                    l.label = importInfo.as +'.'+l.oriLabel
-                    return l
-                })
-                //cadImport[importInfo.as] = v.list
+                l.label = importInfo.as +'.'+l.oriLabel
+                return l
             })
-        }) 
+            //cadImport[importInfo.as] = v.list
+        })
+    }) 
+}
+const handleTreeCursorVariable  = (iter:TreeCursor,doc: string)=>{
+    const Variable = {type:'variable',label:''}
+    do {
         
-    }
-  }
+        switch (iter.name as string){
+            case "VariableDefinition":
+                Variable.label=doc.slice(iter.from, iter.to);
+                break
+            case "ArrowFunction":
+                Variable.type = "function"
+                break
+            //default:
+                //console.log(iter.name, doc.slice(iter.from, iter.to));
+        }
 
+     } while (iter.nextSibling());
+     //VariableList.push(Variable)
+     iter.parent()
+     return Variable
+}
+const handleTreeCursorClass  = (iter:TreeCursor,doc: string)=>{
+    const Variable = {type:'class',label:''}
+    do {     
+        console.log(iter.name,doc.slice(iter.from,iter.to))
+        if (iter.name === "VariableDefinition"){
+            Variable.label=doc.slice(iter.from, iter.to);
+            break
+        } 
+     } while (iter.nextSibling());
+     //VariableList.push(Variable)
+     iter.parent()
+     return Variable
+}
+const handleTreeCursorFunction  = (iter:TreeCursor,doc: string)=>{
+    const Variable = {type:'function',label:''}
+    do {     
+
+        if (iter.name === "VariableDefinition"){
+            Variable.label=doc.slice(iter.from, iter.to);
+            break
+        } 
+     } while (iter.nextSibling());
+     //VariableList.push(Variable)
+     iter.parent()
+     return Variable
+}
+const handleTreeCursorExport  = (iter:TreeCursor,doc: string,getVar:(vari:any)=>void)=>{
+    //const Variable = {type:'function',label:''}
+    do {     
+        switch (iter.name as string){
+            case "VariableDeclaration":
+                if (iter.firstChild()){
+                    getVar(  handleTreeCursorVariable (iter,doc))
+               
+                }
+                break;
+            case "FunctionDeclaration":
+                if (iter.firstChild()){
+                    getVar(  handleTreeCursorFunction(iter,doc))
+                }
+                break;
+            case "ClassDeclaration":
+                
+                if (iter.firstChild()){
+                    getVar( handleTreeCursorClass(iter,doc))
+                }
+                break
+            case "ExportGroup":
+                if (iter.firstChild()){
+                    do {    
+                        if ("VariableName" ===iter.name) {
+                            const vari = {type:'function',label:''}
+                            vari.label = doc.slice(iter.from,iter.to)
+                            getVar( vari)
+                        }
+                        console.log("ExportGroup",iter.name,doc.slice(iter.from,iter.to))
+                    } while (iter.nextSibling());
+                    //VariableList.push(Variable)
+                    iter.parent()
+                }
+                break
+            default:
+                console.log(iter.name,doc.slice(iter.from,iter.to))
+        }
+     } while (iter.nextSibling());
+     //VariableList.push(Variable)
+     iter.parent()
+     //return Variable
+}
+function getImport(doc:string){
+    const tree = javascriptLanguage.parser.parse(doc); 
+    let iter = tree.cursor();
+    const importList:any[] = []
+    do {
+        if ("ExportDeclaration"=== iter.name){
+            if (iter.firstChild()){
+                handleTreeCursorExport(iter,doc,(v)=>{
+                    importList.push(v)
+                })
+            }
+        } 
+    } while (iter.next());
+    console.log("import",importList)
+}
+function getImportAliases(doc: string) { 
+    const tree = javascriptLanguage.parser.parse(doc); 
+    let iter = tree.cursor();
+    do {
+        switch (iter.name as string){
+            case "ImportDeclaration":
+                if (iter.firstChild())
+                    handleTreeCursorImport (iter,doc) 
+                break;
+                
+            case "VariableDeclaration":
+                if (iter.firstChild()){
+                    VariableList.push(handleTreeCursorVariable (iter,doc) )
+                //}else{
+                    //console.log(doc.slice(iter.from, iter.to))
+                }
+                break;
+            case "FunctionDeclaration":
+                if (iter.firstChild()){
+                    VariableList.push(handleTreeCursorFunction(iter,doc))
+                }
+                break;
+            case "ClassDeclaration": 
+                if (iter.firstChild()){
+                    VariableList.push( handleTreeCursorClass(iter,doc))
+                }
+                break
+            //case "ExportDeclaration":
+           //     console.log( "e",iter.name, doc.slice(iter.from, iter.to));
+            //    break;
+            //default:
+            //    console.log("--",iter.name, doc.slice(iter.from, iter.to));
+        }
+
+    } while (iter.next());
+    
+    VariableList = Array.from(new Set(VariableList))
  
   //return jscadKey
   //return aliases;
@@ -324,7 +463,7 @@ function getImportAliases(doc: string) {
 <CodeMirror  
     extensions={[helpPanel(),autocompletion({
             override:[ 
-                jscadModelingCompletionSource,javascriptCompletionSource
+                jscadModelingCompletionSource
         ]
         }), ]}
     keybindings= {[saveKeymap]}

@@ -1,10 +1,6 @@
 {
-  "@jscad/modeling": [
-    {
-      "label": "colors",
-      "type": "property",
-      "info": "colorize\ncolorNameToRgb\ncssColors\nhexToRgb\nhslToRgb\nhsvToRgb\nhueToColorComponent\nrgbToHex\nrgbToHsl\nrgbToHsv"
-    },
+  "name": "@jscad/modeling",
+  "list": [
     {
       "label": "colors.colorize",
       "type": "function",
@@ -14,11 +10,6 @@
       "label": "colors.colorNameToRgb",
       "type": "function",
       "info": "(s) => cssColors[s.toLowerCase()]"
-    },
-    {
-      "label": "colors.cssColors",
-      "type": "property",
-      "info": "black\nsilver\ngray\nwhite\nmaroon\nred\npurple\nfuchsia\ngreen\nlime\nolive\nyellow\nnavy\nblue\nteal\naqua\naliceblue\nantiquewhite\naquamarine\nazure\nbeige\nbisque\nblanchedalmond\nblueviolet\nbrown\nburlywood\ncadetblue\nchartreuse\nchocolate\ncoral\ncornflowerblue\ncornsilk\ncrimson\ncyan\ndarkblue\ndarkcyan\ndarkgoldenrod\ndarkgray\ndarkgreen\ndarkgrey\ndarkkhaki\ndarkmagenta\ndarkolivegreen\ndarkorange\ndarkorchid\ndarkred\ndarksalmon\ndarkseagreen\ndarkslateblue\ndarkslategray\ndarkslategrey\ndarkturquoise\ndarkviolet\ndeeppink\ndeepskyblue\ndimgray\ndimgrey\ndodgerblue\nfirebrick\nfloralwhite\nforestgreen\ngainsboro\nghostwhite\ngold\ngoldenrod\ngreenyellow\ngrey\nhoneydew\nhotpink\nindianred\nindigo\nivory\nkhaki\nlavender\nlavenderblush\nlawngreen\nlemonchiffon\nlightblue\nlightcoral\nlightcyan\nlightgoldenrodyellow\nlightgray\nlightgreen\nlightgrey\nlightpink\nlightsalmon\nlightseagreen\nlightskyblue\nlightslategray\nlightslategrey\nlightsteelblue\nlightyellow\nlimegreen\nlinen\nmagenta\nmediumaquamarine\nmediumblue\nmediumorchid\nmediumpurple\nmediumseagreen\nmediumslateblue\nmediumspringgreen\nmediumturquoise\nmediumvioletred\nmidnightblue\nmintcream\nmistyrose\nmoccasin\nnavajowhite\noldlace\nolivedrab\norange\norangered\norchid\npalegoldenrod\npalegreen\npaleturquoise\npalevioletred\npapayawhip\npeachpuff\nperu\npink\nplum\npowderblue\nrosybrown\nroyalblue\nsaddlebrown\nsalmon\nsandybrown\nseagreen\nseashell\nsienna\nskyblue\nslateblue\nslategray\nslategrey\nsnow\nspringgreen\nsteelblue\ntan\nthistle\ntomato\nturquoise\nviolet\nwheat\nwhitesmoke\nyellowgreen"
     },
     {
       "label": "colors.cssColors.black",
@@ -756,6 +747,11 @@
       "info": "0.6039215686274509\n0.803921568627451\n0.19607843137254902"
     },
     {
+      "label": "colors.cssColors",
+      "type": "property",
+      "info": "black\nsilver\ngray\nwhite\nmaroon\nred\npurple\nfuchsia\ngreen\nlime\nolive\nyellow\nnavy\nblue\nteal\naqua\naliceblue\nantiquewhite\naquamarine\nazure\nbeige\nbisque\nblanchedalmond\nblueviolet\nbrown\nburlywood\ncadetblue\nchartreuse\nchocolate\ncoral\ncornflowerblue\ncornsilk\ncrimson\ncyan\ndarkblue\ndarkcyan\ndarkgoldenrod\ndarkgray\ndarkgreen\ndarkgrey\ndarkkhaki\ndarkmagenta\ndarkolivegreen\ndarkorange\ndarkorchid\ndarkred\ndarksalmon\ndarkseagreen\ndarkslateblue\ndarkslategray\ndarkslategrey\ndarkturquoise\ndarkviolet\ndeeppink\ndeepskyblue\ndimgray\ndimgrey\ndodgerblue\nfirebrick\nfloralwhite\nforestgreen\ngainsboro\nghostwhite\ngold\ngoldenrod\ngreenyellow\ngrey\nhoneydew\nhotpink\nindianred\nindigo\nivory\nkhaki\nlavender\nlavenderblush\nlawngreen\nlemonchiffon\nlightblue\nlightcoral\nlightcyan\nlightgoldenrodyellow\nlightgray\nlightgreen\nlightgrey\nlightpink\nlightsalmon\nlightseagreen\nlightskyblue\nlightslategray\nlightslategrey\nlightsteelblue\nlightyellow\nlimegreen\nlinen\nmagenta\nmediumaquamarine\nmediumblue\nmediumorchid\nmediumpurple\nmediumseagreen\nmediumslateblue\nmediumspringgreen\nmediumturquoise\nmediumvioletred\nmidnightblue\nmintcream\nmistyrose\nmoccasin\nnavajowhite\noldlace\nolivedrab\norange\norangered\norchid\npalegoldenrod\npalegreen\npaleturquoise\npalevioletred\npapayawhip\npeachpuff\nperu\npink\nplum\npowderblue\nrosybrown\nroyalblue\nsaddlebrown\nsalmon\nsandybrown\nseagreen\nseashell\nsienna\nskyblue\nslateblue\nslategray\nslategrey\nsnow\nspringgreen\nsteelblue\ntan\nthistle\ntomato\nturquoise\nviolet\nwheat\nwhitesmoke\nyellowgreen"
+    },
+    {
       "label": "colors.hexToRgb",
       "type": "function",
       "info": "(notation) => {\n  notation = notation.replace('#', '')\n  if (notation.length < 6) throw new Error('the given notation must contain 3 or more hex values')\n\n  const r = parseInt(notation.substring(0, 2), 16) / 255\n  const g = parseInt(notation.substring(2, 4), 16) / 255\n  const b = parseInt(notation.substring(4, 6), 16) / 255\n  if (notation.length >= 8) {\n    const a = parseInt(notation.substring(6, 8), 16) / 255\n    return [r, g, b, a]\n  }\n  return [r, g, b]\n}"
@@ -791,14 +787,9 @@
       "info": "(...values) => {\n  values = flatten(values)\n  if (values.length < 3) throw new Error('values must contain R, G and B values')\n\n  const r = values[0]\n  const g = values[1]\n  const b = values[2]\n\n  const max = Math.max(r, g, b)\n  const min = Math.min(r, g, b)\n  let h\n  const v = max\n\n  const d = max - min\n  const s = max === 0 ? 0 : d / max\n\n  if (max === min) {\n    h = 0 // achromatic\n  } else {\n    switch (max) {\n      case r:\n        h = (g - b) / d + (g < b ? 6 : 0)\n        break\n      case g:\n        h = (b - r) / d + 2\n        break\n      case b:\n        h = (r - g) / d + 4\n        break\n    }\n    h /= 6\n  }\n\n  if (values.length > 3) {\n    // add alpha if provided\n    const a = values[3]\n    return [h, s, v, a]\n  }\n  return [h, s, v]\n}"
     },
     {
-      "label": "curves",
+      "label": "colors",
       "type": "property",
-      "info": "bezier"
-    },
-    {
-      "label": "curves.bezier",
-      "type": "property",
-      "info": "create\nvalueAt\ntangentAt\nlengths\nlength\narcLengthToT"
+      "info": "colorize\ncolorNameToRgb\ncssColors\nhexToRgb\nhslToRgb\nhsvToRgb\nhueToColorComponent\nrgbToHex\nrgbToHsl\nrgbToHsv"
     },
     {
       "label": "curves.bezier.create",
@@ -831,14 +822,14 @@
       "info": "(options, bezier) => {\n  const defaults = {\n    distance: 0,\n    segments: 100\n  }\n  const { distance, segments } = Object.assign({}, defaults, options)\n\n  const arcLengths = lengths(segments, bezier)\n  // binary search for the index with largest value smaller than target arcLength\n  let startIndex = 0\n  let endIndex = segments\n  while (startIndex <= endIndex) {\n    const middleIndex = Math.floor(startIndex + (endIndex - startIndex) / 2)\n    const diff = arcLengths[middleIndex] - distance\n    if (diff < 0) {\n      startIndex = middleIndex + 1\n    } else if (diff > 0) {\n      endIndex = middleIndex - 1\n    } else {\n      endIndex = middleIndex\n      break\n    }\n  }\n  // if we have an exact match, return it\n  const targetIndex = endIndex\n  if (arcLengths[targetIndex] === distance) {\n    return targetIndex / segments\n  }\n  // we could get finer grain at lengths, or use simple interpolation between two points\n  const lengthBefore = arcLengths[targetIndex]\n  const lengthAfter = arcLengths[targetIndex + 1]\n  const segmentLength = lengthAfter - lengthBefore\n  // determine where we are between the 'before' and 'after' points\n  const segmentFraction = (distance - lengthBefore) / segmentLength\n  // add that fractional amount and return\n  return (targetIndex + segmentFraction) / segments\n}"
     },
     {
-      "label": "geometries",
+      "label": "curves.bezier",
       "type": "property",
-      "info": "geom2\ngeom3\npath2\npoly2\npoly3"
+      "info": "create\nvalueAt\ntangentAt\nlengths\nlength\narcLengthToT"
     },
     {
-      "label": "geometries.geom2",
+      "label": "curves",
       "type": "property",
-      "info": "clone\ncreate\nfromPoints\nfromCompactBinary\nisA\nreverse\ntoOutlines\ntoPoints\ntoSides\ntoString\ntoCompactBinary\ntransform\nvalidate"
+      "info": "bezier"
     },
     {
       "label": "geometries.geom2.clone",
@@ -906,9 +897,9 @@
       "info": "(object) => {\n  if (!isA(object)) {\n    throw new Error('invalid geom2 structure')\n  }\n\n  // check for closedness\n  toOutlines(object)\n\n  // check for self-edges\n  object.sides.forEach((side) => {\n    if (vec2.equals(side[0], side[1])) {\n      throw new Error(`geom2 self-edge ${side[0]}`)\n    }\n  })\n\n  // check transforms\n  if (!object.transforms.every(Number.isFinite)) {\n    throw new Error(`geom2 invalid transforms ${object.transforms}`)\n  }\n}"
     },
     {
-      "label": "geometries.geom3",
+      "label": "geometries.geom2",
       "type": "property",
-      "info": "clone\ncreate\nfromPointsConvex\nfromPoints\nfromCompactBinary\ninvert\nisA\nisConvex\ntoPoints\ntoPolygons\ntoString\ntoCompactBinary\ntransform\nvalidate"
+      "info": "clone\ncreate\nfromPoints\nfromCompactBinary\nisA\nreverse\ntoOutlines\ntoPoints\ntoSides\ntoString\ntoCompactBinary\ntransform\nvalidate"
     },
     {
       "label": "geometries.geom3.clone",
@@ -981,9 +972,9 @@
       "info": "(object) => {\n  if (!isA(object)) {\n    throw new Error('invalid geom3 structure')\n  }\n\n  // check polygons\n  object.polygons.forEach(poly3.validate)\n  validateManifold(object)\n\n  // check transforms\n  if (!object.transforms.every(Number.isFinite)) {\n    throw new Error(`geom3 invalid transforms ${object.transforms}`)\n  }\n\n  // TODO: check for self-intersecting\n}"
     },
     {
-      "label": "geometries.path2",
+      "label": "geometries.geom3",
       "type": "property",
-      "info": "appendArc\nappendBezier\nappendPoints\nclone\nclose\nconcat\ncreate\nequals\nfromPoints\nfromCompactBinary\nisA\nreverse\ntoPoints\ntoString\ntoCompactBinary\ntransform\nvalidate"
+      "info": "clone\ncreate\nfromPointsConvex\nfromPoints\nfromCompactBinary\ninvert\nisA\nisConvex\ntoPoints\ntoPolygons\ntoString\ntoCompactBinary\ntransform\nvalidate"
     },
     {
       "label": "geometries.path2.appendArc",
@@ -1071,9 +1062,9 @@
       "info": "(object) => {\n  if (!isA(object)) {\n    throw new Error('invalid path2 structure')\n  }\n\n  // check for duplicate points\n  if (object.points.length > 1) {\n    for (let i = 0; i < object.points.length; i++) {\n      if (vec2.equals(object.points[i], object.points[(i + 1) % object.points.length])) {\n        throw new Error(`path2 duplicate points ${object.points[i]}`)\n      }\n    }\n  }\n\n  // check for infinity, nan\n  object.points.forEach((point) => {\n    if (!point.every(Number.isFinite)) {\n      throw new Error(`path2 invalid point ${point}`)\n    }\n  })\n\n  // check transforms\n  if (!object.transforms.every(Number.isFinite)) {\n    throw new Error(`path2 invalid transforms ${object.transforms}`)\n  }\n}"
     },
     {
-      "label": "geometries.poly2",
+      "label": "geometries.path2",
       "type": "property",
-      "info": "arePointsInside\ncreate\nflip\nmeasureArea"
+      "info": "appendArc\nappendBezier\nappendPoints\nclone\nclose\nconcat\ncreate\nequals\nfromPoints\nfromCompactBinary\nisA\nreverse\ntoPoints\ntoString\ntoCompactBinary\ntransform\nvalidate"
     },
     {
       "label": "geometries.poly2.arePointsInside",
@@ -1096,9 +1087,9 @@
       "info": "(polygon) => area(polygon.vertices)"
     },
     {
-      "label": "geometries.poly3",
+      "label": "geometries.poly2",
       "type": "property",
-      "info": "clone\ncreate\nfromPoints\nfromPointsAndPlane\ninvert\nisA\nisConvex\nmeasureArea\nmeasureBoundingBox\nmeasureBoundingSphere\nmeasureSignedVolume\nplane\ntoPoints\ntoString\ntransform\nvalidate"
+      "info": "arePointsInside\ncreate\nflip\nmeasureArea"
     },
     {
       "label": "geometries.poly3.clone",
@@ -1181,14 +1172,14 @@
       "info": "(object) => {\n  if (!isA(object)) {\n    throw new Error('invalid poly3 structure')\n  }\n\n  // check for empty polygon\n  if (object.vertices.length < 3) {\n    throw new Error(`poly3 not enough vertices ${object.vertices.length}`)\n  }\n  // check area\n  if (measureArea(object) <= 0) {\n    throw new Error('poly3 area must be greater than zero')\n  }\n\n  // check for duplicate points\n  for (let i = 0; i < object.vertices.length; i++) {\n    if (vec3.equals(object.vertices[i], object.vertices[(i + 1) % object.vertices.length])) {\n      throw new Error(`poly3 duplicate vertex ${object.vertices[i]}`)\n    }\n  }\n\n  // check convexity\n  if (!isConvex(object)) {\n    throw new Error('poly3 must be convex')\n  }\n\n  // check for infinity, nan\n  object.vertices.forEach((vertex) => {\n    if (!vertex.every(Number.isFinite)) {\n      throw new Error(`poly3 invalid vertex ${vertex}`)\n    }\n  })\n\n  // check that points are co-planar\n  if (object.vertices.length > 3) {\n    const normal = plane(object)\n    object.vertices.forEach((vertex) => {\n      const dist = Math.abs(signedDistanceToPoint(normal, vertex))\n      if (dist > NEPS) {\n        throw new Error(`poly3 must be coplanar: vertex ${vertex} distance ${dist}`)\n      }\n    })\n  }\n}"
     },
     {
-      "label": "maths",
+      "label": "geometries.poly3",
       "type": "property",
-      "info": "constants\nline2\nline3\nmat4\nplane\nutils\nvec2\nvec3\nvec4"
+      "info": "clone\ncreate\nfromPoints\nfromPointsAndPlane\ninvert\nisA\nisConvex\nmeasureArea\nmeasureBoundingBox\nmeasureBoundingSphere\nmeasureSignedVolume\nplane\ntoPoints\ntoString\ntransform\nvalidate"
     },
     {
-      "label": "maths.constants",
+      "label": "geometries",
       "type": "property",
-      "info": "EPS\nNEPS\nTAU\nspatialResolution"
+      "info": "geom2\ngeom3\npath2\npoly2\npoly3"
     },
     {
       "label": "maths.constants.EPS",
@@ -1211,9 +1202,9 @@
       "info": "100000"
     },
     {
-      "label": "maths.line2",
+      "label": "maths.constants",
       "type": "property",
-      "info": "clone\nclosestPoint\ncopy\ncreate\ndirection\ndistanceToPoint\nequals\nfromPoints\nfromValues\nintersectPointOfLines\norigin\nreverse\ntoString\ntransform\nxAtY"
+      "info": "EPS\nNEPS\nTAU\nspatialResolution"
     },
     {
       "label": "maths.line2.clone",
@@ -1291,9 +1282,9 @@
       "info": "(line, y) => {\n  let x = (line[2] - (line[1] * y)) / line[0]\n  if (Number.isNaN(x)) {\n    const org = origin(line)\n    x = org[0]\n  }\n  return x\n}"
     },
     {
-      "label": "maths.line3",
+      "label": "maths.line2",
       "type": "property",
-      "info": "clone\nclosestPoint\ncopy\ncreate\ndirection\ndistanceToPoint\nequals\nfromPlanes\nfromPointAndDirection\nfromPoints\nintersectPointOfLineAndPlane\norigin\nreverse\ntoString\ntransform"
+      "info": "clone\nclosestPoint\ncopy\ncreate\ndirection\ndistanceToPoint\nequals\nfromPoints\nfromValues\nintersectPointOfLines\norigin\nreverse\ntoString\ntransform\nxAtY"
     },
     {
       "label": "maths.line3.clone",
@@ -1371,9 +1362,9 @@
       "info": "(out, line, matrix) => {\n  const point = line[0]\n  const direction = line[1]\n  const pointPlusDirection = vec3.add(vec3.create(), point, direction)\n\n  const newpoint = vec3.transform(vec3.create(), point, matrix)\n  const newPointPlusDirection = vec3.transform(pointPlusDirection, pointPlusDirection, matrix)\n  const newdirection = vec3.subtract(newPointPlusDirection, newPointPlusDirection, newpoint)\n\n  return fromPointAndDirection(out, newpoint, newdirection)\n}"
     },
     {
-      "label": "maths.mat4",
+      "label": "maths.line3",
       "type": "property",
-      "info": "add\nclone\ncopy\ncreate\ninvert\nequals\nfromRotation\nfromScaling\nfromTaitBryanRotation\nfromTranslation\nfromValues\nfromVectorRotation\nfromXRotation\nfromYRotation\nfromZRotation\nidentity\nisIdentity\nisOnlyTransformScale\nisMirroring\nmirrorByPlane\nmultiply\nrotate\nrotateX\nrotateY\nrotateZ\nscale\nsubtract\ntoString\ntranslate"
+      "info": "clone\nclosestPoint\ncopy\ncreate\ndirection\ndistanceToPoint\nequals\nfromPlanes\nfromPointAndDirection\nfromPoints\nintersectPointOfLineAndPlane\norigin\nreverse\ntoString\ntransform"
     },
     {
       "label": "maths.mat4.add",
@@ -1521,9 +1512,9 @@
       "info": "(out, matrix, offsets) => {\n  const x = offsets[0]\n  const y = offsets[1]\n  const z = offsets[2]\n  let a00\n  let a01\n  let a02\n  let a03\n  let a10\n  let a11\n  let a12\n  let a13\n  let a20\n  let a21\n  let a22\n  let a23\n\n  if (matrix === out) {\n  // 0-11 assignments are unnecessary\n    out[12] = matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12]\n    out[13] = matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13]\n    out[14] = matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14]\n    out[15] = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15]\n  } else {\n    a00 = matrix[0]; a01 = matrix[1]; a02 = matrix[2]; a03 = matrix[3]\n    a10 = matrix[4]; a11 = matrix[5]; a12 = matrix[6]; a13 = matrix[7]\n    a20 = matrix[8]; a21 = matrix[9]; a22 = matrix[10]; a23 = matrix[11]\n\n    out[0] = a00; out[1] = a01; out[2] = a02; out[3] = a03\n    out[4] = a10; out[5] = a11; out[6] = a12; out[7] = a13\n    out[8] = a20; out[9] = a21; out[10] = a22; out[11] = a23\n\n    out[12] = a00 * x + a10 * y + a20 * z + matrix[12]\n    out[13] = a01 * x + a11 * y + a21 * z + matrix[13]\n    out[14] = a02 * x + a12 * y + a22 * z + matrix[14]\n    out[15] = a03 * x + a13 * y + a23 * z + matrix[15]\n  }\n\n  return out\n}"
     },
     {
-      "label": "maths.plane",
+      "label": "maths.mat4",
       "type": "property",
-      "info": "clone\ncopy\ncreate\nequals\nflip\nfromNormalAndPoint\nfromValues\nfromNoisyPoints\nfromPoints\nfromPointsRandom\nprojectionOfPoint\nsignedDistanceToPoint\ntoString\ntransform"
+      "info": "add\nclone\ncopy\ncreate\ninvert\nequals\nfromRotation\nfromScaling\nfromTaitBryanRotation\nfromTranslation\nfromValues\nfromVectorRotation\nfromXRotation\nfromYRotation\nfromZRotation\nidentity\nisIdentity\nisOnlyTransformScale\nisMirroring\nmirrorByPlane\nmultiply\nrotate\nrotateX\nrotateY\nrotateZ\nscale\nsubtract\ntoString\ntranslate"
     },
     {
       "label": "maths.plane.clone",
@@ -1596,9 +1587,9 @@
       "info": "(out, plane, matrix) => {\n  const ismirror = mat4.isMirroring(matrix)\n  // get two vectors in the plane:\n  const r = vec3.orthogonal(vec3.create(), plane)\n  const u = vec3.cross(r, plane, r)\n  const v = vec3.cross(vec3.create(), plane, u)\n  // get 3 points in the plane:\n  let point1 = vec3.fromScalar(vec3.create(), plane[3])\n  vec3.multiply(point1, point1, plane)\n  let point2 = vec3.add(vec3.create(), point1, u)\n  let point3 = vec3.add(vec3.create(), point1, v)\n  // transform the points:\n  point1 = vec3.transform(point1, point1, matrix)\n  point2 = vec3.transform(point2, point2, matrix)\n  point3 = vec3.transform(point3, point3, matrix)\n  // and create a new plane from the transformed points:\n  fromPoints(out, point1, point2, point3)\n  if (ismirror) {\n    // the transform is mirroring so flip the plane\n    flip(out, out)\n  }\n  return out\n}"
     },
     {
-      "label": "maths.utils",
+      "label": "maths.plane",
       "type": "property",
-      "info": "aboutEqualNormals\narea\ncos\ninterpolateBetween2DPointsForY\nintersect\nsin\nsolve2Linear"
+      "info": "clone\ncopy\ncreate\nequals\nflip\nfromNormalAndPoint\nfromValues\nfromNoisyPoints\nfromPoints\nfromPointsRandom\nprojectionOfPoint\nsignedDistanceToPoint\ntoString\ntransform"
     },
     {
       "label": "maths.utils.aboutEqualNormals",
@@ -1636,9 +1627,9 @@
       "info": "(a, b, c, d, u, v) => {\n  const det = a * d - b * c\n  const invdet = 1.0 / det\n  let x = u * d - b * v\n  let y = -u * c + a * v\n  x *= invdet\n  y *= invdet\n  return [x, y]\n}"
     },
     {
-      "label": "maths.vec2",
+      "label": "maths.utils",
       "type": "property",
-      "info": "abs\nadd\nangle\nangleDegrees\nangleRadians\nclone\ncopy\ncreate\ncross\ndistance\ndivide\ndot\nequals\nfromAngleDegrees\nfromAngleRadians\nfromScalar\nfromValues\nlength\nlerp\nmax\nmin\nmultiply\nnegate\nnormal\nnormalize\nrotate\nscale\nsnap\nsquaredDistance\nsquaredLength\nsubtract\ntoString\ntransform"
+      "info": "aboutEqualNormals\narea\ncos\ninterpolateBetween2DPointsForY\nintersect\nsin\nsolve2Linear"
     },
     {
       "label": "maths.vec2.abs",
@@ -1806,9 +1797,9 @@
       "info": "(out, vector, matrix) => {\n  const x = vector[0]\n  const y = vector[1]\n  out[0] = matrix[0] * x + matrix[4] * y + matrix[12]\n  out[1] = matrix[1] * x + matrix[5] * y + matrix[13]\n  return out\n}"
     },
     {
-      "label": "maths.vec3",
+      "label": "maths.vec2",
       "type": "property",
-      "info": "abs\nadd\nangle\nclone\ncopy\ncreate\ncross\ndistance\ndivide\ndot\nequals\nfromScalar\nfromValues\nfromVec2\nlength\nlerp\nmax\nmin\nmultiply\nnegate\nnormalize\northogonal\nrotateX\nrotateY\nrotateZ\nscale\nsnap\nsquaredDistance\nsquaredLength\nsubtract\ntoString\ntransform"
+      "info": "abs\nadd\nangle\nangleDegrees\nangleRadians\nclone\ncopy\ncreate\ncross\ndistance\ndivide\ndot\nequals\nfromAngleDegrees\nfromAngleRadians\nfromScalar\nfromValues\nlength\nlerp\nmax\nmin\nmultiply\nnegate\nnormal\nnormalize\nrotate\nscale\nsnap\nsquaredDistance\nsquaredLength\nsubtract\ntoString\ntransform"
     },
     {
       "label": "maths.vec3.abs",
@@ -1971,9 +1962,9 @@
       "info": "(out, vector, matrix) => {\n  const x = vector[0]\n  const y = vector[1]\n  const z = vector[2]\n  let w = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15]\n  w = w || 1.0\n  out[0] = (matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12]) / w\n  out[1] = (matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13]) / w\n  out[2] = (matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14]) / w\n  return out\n}"
     },
     {
-      "label": "maths.vec4",
+      "label": "maths.vec3",
       "type": "property",
-      "info": "clone\ncopy\ncreate\ndot\nequals\nfromScalar\nfromValues\ntoString\ntransform"
+      "info": "abs\nadd\nangle\nclone\ncopy\ncreate\ncross\ndistance\ndivide\ndot\nequals\nfromScalar\nfromValues\nfromVec2\nlength\nlerp\nmax\nmin\nmultiply\nnegate\nnormalize\northogonal\nrotateX\nrotateY\nrotateZ\nscale\nsnap\nsquaredDistance\nsquaredLength\nsubtract\ntoString\ntransform"
     },
     {
       "label": "maths.vec4.clone",
@@ -2021,9 +2012,14 @@
       "info": "(out, vector, matrix) => {\n  const [x, y, z, w] = vector\n\n  out[0] = matrix[0] * x + matrix[4] * y + matrix[8] * z + matrix[12] * w\n  out[1] = matrix[1] * x + matrix[5] * y + matrix[9] * z + matrix[13] * w\n  out[2] = matrix[2] * x + matrix[6] * y + matrix[10] * z + matrix[14] * w\n  out[3] = matrix[3] * x + matrix[7] * y + matrix[11] * z + matrix[15] * w\n  return out\n}"
     },
     {
-      "label": "measurements",
+      "label": "maths.vec4",
       "type": "property",
-      "info": "measureAggregateArea\nmeasureAggregateBoundingBox\nmeasureAggregateEpsilon\nmeasureAggregateVolume\nmeasureArea\nmeasureBoundingBox\nmeasureBoundingSphere\nmeasureCenter\nmeasureCenterOfMass\nmeasureDimensions\nmeasureEpsilon\nmeasureVolume"
+      "info": "clone\ncopy\ncreate\ndot\nequals\nfromScalar\nfromValues\ntoString\ntransform"
+    },
+    {
+      "label": "maths",
+      "type": "property",
+      "info": "constants\nline2\nline3\nmat4\nplane\nutils\nvec2\nvec3\nvec4"
     },
     {
       "label": "measurements.measureAggregateArea",
@@ -2086,9 +2082,9 @@
       "info": "(...geometries) => {\n  geometries = flatten(geometries)\n  if (geometries.length === 0) throw new Error('wrong number of arguments')\n\n  const results = geometries.map((geometry) => {\n    if (path2.isA(geometry)) return measureVolumeOfPath2(geometry)\n    if (geom2.isA(geometry)) return measureVolumeOfGeom2(geometry)\n    if (geom3.isA(geometry)) return measureVolumeOfGeom3(geometry)\n    return 0\n  })\n  return results.length === 1 ? results[0] : results\n}"
     },
     {
-      "label": "primitives",
+      "label": "measurements",
       "type": "property",
-      "info": "arc\ncircle\ncube\ncuboid\ncylinder\ncylinderElliptic\nellipse\nellipsoid\ngeodesicSphere\nline\npolygon\npolyhedron\nrectangle\nroundedCuboid\nroundedCylinder\nroundedRectangle\nsphere\nsquare\nstar\ntorus\ntriangle"
+      "info": "measureAggregateArea\nmeasureAggregateBoundingBox\nmeasureAggregateEpsilon\nmeasureAggregateVolume\nmeasureArea\nmeasureBoundingBox\nmeasureBoundingSphere\nmeasureCenter\nmeasureCenterOfMass\nmeasureDimensions\nmeasureEpsilon\nmeasureVolume"
     },
     {
       "label": "primitives.arc",
@@ -2196,9 +2192,9 @@
       "info": "(options) => {\n  const defaults = {\n    type: 'SSS',\n    values: [1, 1, 1]\n  }\n  let { type, values } = Object.assign({}, defaults, options)\n\n  if (typeof (type) !== 'string') throw new Error('triangle type must be a string')\n  type = type.toUpperCase()\n  if (!((type[0] === 'A' || type[0] === 'S') &&\n        (type[1] === 'A' || type[1] === 'S') &&\n        (type[2] === 'A' || type[2] === 'S'))) throw new Error('triangle type must contain three letters; A or S')\n\n  if (!isNumberArray(values, 3)) throw new Error('triangle values must contain three values')\n  if (!values.every((n) => n > 0)) throw new Error('triangle values must be greater than zero')\n\n  switch (type) {\n    case 'AAA':\n      return solveAAA(values)\n    case 'AAS':\n      return solveAAS(values)\n    case 'ASA':\n      return solveASA(values)\n    case 'SAS':\n      return solveSAS(values)\n    case 'SSA':\n      return solveSSA(values)\n    case 'SSS':\n      return solveSSS(values)\n    default:\n      throw new Error('invalid triangle type, try again')\n  }\n}"
     },
     {
-      "label": "text",
+      "label": "primitives",
       "type": "property",
-      "info": "vectorChar\nvectorText"
+      "info": "arc\ncircle\ncube\ncuboid\ncylinder\ncylinderElliptic\nellipse\nellipsoid\ngeodesicSphere\nline\npolygon\npolyhedron\nrectangle\nroundedCuboid\nroundedCylinder\nroundedRectangle\nsphere\nsquare\nstar\ntorus\ntriangle"
     },
     {
       "label": "text.vectorChar",
@@ -2211,9 +2207,9 @@
       "info": "(options, text) => {\n  const {\n    xOffset, yOffset, input, font, height, align, extrudeOffset, lineSpacing, letterSpacing\n  } = vectorParams(options, text)\n  let [x, y] = [xOffset, yOffset]\n  let i, il, char, vect, width, diff\n  let line = { width: 0, segments: [] }\n  const lines = []\n  let output = []\n  let maxWidth = 0\n  const lineStart = x\n  const pushLine = () => {\n    lines.push(line)\n    maxWidth = Math.max(maxWidth, line.width)\n    line = { width: 0, segments: [] }\n  }\n  for (i = 0, il = input.length; i < il; i++) {\n    char = input[i]\n    vect = vectorChar({ xOffset: x, yOffset: y, font, height, extrudeOffset }, char)\n    if (char === '\\n') {\n      x = lineStart\n      y -= vect.height * lineSpacing\n      pushLine()\n      continue\n    }\n    width = vect.width * letterSpacing\n    line.width += width\n    x += width\n    if (char !== ' ') {\n      line.segments = line.segments.concat(vect.segments)\n    }\n  }\n  if (line.segments.length) {\n    pushLine()\n  }\n  for (i = 0, il = lines.length; i < il; i++) {\n    line = lines[i]\n    if (maxWidth > line.width) {\n      diff = maxWidth - line.width\n      if (align === 'right') {\n        line = translateLine({ x: diff }, line)\n      } else if (align === 'center') {\n        line = translateLine({ x: diff / 2 }, line)\n      }\n    }\n    output = output.concat(line.segments)\n  }\n  return output\n}"
     },
     {
-      "label": "utils",
+      "label": "text",
       "type": "property",
-      "info": "areAllShapesTheSameType\ndegToRad\nflatten\nfnNumberSort\ninsertSorted\nradiusToSegments\nradToDeg"
+      "info": "vectorChar\nvectorText"
     },
     {
       "label": "utils.areAllShapesTheSameType",
@@ -2251,9 +2247,9 @@
       "info": "(radians) => radians * 57.29577951308232"
     },
     {
-      "label": "booleans",
+      "label": "utils",
       "type": "property",
-      "info": "intersect\nminkowski\nscission\nsubtract\nunion"
+      "info": "areAllShapesTheSameType\ndegToRad\nflatten\nfnNumberSort\ninsertSorted\nradiusToSegments\nradToDeg"
     },
     {
       "label": "booleans.intersect",
@@ -2281,9 +2277,9 @@
       "info": "(...geometries) => {\n  geometries = flatten(geometries)\n  if (geometries.length === 0) throw new Error('wrong number of arguments')\n\n  if (!areAllShapesTheSameType(geometries)) {\n    throw new Error('only unions of the same type are supported')\n  }\n\n  const geometry = geometries[0]\n  // if (path.isA(geometry)) return pathunion(matrix, geometries)\n  if (geom2.isA(geometry)) return unionGeom2(geometries)\n  if (geom3.isA(geometry)) return unionGeom3(geometries)\n  return geometry\n}"
     },
     {
-      "label": "expansions",
+      "label": "booleans",
       "type": "property",
-      "info": "expand\noffset"
+      "info": "intersect\nminkowski\nscission\nsubtract\nunion"
     },
     {
       "label": "expansions.expand",
@@ -2296,9 +2292,9 @@
       "info": "(options, ...objects) => {\n  objects = flatten(objects)\n  if (objects.length === 0) throw new Error('wrong number of arguments')\n\n  const results = objects.map((object) => {\n    if (path2.isA(object)) return offsetPath2(options, object)\n    if (geom2.isA(object)) return offsetGeom2(options, object)\n    // if (geom3.isA(object)) return geom3.transform(matrix, object)\n    return object\n  })\n  return results.length === 1 ? results[0] : results\n}"
     },
     {
-      "label": "extrusions",
+      "label": "expansions",
       "type": "property",
-      "info": "extrudeFromSlices\nextrudeLinear\nextrudeRectangular\nextrudeRotate\nextrudeHelical\nproject\nslice"
+      "info": "expand\noffset"
     },
     {
       "label": "extrusions.extrudeFromSlices",
@@ -2329,11 +2325,6 @@
       "label": "extrusions.project",
       "type": "function",
       "info": "(options, ...objects) => {\n  const defaults = {\n    axis: [0, 0, 1], // Z axis\n    origin: [0, 0, 0]\n  }\n  const { axis, origin } = Object.assign({ }, defaults, options)\n\n  objects = flatten(objects)\n  if (objects.length === 0) throw new Error('wrong number of arguments')\n\n  options = { axis, origin }\n\n  const results = objects.map((object) => {\n    // if (path.isA(object)) return project(options, object)\n    // if (geom2.isA(object)) return project(options, object)\n    if (geom3.isA(object)) return projectGeom3(options, object)\n    return object\n  })\n  return results.length === 1 ? results[0] : results\n}"
-    },
-    {
-      "label": "extrusions.slice",
-      "type": "property",
-      "info": "calculatePlane\nclone\ncreate\nequals\nfromPoints\nfromSides\nisA\nreverse\ntoEdges\ntoPolygons\ntoString\ntransform"
     },
     {
       "label": "extrusions.slice.calculatePlane",
@@ -2396,9 +2387,14 @@
       "info": "(matrix, slice) => {\n  const edges = slice.edges.map((edge) => [vec3.transform(vec3.create(), edge[0], matrix), vec3.transform(vec3.create(), edge[1], matrix)])\n  return create(edges)\n}"
     },
     {
-      "label": "hulls",
+      "label": "extrusions.slice",
       "type": "property",
-      "info": "hull\nhullChain\nhullPoints2\nhullPoints3"
+      "info": "calculatePlane\nclone\ncreate\nequals\nfromPoints\nfromSides\nisA\nreverse\ntoEdges\ntoPolygons\ntoString\ntransform"
+    },
+    {
+      "label": "extrusions",
+      "type": "property",
+      "info": "extrudeFromSlices\nextrudeLinear\nextrudeRectangular\nextrudeRotate\nextrudeHelical\nproject\nslice"
     },
     {
       "label": "hulls.hull",
@@ -2421,9 +2417,9 @@
       "info": "(uniquePoints) => {\n  const faces = quickhull(uniquePoints, { skipTriangulation: true })\n\n  const polygons = faces.map((face) => {\n    const vertices = face.map((index) => uniquePoints[index])\n    return poly3.create(vertices)\n  })\n\n  return polygons\n}"
     },
     {
-      "label": "minkowski",
+      "label": "hulls",
       "type": "property",
-      "info": "minkowskiSum"
+      "info": "hull\nhullChain\nhullPoints2\nhullPoints3"
     },
     {
       "label": "minkowski.minkowskiSum",
@@ -2431,9 +2427,9 @@
       "info": "(...geometries) => {\n  geometries = flatten(geometries)\n\n  if (geometries.length !== 2) {\n    throw new Error('minkowskiSum requires exactly two geometries')\n  }\n\n  const [geomA, geomB] = geometries\n\n  if (!geom3.isA(geomA) || !geom3.isA(geomB)) {\n    throw new Error('minkowskiSum requires geom3 geometries')\n  }\n\n  const aConvex = geom3.isConvex(geomA)\n  const bConvex = geom3.isConvex(geomB)\n\n  // Fast path: both convex\n  if (aConvex && bConvex) {\n    return minkowskiSumConvex(geomA, geomB)\n  }\n\n  // Non-convex A + convex B: decompose A into tetrahedra\n  if (!aConvex && bConvex) {\n    return minkowskiSumNonConvexConvex(geomA, geomB)\n  }\n\n  // Convex A + non-convex B: swap operands (Minkowski sum is commutative)\n  if (aConvex && !bConvex) {\n    return minkowskiSumNonConvexConvex(geomB, geomA)\n  }\n\n  // Both non-convex: not yet supported\n  throw new Error('minkowskiSum of two non-convex geometries is not yet supported')\n}"
     },
     {
-      "label": "modifiers",
+      "label": "minkowski",
       "type": "property",
-      "info": "generalize\nsnap\nretessellate"
+      "info": "minkowskiSum"
     },
     {
       "label": "modifiers.generalize",
@@ -2451,9 +2447,9 @@
       "info": "(geometry) => {\n  if (geometry.isRetesselated) {\n    return geometry\n  }\n\n  const polygons = geom3.toPolygons(geometry).map((polygon, index) => ({ vertices: polygon.vertices, plane: poly3.plane(polygon), index: index }))\n  const classified = classifyPolygons(polygons)\n\n  const destPolygons = []\n  classified.forEach((group) => {\n    if (Array.isArray(group)) {\n      const coplanarPolygons = reTesselateCoplanarPolygons(group)\n      // Use loop instead of spread to avoid stack overflow with large arrays\n      for (let i = 0; i < coplanarPolygons.length; i++) {\n        destPolygons.push(coplanarPolygons[i])\n      }\n    } else {\n      destPolygons.push(group)\n    }\n  })\n\n  const result = geom3.create(destPolygons)\n  result.isRetesselated = true\n\n  return result\n}"
     },
     {
-      "label": "transforms",
+      "label": "modifiers",
       "type": "property",
-      "info": "align\ncenter\ncenterX\ncenterY\ncenterZ\nmirror\nmirrorX\nmirrorY\nmirrorZ\nrotate\nrotateX\nrotateY\nrotateZ\nscale\nscaleX\nscaleY\nscaleZ\ntransform\ntranslate\ntranslateX\ntranslateY\ntranslateZ"
+      "info": "generalize\nsnap\nretessellate"
     },
     {
       "label": "transforms.align",
@@ -2564,6 +2560,16 @@
       "label": "transforms.translateZ",
       "type": "function",
       "info": "(offset, ...objects) => translate([0, 0, offset], objects)"
+    },
+    {
+      "label": "transforms",
+      "type": "property",
+      "info": "align\ncenter\ncenterX\ncenterY\ncenterZ\nmirror\nmirrorX\nmirrorY\nmirrorZ\nrotate\nrotateX\nrotateY\nrotateZ\nscale\nscaleX\nscaleY\nscaleZ\ntransform\ntranslate\ntranslateX\ntranslateY\ntranslateZ"
+    },
+    {
+      "label": "",
+      "type": "property",
+      "info": "colors\ncurves\ngeometries\nmaths\nmeasurements\nprimitives\ntext\nutils\nbooleans\nexpansions\nextrusions\nhulls\nminkowski\nmodifiers\ntransforms"
     }
   ]
 }

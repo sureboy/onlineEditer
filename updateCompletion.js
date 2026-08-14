@@ -3,7 +3,8 @@ import * as fs from "fs"
 import * as path from "path"
 const getFunction = (obj,func ,parent=[] )=>{
     //const obj_ = obj as {[k:string]:any} 
-    Object.keys(obj).forEach(k=>{
+    const children =Object.keys(obj)
+    children.forEach(k=>{
         const val = obj[k] 
         const p = [...parent,k]
         const _type = typeof val
@@ -12,7 +13,7 @@ const getFunction = (obj,func ,parent=[] )=>{
                 func({label:p.join("."),type:'variable',info: val.join("\n")})
             }else{
                 
-                func({label:p.join("."),type:'property', info:  Object.keys(val).join("\n")})
+                //func({label:p.join("."),type:'property', info:  Object.keys(val).join("\n")})
                 getFunction(val,func,p)
             }
         }else{
@@ -20,15 +21,18 @@ const getFunction = (obj,func ,parent=[] )=>{
             func({label:p.join("."),type: _type,info:val.toString()})
         } 
     })
+    //if (parent)
+    func({label:parent.join("."),type:'property', info:  children.join("\n")})
 }
 const main = ()=>{
-    const db = {'@jscad/modeling':[]}
-    const file = path.join("static",`${"@jscad/modeling".replace(/[^a-zA-Z0-9\-_]/g, '')}.json`)
+    const name = '@jscad/modeling'
+    const db = {name,list:[]}
+    const file = path.join("static",`${name.replace(/[^a-zA-Z0-9\-_]/g, '')}.json`)
     //fs.rmSync(file)
 
     
     getFunction(modeling,(v)=>{
-        db['@jscad/modeling'].push(v)
+        db.list.push(v)
         console.log(v) 
     })
     fs.writeFile(file,JSON.stringify(db,undefined,2),(err) => {
