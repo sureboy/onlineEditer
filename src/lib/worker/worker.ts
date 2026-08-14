@@ -47,7 +47,7 @@ const postMessage = async (e:any)=>{
         console.log("time ",cur)
       //})
     }catch(err){ 
-      console.error(err)
+      //console.error(err)
       //setTimeout(()=>{
         handleCurrentMsg({name:e.path})!.getUri = async ()=>new URL(
         includeImport[e.path] ||e.path  ,
@@ -76,7 +76,7 @@ const getIndex = (c:currentObj )=>{
   } 
 }
 const runCode =async (cur:currentObj,basename:string="main")=>{
-  try{
+ try{
     globalOption.indexCurrent = getIndex(cur)
     const u = await globalOption.indexCurrent.getUri() 
     const src=await  import(/* @vite-ignore */u) 
@@ -86,6 +86,7 @@ const runCode =async (cur:currentObj,basename:string="main")=>{
     }
     const module = {list,basename:(list.includes(basename))?basename:list[0]} 
     self.postMessage({module}) 
+     
     const tmpDB = src[module.basename]()
     getCsgObjArray(tmpDB,(msg)=>{ 
       if ('index' in msg ){
@@ -113,7 +114,7 @@ const getCurrentObjFromFileSystem = async (fh: FileSystemFileHandle,name:string)
   
 }
 self.onmessage =async (event: MessageEvent) => { 
-  console.log("get msg",event.data)
+  //console.log("get msg",event.data)
   if ( event.data.path){
     if (!globalOption.DirHandle || globalOption.DirHandle.name!==event.data.path ){
       try{
@@ -134,6 +135,7 @@ self.onmessage =async (event: MessageEvent) => {
         await runCode( cur);
       }  
     }catch(err){
+      //self.postMessage({err})
       console.error(err)
     }
   }

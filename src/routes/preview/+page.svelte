@@ -65,6 +65,9 @@
     }
   }
 const onmessageListen =async (e:MessageEvent)=>{
+  //if (e.data.err){
+  //  console.log(e.data.err)
+  //}
   if (e.data.module){
     console.log(e.data.module)
     moduleInit(Object.assign({
@@ -138,7 +141,7 @@ const onmessageListen =async (e:MessageEvent)=>{
       SetEditingHashInfo({path})
       getWorker(onmessageListen).then( w=>{ 
         w?.postMessage({path })
-        console.log(path)  
+        //console.log(path)  
         //window.location.hash=""
       }) 
     } 

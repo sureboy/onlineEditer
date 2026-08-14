@@ -10,7 +10,7 @@ export async function getWorker(onmessage?:(e:MessageEvent)=>void) {
         globalWorker.onmessage = onmessage;
       }
     }catch(err){
-      console.error(err)
+      //console.error(err)
       throw err;
       
     }
