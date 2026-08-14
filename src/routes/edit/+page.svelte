@@ -93,6 +93,7 @@ export const main=(opt)=>{
         const content = document.createElement("span");
         content.style.marginRight = '6px';
         let isSelect = false
+        ImportVarList=[]
         for await (const [_k,f] of  FileInfo.DirHandle?.entries()){
             //files.push(decodeURIComponent(k))
             if (f.kind==="directory"){
@@ -106,7 +107,11 @@ export const main=(opt)=>{
             if (!opt.defaultSelected){
                 f.getFile().then(file=>{
                     file.text().then(doc=>{
-                        getImport(doc)
+                        getImport(doc).forEach(v=>{
+                            v.detail =k
+                            ImportVarList?.push(v)
+                            //v.displayLabel
+                        })
                     })
                     
                 }) 
@@ -243,6 +248,7 @@ import { type TreeCursor } from '@lezer/common';
 //const baseExtensions = 
 let cadImport:{[k:string]:any} = {}
 let VariableList:any[] = []
+let ImportVarList:any[]|null = []
 function jscadModelingCompletionSource (context:CompletionContext): CompletionResult | null  {
     let word = context.matchBefore(/[\w.]+/);
     if (!word || (word.from == word.to && !context.explicit)) return null; 
@@ -251,7 +257,7 @@ function jscadModelingCompletionSource (context:CompletionContext): CompletionRe
         const lastd =word.text.lastIndexOf(".")
         
         const k = word.text.slice(lastd+1)
-        console.log(lastd,k)
+        //console.log(lastd,k)
         opt = opt.filter(item => item.label.startsWith(word.text))
         if (k){
             return { 
@@ -268,13 +274,22 @@ function jscadModelingCompletionSource (context:CompletionContext): CompletionRe
             };
         }
     }else{
+        if (ImportVarList){
+            VariableList.push(...ImportVarList)
+            ImportVarList=null
+        }
+        //console.log(VariableList)
         opt = VariableList.filter(item=>item.label.startsWith(word.text))
+        //opt = opt.concat(...ImportVarList.filter(item=>item.label.startsWith(word.text)));
         if (opt.length>0)
         return { 
             from: word.from , 
             options: opt  ,
             validFor: /^[\w.]*$/ 
         };
+        //else{
+            
+        //}
     }
  
     return {
@@ -415,10 +430,12 @@ function getImport(doc:string){
         } 
     } while (iter.next());
     console.log("import",importList)
+    return importList
 }
 function getImportAliases(doc: string) { 
     const tree = javascriptLanguage.parser.parse(doc); 
     let iter = tree.cursor();
+    VariableList=[]
     do {
         switch (iter.name as string){
             case "ImportDeclaration":
@@ -451,8 +468,8 @@ function getImportAliases(doc: string) {
         }
 
     } while (iter.next());
-    
-    VariableList = Array.from(new Set(VariableList))
+    //VariableList = ImportVarList
+    //VariableList = Array.from(new Set(VariableList))
  
   //return jscadKey
   //return aliases;
