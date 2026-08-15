@@ -69,7 +69,7 @@ const onmessageListen =async (e:MessageEvent)=>{
   //  console.log(e.data.err)
   //}
   if (e.data.module){
-    console.log(e.data.module)
+    //console.log(e.data.module)
     moduleInit(Object.assign({
 
       Clickhandle:ClickhandleWithMainMenu

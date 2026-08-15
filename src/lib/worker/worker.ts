@@ -44,7 +44,7 @@ const postMessage = async (e:any)=>{
       //setTimeout(()=>{
         //console.log("t",name,e.path)
         const cur = handleCurrentMsg({db ,name:e.path },postMessage) 
-        console.log("time ",cur)
+        //console.log("time ",cur)
       //})
     }catch(err){ 
       //console.error(err)

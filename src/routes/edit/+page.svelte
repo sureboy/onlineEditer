@@ -3,6 +3,9 @@
     import { javascript } from "@codemirror/lang-javascript"; 
     import { EditorView } from '@codemirror/view'; 
     import { helpPanel,appendChildToDom } from "$lib/function/helpPanel";  
+    import {jscadModelingCompletionSource,getImport,getImportAliases} from "$lib/function/parsingCode"
+    import { autocompletion } from '@codemirror/autocomplete'; 
+
     const newPackageCode:string = `/*
 import modeling from '@jscad/modeling';
 import  manifold from 'manifold-3d';
@@ -78,10 +81,9 @@ export const main=(opt)=>{
             appendChildToDom(input,createButton("create","create",(e)=>{
                 if (input.value){
                      window.location.hash = encodeURIComponent(
-                        JSON.stringify({path:input.value,create:true  }))  
+                    JSON.stringify({path:input.value,create:true  }))  
                     window.location.reload() 
-                }
-                
+                }                
             }))
             return;
         }
@@ -93,7 +95,7 @@ export const main=(opt)=>{
         const content = document.createElement("span");
         content.style.marginRight = '6px';
         let isSelect = false
-        ImportVarList=[]
+        //ImportVarList.length = 0
         for await (const [_k,f] of  FileInfo.DirHandle?.entries()){
             //files.push(decodeURIComponent(k))
             if (f.kind==="directory"){
@@ -103,25 +105,22 @@ export const main=(opt)=>{
             let opt = document.createElement("option");
             opt.textContent = k; 
             opt.value = k
-            opt.defaultSelected=k===FileInfo.name 
-            if (!opt.defaultSelected){
+            opt.defaultSelected=k===(FileInfo.name ||'./index.js')
+            //if (!opt.defaultSelected){
                 f.getFile().then(file=>{
                     file.text().then(doc=>{
-                        getImport(doc).forEach(v=>{
-                            v.detail =k
-                            ImportVarList?.push(v)
-                            //v.displayLabel
-                        })
-                    })
-                    
+                        getImport(doc,k) 
+                    })                    
                 }) 
-            }
+            //}
             if (!isSelect)
                 isSelect = opt.defaultSelected
             select.appendChild(opt);
         }
         if (!isSelect){
-            (select.children.item(select.children.length-1) as HTMLOptionElement).defaultSelected = true
+            (select.lastChild as HTMLOptionElement).defaultSelected = true;
+            //console.log("end select");
+            //(select.children.item(select.children.length-1) as HTMLOptionElement).defaultSelected = true
         }
         select.onchange=(e)=>{
             if (!select.value)return;
@@ -138,7 +137,16 @@ export const main=(opt)=>{
                 window.location.reload()
             }
         }
-        //select.style.marginRight = '6px';
+        const run  = document.createElement('a')
+        run.textContent="Preview"
+        run.href = "/preview#"+encodeURIComponent(FileInfo.path)
+        run.style.marginRight = '6px';
+        run.onclick = ()=>{
+            if (timeout===0)return;
+            clearTimeout(timeout) 
+            saveFile(editorView.state.doc.toString()) 
+            timeout = 0
+        }
         appendChildToDom(createButton("Delete","X",(e)=>{
             //const fileName = FileInfo.name
             if (!FileInfo.name)return
@@ -149,17 +157,7 @@ export const main=(opt)=>{
                     window.location.reload()
                 })
             } 
-        }),select,content,createButton("run","▷",(e)=>{
-            //const fileName = FileInfo.name
-            console.log(e)
-            clearTimeout(timeout) 
-            saveFile(editorView.state.doc.toString()) 
-            if (window.confirm(`Preview ${FileInfo.path} ?`)){
-                window.location.href="/preview#"+encodeURIComponent(FileInfo.path)
-            }
-                
-        }))
-        
+        }),select,content,run)        
     }
     const updateEditorDoc =async (editorView:EditorView,value:string )=>{
         
@@ -191,8 +189,10 @@ export const main=(opt)=>{
         // 键名使用小写，用连字符连接
         key: "Mod-s", // Mod 键在 Windows/Linux 下代表 Ctrl，macOS 下代表 Cmd
         run: (editorView:EditorView) => { 
+            if (timeout===0)return true;
             clearTimeout(timeout) 
             saveFile(editorView.state.doc.toString()) 
+            timeout=0
             return true;
         }
     }
@@ -234,246 +234,7 @@ export const main=(opt)=>{
     let timeout: number;
     let firstChange = false;
  
-//  import type {   Extension } from "@codemirror/state"; 
-import { autocompletion,CompletionContext } from '@codemirror/autocomplete'; 
-//import jscadCompletions from '$lib/assets/jscadCompletions.json';
-import { snippets } from '@codemirror/lang-javascript';
-import type {CompletionResult} from '@codemirror/autocomplete'
-//import { initSync, parse } from 'es-module-lexer';
-
-
-import { javascriptLanguage, } from '@codemirror/lang-javascript';
-//import {TreeCursor}  from '@codemirror/lang-javascript'
-import { type TreeCursor } from '@lezer/common'; 
-//const baseExtensions = 
-let cadImport:{[k:string]:any} = {}
-let VariableList:any[] = []
-let ImportVarList:any[]|null = []
-function jscadModelingCompletionSource (context:CompletionContext): CompletionResult | null  {
-    let word = context.matchBefore(/[\w.]+/);
-    if (!word || (word.from == word.to && !context.explicit)) return null; 
-    let opt = cadImport[word.text.slice(0,word.text.indexOf('.'))] as any[]
-    if (opt){
-        const lastd =word.text.lastIndexOf(".")
-        
-        const k = word.text.slice(lastd+1)
-        //console.log(lastd,k)
-        opt = opt.filter(item => item.label.startsWith(word.text))
-        if (k){
-            return { 
-                from: word.from , 
-                options: opt,
-                validFor: /^[\w.]*$/ 
-            };
-        }else{
-            //return null
-            return { 
-                from: word.from , 
-                options: opt.filter(item =>  item.label.lastIndexOf(".") ===lastd ) ,
-                validFor: /^[\w.]*$/ 
-            };
-        }
-    }else{
-        if (ImportVarList){
-            VariableList.push(...ImportVarList)
-            ImportVarList=null
-        }
-        //console.log(VariableList)
-        opt = VariableList.filter(item=>item.label.startsWith(word.text))
-        //opt = opt.concat(...ImportVarList.filter(item=>item.label.startsWith(word.text)));
-        if (opt.length>0)
-        return { 
-            from: word.from , 
-            options: opt  ,
-            validFor: /^[\w.]*$/ 
-        };
-        //else{
-            
-        //}
-    }
  
-    return {
-        from: word.from,
-        options:snippets 
-    };
-   
-};
- 
-const handleTreeCursorImport  = (iter:TreeCursor,doc: string)=>{
-    const importInfo = {as:'',key:''}
-    do {
-        switch (iter.name as string){
-            case "VariableDefinition":
-                importInfo.as = doc.slice(iter.from, iter.to)
-                VariableList.push({type:'variable',label:importInfo.as})
-                break;
-            case "String":
-                importInfo.key = doc.slice(iter.from, iter.to)
-                break;
-        }
-    } while (iter.nextSibling());
-    iter.parent()
-    fetch(`/${importInfo.key.replace(/[^a-zA-Z0-9\-_]/g, '')}.json`).then(r=>{
-        if (!r.ok)return;
-        r.json().then(v=>{
-            
-            cadImport[importInfo.as] = v.list.map((l:any)=>{
-                l.oriLabel = l.label
-                
-                l.label = importInfo.as +'.'+l.oriLabel
-                return l
-            })
-            //cadImport[importInfo.as] = v.list
-        })
-    }) 
-}
-const handleTreeCursorVariable  = (iter:TreeCursor,doc: string)=>{
-    const Variable = {type:'variable',label:''}
-    do {
-        
-        switch (iter.name as string){
-            case "VariableDefinition":
-                Variable.label=doc.slice(iter.from, iter.to);
-                break
-            case "ArrowFunction":
-                Variable.type = "function"
-                break
-            //default:
-                //console.log(iter.name, doc.slice(iter.from, iter.to));
-        }
-
-     } while (iter.nextSibling());
-     //VariableList.push(Variable)
-     iter.parent()
-     return Variable
-}
-const handleTreeCursorClass  = (iter:TreeCursor,doc: string)=>{
-    const Variable = {type:'class',label:''}
-    do {     
-        console.log(iter.name,doc.slice(iter.from,iter.to))
-        if (iter.name === "VariableDefinition"){
-            Variable.label=doc.slice(iter.from, iter.to);
-            break
-        } 
-     } while (iter.nextSibling());
-     //VariableList.push(Variable)
-     iter.parent()
-     return Variable
-}
-const handleTreeCursorFunction  = (iter:TreeCursor,doc: string)=>{
-    const Variable = {type:'function',label:''}
-    do {     
-
-        if (iter.name === "VariableDefinition"){
-            Variable.label=doc.slice(iter.from, iter.to);
-            break
-        } 
-     } while (iter.nextSibling());
-     //VariableList.push(Variable)
-     iter.parent()
-     return Variable
-}
-const handleTreeCursorExport  = (iter:TreeCursor,doc: string,getVar:(vari:any)=>void)=>{
-    //const Variable = {type:'function',label:''}
-    do {     
-        switch (iter.name as string){
-            case "VariableDeclaration":
-                if (iter.firstChild()){
-                    getVar(  handleTreeCursorVariable (iter,doc))
-               
-                }
-                break;
-            case "FunctionDeclaration":
-                if (iter.firstChild()){
-                    getVar(  handleTreeCursorFunction(iter,doc))
-                }
-                break;
-            case "ClassDeclaration":
-                
-                if (iter.firstChild()){
-                    getVar( handleTreeCursorClass(iter,doc))
-                }
-                break
-            case "ExportGroup":
-                if (iter.firstChild()){
-                    do {    
-                        if ("VariableName" ===iter.name) {
-                            const vari = {type:'function',label:''}
-                            vari.label = doc.slice(iter.from,iter.to)
-                            getVar( vari)
-                        }
-                        console.log("ExportGroup",iter.name,doc.slice(iter.from,iter.to))
-                    } while (iter.nextSibling());
-                    //VariableList.push(Variable)
-                    iter.parent()
-                }
-                break
-            default:
-                console.log(iter.name,doc.slice(iter.from,iter.to))
-        }
-     } while (iter.nextSibling());
-     //VariableList.push(Variable)
-     iter.parent()
-     //return Variable
-}
-function getImport(doc:string){
-    const tree = javascriptLanguage.parser.parse(doc); 
-    let iter = tree.cursor();
-    const importList:any[] = []
-    do {
-        if ("ExportDeclaration"=== iter.name){
-            if (iter.firstChild()){
-                handleTreeCursorExport(iter,doc,(v)=>{
-                    importList.push(v)
-                })
-            }
-        } 
-    } while (iter.next());
-    console.log("import",importList)
-    return importList
-}
-function getImportAliases(doc: string) { 
-    const tree = javascriptLanguage.parser.parse(doc); 
-    let iter = tree.cursor();
-    VariableList=[]
-    do {
-        switch (iter.name as string){
-            case "ImportDeclaration":
-                if (iter.firstChild())
-                    handleTreeCursorImport (iter,doc) 
-                break;
-                
-            case "VariableDeclaration":
-                if (iter.firstChild()){
-                    VariableList.push(handleTreeCursorVariable (iter,doc) )
-                //}else{
-                    //console.log(doc.slice(iter.from, iter.to))
-                }
-                break;
-            case "FunctionDeclaration":
-                if (iter.firstChild()){
-                    VariableList.push(handleTreeCursorFunction(iter,doc))
-                }
-                break;
-            case "ClassDeclaration": 
-                if (iter.firstChild()){
-                    VariableList.push( handleTreeCursorClass(iter,doc))
-                }
-                break
-            //case "ExportDeclaration":
-           //     console.log( "e",iter.name, doc.slice(iter.from, iter.to));
-            //    break;
-            //default:
-            //    console.log("--",iter.name, doc.slice(iter.from, iter.to));
-        }
-
-    } while (iter.next());
-    //VariableList = ImportVarList
-    //VariableList = Array.from(new Set(VariableList))
- 
-  //return jscadKey
-  //return aliases;
-}
 
 </script>
 
@@ -508,11 +269,15 @@ function getImportAliases(doc: string) {
     }}
     bounce={0} 
     onchange = {(v)=>{ 
+        if (!FileInfo.name){
+            return
+        }
         
         if (!firstChange){
             firstChange=true
             //initSync()
-              getImportAliases(v)
+      
+              getImportAliases(v,FileInfo.name)
             //console.log(aliases)
             //jscadKey = getJscadImportAliases(v)
             //fetch("/api").then(r=>{
@@ -523,11 +288,14 @@ function getImportAliases(doc: string) {
             return
         }
         //console.log("change")
-        clearTimeout(timeout) 
+        if (timeout!==0)
+            clearTimeout(timeout) 
         timeout = setTimeout(() => {
-            getImportAliases(v)
+            if (FileInfo.name)
+            getImportAliases(v,FileInfo.name)
             //jscadKey= getJscadImportAliases(v)
             saveFile(v) 
+            timeout=0
         },5000) 
     }} 
  />

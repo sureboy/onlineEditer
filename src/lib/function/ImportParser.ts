@@ -89,7 +89,7 @@ const getCurrent = (name:string,reqMessage?:(e:{type:"req",path:string})=>void )
             resolve(c);   
             waitGetMap.delete(name);
         });     
-        console.log("getCur",name)   
+        //console.log("getCur",name)   
     }); 
 };
 const InitCurrentMap = (v:messageObj)=>{
