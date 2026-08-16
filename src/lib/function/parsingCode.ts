@@ -67,12 +67,18 @@ export function jscadModelingCompletionSource (context:CompletionContext): Compl
 //const baseExtensions = 
 
 export function getImportAliases(doc: string,name:string) { 
-    const val = ImportVarList[name]
-    val.list=[]
+
     const tree = javascriptLanguage.parser.parse(doc); 
     let iter = tree.cursor();
-    val.doc= doc
-    val.tree = iter;
+    let val = ImportVarList[name]
+    if (!val){
+        val = {doc,tree:iter,list:[]}
+    }else{
+        val.list=[]
+        val.doc= doc
+        val.tree = iter;
+    }
+
     VariableList=[]
     do {
         switch (iter.name as string){
@@ -99,7 +105,7 @@ export function getImportAliases(doc: string,name:string) {
                 }
                 break
             //case "ExportDeclaration":
-           //     console.log( "e",iter.name, doc.slice(iter.from, iter.to));
+            //    console.log( "e",iter.name, doc.slice(iter.from, iter.to));
             //    break;
             //default:
             //    console.log("--",iter.name, doc.slice(iter.from, iter.to));
@@ -108,9 +114,9 @@ export function getImportAliases(doc: string,name:string) {
     } while (iter.next());
     //VariableList = ImportVarList
     //VariableList = Array.from(new Set(VariableList))
- 
-  //return jscadKey
-  //return aliases;
+
+    //return jscadKey
+    //return aliases;
 }
 
 const handleTreeCursorImport  = (iter:TreeCursor,doc: string)=>{
@@ -132,9 +138,16 @@ const handleTreeCursorImport  = (iter:TreeCursor,doc: string)=>{
         r.json().then(v=>{
             
             cadImport[importInfo.as] = v.list.map((l:any)=>{
-                l.oriLabel = l.label
-                
+                l.oriLabel = l.label 
                 l.label = importInfo.as +'.'+l.oriLabel
+                const info = l.info
+                l.info = ()=>{
+                    const dom = document.createElement("textarea")
+                    dom.value = info
+                    dom.readOnly=true
+                    dom.rows = 10 
+                    return {dom}
+                }
                 return l
             })
             //cadImport[importInfo.as] = v.list
