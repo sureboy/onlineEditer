@@ -15,7 +15,7 @@
   import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
   import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
   const channel = new BroadcastChannel('code-preview');
-    let DialogDiv:HTMLDivElement|undefined=undefined
+  let DialogDiv:HTMLDivElement|undefined=undefined
   channel.onmessage = (event) => { 
     if (event.data.Modal ) { 
       if (DialogDiv){
@@ -168,6 +168,16 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
     solidControlConfig.Grid=Grid; 
   }) 
 }
+const QRCodeClick = ()=>{
+  if (DialogDiv){
+    DialogDiv.innerHTML=''
+    const p = document.createElement("p")
+    p.textContent = `'${"test"}' has been changed.`
+    DialogDiv?.append(p)
+  }
+
+  openModal()
+}
 </script>
 <div   class="preview">
 <Canvas   >
@@ -178,8 +188,13 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
 <Menu    >
 <MainMenu  show={solidControlConfig.show}   ></MainMenu>
 <Camera {Clickhandle} ></Camera>
-  <DownMenu  show={solidControlConfig.show} title = {solidControlConfig.title||""} {DownHandle}
-  ></DownMenu>
+  <DownMenu  
+  show={solidControlConfig.show} title = {solidControlConfig.title||""} {DownHandle}
+  >
+  <button 
+  style="height:48:px;line-height:48px;cursor: pointer;" 
+  onclick={QRCodeClick} >QRCode</button>     
+</DownMenu>
 
   <div style="color:white;text-align: left;">
   <a target="editPopup"  onclick={(e)=>{

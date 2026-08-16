@@ -5,10 +5,12 @@ import {  WebGLRenderer } from 'three';
 import {createPng} from '$lib/function/localImg'
 import { exportTo3MF } from 'three-3mf-exporter'; 
 import {STLExporter} from "three/addons/exporters/STLExporter.js" ; 
+ 
 let Details:HTMLDetailsElement
-const {title,DownHandle,show } :{  
+
+const {title,DownHandle,show,children } :{  
   DownHandle:  (fn:(e:ThrelteContext<WebGLRenderer>)=>any)=>void, 
-  title:string,show:boolean
+  title:string,show:boolean,children?:any,
 } = $props()
 const downSTLclick=()=>{
   DownHandle( ( e )=>{
@@ -63,6 +65,7 @@ const downPngClick=()=>{
     offscreenRenderer.dispose(); 
   })
 }
+ 
 </script>
 <details  bind:this={Details} style="display:{show?"inline":'none'};"   >
     <summary style="cursor:pointer;height:48px;text-align:left;line-height: 48px;" >
@@ -91,6 +94,12 @@ const downPngClick=()=>{
 
           <button style="height:48:px;line-height:48px;cursor: pointer;" onclick="{downSTLclick}" >STL</button>  
       <button style="height:48:px;line-height:48px;cursor: pointer;" onclick="{down3MFclick}" >3MF</button>  
+{@render children?.()} 
+   
+
+
         </div> 
  
 </details>
+
+ 
