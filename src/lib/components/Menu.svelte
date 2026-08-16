@@ -30,9 +30,5 @@ const {
 
 
 {@render children?.()} 
-<div style="color:white;text-align: left;">
-  <a  
-  style="color:white;cursor: pointer;height:48px;text-align: left;line-height: 48px;"  
-   href="/edit#{editingHashInfo}" > {editingHashInfo?'Edit':'New'} </a>
-   </div>
+ 
 </div>

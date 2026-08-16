@@ -141,7 +141,10 @@ export const main=(opt)=>{
         run.textContent="Preview"
         run.href = "/preview#"+encodeURIComponent(FileInfo.path)
         run.style.marginRight = '6px';
+        run.target="previewPopup" 
+        run.style.float = "right"
         run.onclick = ()=>{
+            //window.open('',"myPopup",'width=400,height=600')
             if (timeout===0)return;
             clearTimeout(timeout) 
             saveFile(editorView.state.doc.toString()) 

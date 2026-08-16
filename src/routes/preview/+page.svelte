@@ -1,21 +1,19 @@
 <script lang="ts">
   import { Canvas } from '@threlte/core'
   import Menu,{SetEditingHashInfo} from '$lib/components/Menu.svelte' 
-  import {moduleInit} from "$lib/components/MainMenu.svelte";
+  //import {moduleInit} from "$lib/components/MainMenu.svelte";
   import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte';
   import { csg2Geo } from "$lib/function/csg2Three";
-  import {toggleCamera} from "$lib/components/Camera.svelte"
+  //import {toggleCamera} from "$lib/components/Camera.svelte"
   //import MyWorker from '$lib/worker/worker?worker';
   import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
   import { onMount } from 'svelte';
   import {refreshCamera,refreshCameraInit} from '$lib/components/OrthoScene.svelte' 
-  import {
-    Vector3, 
-  } from 'three';
+  import {  Vector3 } from 'three';
   import OrthoScene from '$lib/components/OrthoScene.svelte'; 
   import DownMenu from "$lib/components/DownMenu.svelte";
-  import Camera from "$lib/components/Camera.svelte";
-  import MainMenu  from "$lib/components/MainMenu.svelte";  
+  import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
+  import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
   const channel = new BroadcastChannel('code-preview');
     let DialogDiv:HTMLDivElement|undefined=undefined
   channel.onmessage = (event) => { 
@@ -39,7 +37,7 @@
   let geometrys:{geometry:any,material:any}[] =$state([])
 
   const solidControlConfig:{[k:string]:any} = $state({
-    title:"welcome",
+    //title:"welcome",
     Light:true,
     Axes:true,Grid:true,main:[],
     isOrthographic:false,
@@ -129,25 +127,22 @@ const onmessageListen =async (e:MessageEvent)=>{
     }
     return btn
   }
-  onMount(() => {
-    //worker = new MyWorker();
+  onMount(() => { 
     try{
-
-   
-    let path =decodeURIComponent(window.location.hash.slice(1))
-    if (DialogDiv)DialogDiv.innerHTML=''
-    if (path){
-      solidControlConfig.title = path
-      SetEditingHashInfo({path})
-      getWorker(onmessageListen).then( w=>{ 
-        w?.postMessage({path })
-        //console.log(path)  
-        //window.location.hash=""
-      }) 
-    } 
-    return () => { 
-      terminateWorker(); 
-    };
+      let path =decodeURIComponent(window.location.hash.slice(1))
+      if (DialogDiv)DialogDiv.innerHTML=''
+      if (path){
+        solidControlConfig.title = path
+        SetEditingHashInfo({path})
+        getWorker(onmessageListen).then( w=>{ 
+          w?.postMessage({path })
+          //console.log(path)  
+          //window.location.hash=""
+        }) 
+      } 
+      return () => { 
+        terminateWorker(); 
+      };
     }catch(err){
       console.error(err)
     }
@@ -179,12 +174,27 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
  <OrthoScene  {solidControlConfig} {geometrys} ></OrthoScene>
 </Canvas> 
 
-<Dialog title = {solidControlConfig.title}><div bind:this={DialogDiv}>test</div></Dialog>
+<Dialog title = {solidControlConfig.title||""}><div bind:this={DialogDiv}>test</div></Dialog>
 <Menu    >
 <MainMenu  show={solidControlConfig.show}   ></MainMenu>
 <Camera {Clickhandle} ></Camera>
-  <DownMenu  show={solidControlConfig.show} title = {solidControlConfig.title} {DownHandle}
+  <DownMenu  show={solidControlConfig.show} title = {solidControlConfig.title||""} {DownHandle}
   ></DownMenu>
+
+  <div style="color:white;text-align: left;">
+  <a target="editPopup"  onclick={(e)=>{
+    const width =window.screen.width/2;
+    const height =window.screen.height ;
+    const left = width ;
+    const top =0;
+    window.open('',
+    "editPopup",
+    `width=${width},height=${height},left=${left},top=${top}`)
+  }}
+  style="color:white;cursor: pointer;height:48px;text-align: left;line-height: 48px;"  
+   href="/edit#{encodeURIComponent(JSON.stringify({path:solidControlConfig.title}))}" > {solidControlConfig.title?'Edit':'New'} </a>
+   </div>
+ 
 </Menu>
 </div>
 <style>
