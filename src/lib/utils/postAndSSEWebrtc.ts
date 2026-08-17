@@ -4,12 +4,12 @@ import {
 import {pool } from "$lib/utils/webRTCPool";
 import type {connType} from "$lib/utils/webRTCPool";
 export const createWebrtcConnFromCenterUrl = (
-    obj={
-        id:"",
-        create:true,
-        host:"http://127.0.0.1:8088/"
+    obj:{
+        id:string,
+        create?:boolean,
+        host:string
     },getConn:(conn:connType)=>void)=>{
-    postWebRTCMsg(obj ).then(r=>{
+    postWebRTCMsg(obj).then(r=>{
         if (r.ok){
             if (obj.create){ 
                 const conn = createRtcConn((msg)=>{
@@ -106,7 +106,10 @@ export const setRemoteRTCMsg = (
         return;
     }
 };
-const postWebRTCMsg = (inputConfig={id:"",create:false,host:"http://127.0.0.1:8088/"})=>{
+const postWebRTCMsg = (inputConfig:{
+    id:string,
+    create?:boolean,
+    host:string}={id:"",create:false,host:"http://127.0.0.1:8088/"})=>{
     console.log(inputConfig);
     return fetch(inputConfig.host,{
         method:"POST",
@@ -117,7 +120,7 @@ const postWebRTCMsg = (inputConfig={id:"",create:false,host:"http://127.0.0.1:80
     });
 };
 const createRtcConn = (
-    send:(iceOrSdp:string)=>void,inputConfig={id:"test",create:true},
+    send:(iceOrSdp:string)=>void,inputConfig:{id:string,create?:boolean},
     getConn:(_conn:connType)=>void
 )=>{
     

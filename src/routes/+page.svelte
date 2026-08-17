@@ -18,13 +18,13 @@ onMount(() => {
 const getLocaldb =async () => {
     const localList:itemType[]= []
     const root = await navigator.storage.getDirectory()  
-    for await (const k of root.keys()){
+    for await (const path of root.keys()){
         const l = localList.length;
         const item = {
-            title:k,
-            url:"/preview#"+encodeURIComponent(k),del:()=>{ 
-            if (!window.confirm("delete "+k))return;
-            root.removeEntry(k,{recursive:true})
+            title:path,
+            url:"/preview#"+encodeURIComponent(JSON.stringify({path})),del:()=>{ 
+            if (!window.confirm("delete "+path))return;
+            root.removeEntry(path,{recursive:true})
             //window.location.reload(); 
         }}
         localList.push(item) 

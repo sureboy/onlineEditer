@@ -5,6 +5,7 @@
     import { helpPanel,appendChildToDom } from "$lib/function/helpPanel";  
     import {jscadModelingCompletionSource,getImport,getImportAliases} from "$lib/function/parsingCode"
     import { autocompletion } from '@codemirror/autocomplete'; 
+import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
 
     const newPackageCode:string = `/*
 import modeling from '@jscad/modeling';
@@ -77,7 +78,6 @@ export const main=(opt)=>{
             }else{
                 input.placeholder="create a project"
             }
-        
             appendChildToDom(input,createButton("create","create",(e)=>{
                 if (input.value){
                      window.location.hash = encodeURIComponent(
@@ -91,37 +91,42 @@ export const main=(opt)=>{
         const select = document.createElement("select")
         const firstOpt = document.createElement("option");
         firstOpt.textContent="--New file--"
-        select.appendChild(firstOpt);
         const content = document.createElement("span");
         content.style.marginRight = '6px';
-        let isSelect = false
-        //ImportVarList.length = 0
-        for await (const [_k,f] of  FileInfo.DirHandle?.entries()){
-            //files.push(decodeURIComponent(k))
-            if (f.kind==="directory"){
-                continue;
+        select.onclick =async ()=>{ 
+            select.innerHTML=""
+            select.appendChild(firstOpt); 
+            let isSelect = false
+            if (!FileInfo.DirHandle)return;
+            //ImportVarList.length = 0
+            for await (const [_k,f] of  FileInfo.DirHandle?.entries()){
+                //files.push(decodeURIComponent(k))
+                if (f.kind==="directory"){
+                    continue;
+                } 
+                const k = decodeURIComponent(_k)
+                let opt = document.createElement("option");
+                opt.textContent = k; 
+                opt.value = k
+                opt.defaultSelected=k===(FileInfo.name ||'./index.js')
+                //if (!opt.defaultSelected){
+                    f.getFile().then(file=>{
+                        file.text().then(doc=>{
+                            getImport(doc,k) 
+                        })                    
+                    }) 
+                //}
+                if (!isSelect)
+                    isSelect = opt.defaultSelected
+                select.appendChild(opt);
+            }
+            if (!isSelect){
+                (select.lastChild as HTMLOptionElement).defaultSelected = true;
+                //console.log("end select");
+                //(select.children.item(select.children.length-1) as HTMLOptionElement).defaultSelected = true
             } 
-            const k = decodeURIComponent(_k)
-            let opt = document.createElement("option");
-            opt.textContent = k; 
-            opt.value = k
-            opt.defaultSelected=k===(FileInfo.name ||'./index.js')
-            //if (!opt.defaultSelected){
-                f.getFile().then(file=>{
-                    file.text().then(doc=>{
-                        getImport(doc,k) 
-                    })                    
-                }) 
-            //}
-            if (!isSelect)
-                isSelect = opt.defaultSelected
-            select.appendChild(opt);
         }
-        if (!isSelect){
-            (select.lastChild as HTMLOptionElement).defaultSelected = true;
-            //console.log("end select");
-            //(select.children.item(select.children.length-1) as HTMLOptionElement).defaultSelected = true
-        }
+        select.click()
         select.onchange=(e)=>{
             if (!select.value)return;
             switch (select.value) {
@@ -139,7 +144,7 @@ export const main=(opt)=>{
         }
         const run  = document.createElement('a')
         run.textContent="Preview"
-        run.href = "/preview#"+encodeURIComponent(FileInfo.path)
+        run.href = "/preview#"+encodeURIComponent(JSON.stringify({path:FileInfo.path}))
         run.style.marginRight = '6px';
         run.target="previewPopup" 
         run.style.float = "right"
@@ -255,9 +260,53 @@ export const main=(opt)=>{
     onready = {async (cm_view)=>{   
         const hashPath = window.location.hash.slice(1);
         if (hashPath){
+            const reqdb = JSON.parse(decodeURIComponent(hashPath))
+            if (reqdb.id && reqdb.host && reqdb.path){
+                FileInfo.path = reqdb.path
+                //FileInfo.create = true
+                const root = await navigator.storage.getDirectory();
+                FileInfo.DirHandle =await root.getDirectoryHandle(reqdb.path+"_"+reqdb.id,{create:true})
+                createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
+                    conn.pc.ondatachannel = async (e)=>{
+                        FileInfo.FileHandle =await FileInfo.DirHandle?.getFileHandle(
+                            e.channel.label,{create:true});
+                            FileInfo.name = decodeURIComponent(e.channel.label)
+                        const w = (await FileInfo.FileHandle?.createWritable())?.getWriter()
+                        //w?.getWriter()
+                        
+                        e.channel.onmessage =async (ev)=>{
+                            //w?.write(ev.data)
+                            if ( ev.data ==="close"){
+                                //w?.close()
+                                e.channel.close()
+                                return
+                            }
+                            if (!w){
+                                return
+                            }
+                            if (w && w.desiredSize && w.desiredSize <= 0) {
+                                await w.ready; 
+                            }
+                            // 此时写入是安全的，不会撑爆内存
+                            await w.write(ev.data);
+                        }
+                        e.channel.onclose =async ()=>{
+                            console.log(e.channel.label,"close")
+                            
+                            await w?.close()
+                            //e.channel.close()
+                            const f = await FileInfo.FileHandle?.getFile()
+                    
+                            updateEditorDoc(cm_view,await f?.text() ||newPackageCode)
+                        } 
+                    }
+                     
+                })
+                //return
+            }
             Object.assign(
                 FileInfo , 
-                JSON.parse(decodeURIComponent(hashPath))
+                reqdb
             ) 
             await getFileHandle().then(({f})=>{
                 f?.text().then(db=>{ 

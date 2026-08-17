@@ -13,9 +13,13 @@
   import OrthoScene from '$lib/components/OrthoScene.svelte'; 
   import DownMenu from "$lib/components/DownMenu.svelte";
   import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
-  import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
+  import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte"; 
+  import {jsonToForm,collectFormData} from '$lib/utils/jsonToForm'   
+  import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
+import QRCode from 'qrcode';
+
   const channel = new BroadcastChannel('code-preview');
-  let DialogDiv:HTMLDivElement|undefined=undefined
+  let DialogDiv:HTMLDivElement 
   channel.onmessage = (event) => { 
     if (event.data.Modal ) { 
       if (DialogDiv){
@@ -129,8 +133,9 @@ const onmessageListen =async (e:MessageEvent)=>{
   }
   onMount(() => { 
     try{
-      let path =decodeURIComponent(window.location.hash.slice(1))
-      if (DialogDiv)DialogDiv.innerHTML=''
+      const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))
+      //let path =
+      DialogDiv.innerHTML=''
       if (path){
         solidControlConfig.title = path
         SetEditingHashInfo({path})
@@ -168,15 +173,133 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
     solidControlConfig.Grid=Grid; 
   }) 
 }
-const QRCodeClick = ()=>{
-  if (DialogDiv){
-    DialogDiv.innerHTML=''
-    const p = document.createElement("p")
-    p.textContent = `'${"test"}' has been changed.`
-    DialogDiv?.append(p)
-  }
+const QRCodeClick = (e:any)=>{ 
+    ShowSubmit(DialogDiv,getConnHostJsonStr(),(db)=>{
+      //console.log(db)
+       
+      let url = `${window.location.protocol}//${window.location.host}/edit#${encodeURIComponent(
+        JSON.stringify({
+          path:solidControlConfig.title,
+          id:db.id,
+          host:db.host})
+      )}`
+      console.log(url)
+        QRCode.toDataURL(url,{
+          width: 200, 
+          color: {
+            dark: '#3b82f6',
+            light: '#ffffff'
+          }
+        }).then(src=>{
+          DialogDiv.innerHTML=`<h2>${db.id}</h2>`
+          const img = document.createElement("img")
+          img.src = src
+          DialogDiv.append(img)
+        })
+      createWebrtcConnFromCenterUrl(db,async (conn)=>{
+        addMesh({conn})
+        const root = await navigator.storage.getDirectory();
+        const dir = await  root.getDirectoryHandle(solidControlConfig.title)
+        for await(let [k,v] of dir.entries()){
+          if (v.kind==="file"){
+            const f = await v.getFile() 
+            //const fdb =await f()
+            const fileCHannel = conn.pc.createDataChannel(k)
+            fileCHannel.bufferedAmountLowThreshold = 64 * 1024; 
+            fileCHannel.onbufferedamountlow = (ev)=>{
+              console.log("bufferedAmount",fileCHannel.bufferedAmount)
+              if (fileCHannel.bufferedAmount === 0) {
+                //fileCHannel.send("close")
+                fileCHannel.close();
+                  
+              }
+            }
+            fileCHannel.onopen=async ()=>{ 
+              const buf = await f.arrayBuffer() 
+              
+                    
+              // 设置阈值（例如 64KB）
+              
+              fileCHannel.send(buf) 
+              fileCHannel.send("close")
+              // 监听缓冲区降低事件
+              console.log("buffered ",fileCHannel.bufferedAmount)
+   
+              //fileCHannel.addEventListener('bufferedamountlow', onLow);
+              
+              // 如果数据很小，已经发完了，手动触发关闭
+              if (fileCHannel.bufferedAmount === 0) {
+                  fileCHannel.close();
+              }
+            }
+
+          }
+        }
+        
+
+        closeModal()
+      })
+    }); 
+    //DialogDiv.innerHTML=''
+    //const p = document.createElement("p")
+    //p.textContent = `'${"test"}' has been changed.`
+   // DialogDiv?.append(p)
+   
 
   openModal()
+}
+import type {connType} from "$lib/utils/webRTCPool"
+type meshInfoType = {
+    conn:connType, 
+    remoteStream?: MediaStream,
+    video?:HTMLVideoElement,
+    //main?:string,
+    setSender?:(obj:any)=>void, 
+} 
+const meshList:(meshInfoType|null)[] =$state([])
+export const addMesh = (m:meshInfoType)=>{ 
+    for (let i=0;i<meshList.length;i++){
+        const v = meshList[i]
+        if (v && v.conn.id ===m.conn.id){
+            meshList[i] = m
+            return
+        }
+    }
+    const len = meshList.length;
+    m.conn.onClose = ()=>{
+        if (meshList[len]) meshList[len] = null
+        console.log("----",m)
+    }
+    meshList.push(m)
+}
+const getConnHostJsonStr = ()=>{
+    return  {
+        _comment:"跨网信令交换服务",
+        id:Date.now().toString(32).slice(4),
+        id_comment:"[加入]端需要输入[生成]端的id",
+        create:true,
+        create_comment:"[生成/加入]WebRtc会话",
+        host_comment:"信令交换服务公共网址",
+        host:"https://www.zaddone.com/rtc"
+    }  
+} 
+const ShowSubmit = (content:HTMLDivElement,db:any,hand:(db:any)=>void)=>{ 
+    jsonToForm(db ,content)  
+    const btn = document.createElement('button');
+    btn.textContent = '确定';
+    Object.assign(btn.style, {
+        marginTop: '1rem',
+        padding: '0.5rem 1rem',
+        backgroundColor: '#007bff',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        cursor: 'pointer'
+    });
+    btn.onclick = () => { 
+        hand(collectFormData(content)) 
+    };
+    content.appendChild(btn); 
 }
 </script>
 <div   class="preview">
@@ -195,6 +318,24 @@ const QRCodeClick = ()=>{
   style="height:48:px;line-height:48px;cursor: pointer;" 
   onclick={QRCodeClick} >QRCode</button>     
 </DownMenu>
+{#each meshList as mesh,k }
+{#if mesh}
+  <details    >
+    <summary   style="cursor: pointer; text-align: left;height:48px; line-height: 48px;"  >
+        {mesh.conn.id}
+    </summary>
+    <div   style="color:white;text-align: center;" >
+        <button onclick={(e)=>{
+            mesh.conn.dc?.send(JSON.stringify({  
+                name:"local" ,
+                msg: 0,
+                 
+            })) 
+        }}>reload </button> 
+    </div>
+</details>
+{/if}
+{/each}
 
   <div style="color:white;text-align: left;">
   <a target="editPopup"  onclick={(e)=>{
