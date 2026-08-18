@@ -20,14 +20,27 @@ import QRCode from 'qrcode';
 
   const channel = new BroadcastChannel('code-preview');
   let DialogDiv:HTMLDivElement 
+  let showModal = true
   channel.onmessage = (event) => { 
-    if (event.data.Modal ) { 
+    if (event.data.Modal&&showModal ) { 
       if (DialogDiv){
         DialogDiv.innerHTML=''
         const p = document.createElement("p")
         p.textContent = `'${event.data.name}' has been changed.`
-        DialogDiv.append(p)
-        DialogDiv.append(createBtnStartPreview(event.data,"Preview"))
+        const p1 = document.createElement("p")
+        const check = document.createElement("input")
+        check.type="checkbox"
+        check.checked = false
+        check.onclick = (e)=>{
+          showModal = !check.checked
+        }
+        const label = document.createElement("label")
+        label.textContent = "Do not display"
+        p1.append(check,label)
+
+        DialogDiv.append(p,p1,createBtnStartPreview(event.data,"Preview"))
+        
+        //DialogDiv.append()
         openModal() 
       } 
     }else{
@@ -205,32 +218,14 @@ const QRCodeClick = (e:any)=>{
             const f = await v.getFile() 
             //const fdb =await f()
             const fileCHannel = conn.pc.createDataChannel(k)
-            fileCHannel.bufferedAmountLowThreshold = 64 * 1024; 
-            fileCHannel.onbufferedamountlow = (ev)=>{
-              console.log("bufferedAmount",fileCHannel.bufferedAmount)
-              if (fileCHannel.bufferedAmount === 0) {
-                //fileCHannel.send("close")
-                fileCHannel.close();
-                  
-              }
+            fileCHannel.onmessage = (e)=>{
+              //channel.onmessage?.({data:{name:k}})
             }
             fileCHannel.onopen=async ()=>{ 
-              const buf = await f.arrayBuffer() 
-              
-                    
-              // 设置阈值（例如 64KB）
-              
+              const buf = await f.arrayBuffer()  
               fileCHannel.send(buf) 
               fileCHannel.send("close")
-              // 监听缓冲区降低事件
-              console.log("buffered ",fileCHannel.bufferedAmount)
-   
-              //fileCHannel.addEventListener('bufferedamountlow', onLow);
-              
-              // 如果数据很小，已经发完了，手动触发关闭
-              if (fileCHannel.bufferedAmount === 0) {
-                  fileCHannel.close();
-              }
+               
             }
 
           }
