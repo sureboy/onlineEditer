@@ -9,12 +9,31 @@ const includeImport:{[key:string]:string} = {
   //"csgChange": "./lib/csgChange.js",
   "manifold-3d":"./lib/manifold/manifold.js"
 }
+import {createStorage} from '$lib/storage-adapter/factory'  
+import type {EntryInfo} from "$lib/storage-adapter/types"
 //const {handleCurrentMsg} = await import('$lib/function/ImportParser')
+ 
+type DirHandleType = {
+  getFileHandle:(name:string)=>Promise<string | ArrayBuffer | Buffer<ArrayBufferLike>>,
+  name:string,
+  files:EntryInfo[]
+}
 const globalOption:{
   indexCurrent?:currentObj,
-  root?:FileSystemDirectoryHandle,
-  DirHandle?:FileSystemDirectoryHandle} = { 
-  //root : await navigator.storage.getDirectory(),
+  //root:StorageAdapter,
+  //relPath?:string
+  DirHandle?:DirHandleType
+} = { 
+  //root : createStorage(),
+}
+const getDirHandle =async (name:string)=>{
+  const root = createStorage()
+  const files =await root.listFilesInDirectory(name)
+  //const name = p
+  const getFileHandle = (file:string) => {
+    return root.readFile(`${name}/${file}`)
+  }
+  return {files,name,getFileHandle}
 }
 //const encoder = new TextEncoder();
 //let root = await navigator.storage.getDirectory()
@@ -32,14 +51,15 @@ const postMessage = async (e:any)=>{
      // setTimeout( async()=>{
     try{
      
-      const f =await globalOption.DirHandle?.getFileHandle(
+      const db =await globalOption.DirHandle?.getFileHandle(
         encodeURIComponent(e.path),
+      )
         //name ,
-        {create:false})
+       // {create:false})
       //const {f,d} = await getFileHandleFromOPFS(e.path,{create:false,root:globalOption.root}) 
       
-      const _f = await  f?.getFile() 
-      const db = await _f?.text()
+      //const _f = await  f?.getFile() 
+      //const db = await _f?.text()
       //console.log(db)
       //setTimeout(()=>{
         //console.log("t",name,e.path)
@@ -118,8 +138,8 @@ self.onmessage =async (event: MessageEvent) => {
   if ( event.data.path){
     if (!globalOption.DirHandle || globalOption.DirHandle.name!==event.data.path ){
       try{
-        if (!globalOption.root)globalOption.root=await navigator.storage.getDirectory();
-        globalOption.DirHandle = await globalOption.root.getDirectoryHandle(event.data.path);
+        //if (!globalOption.root)globalOption.root=await navigator.storage.getDirectory();
+        globalOption.DirHandle =await getDirHandle(event.data.path);
       }catch(err){
         console.error(err)
       }
@@ -129,8 +149,8 @@ self.onmessage =async (event: MessageEvent) => {
   if ( globalOption.DirHandle){
     const name = event.data.name || "./index.js"
     try{ 
-      const fh = await globalOption.DirHandle.getFileHandle(encodeURIComponent(name))
-      const cur = await getCurrentObjFromFileSystem(fh,name)
+      const db = await globalOption.DirHandle.getFileHandle(encodeURIComponent(name))
+      const cur =    handleCurrentMsg({db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
       if (cur){
         await runCode( cur);
       }  

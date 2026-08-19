@@ -6,8 +6,10 @@ import type {itemType} from '$lib/website/List.svelte'
  
 import { extractTarStreamToOPFS } from '$lib/function/OPFS'; 
 import { onMount } from 'svelte';
+import {createStorage} from '$lib/storage-adapter/factory' 
 
 onMount(() => {
+    
     window.addEventListener("hashchange",(ev)=>{
         console.log(window.location.hash)
         const btn = document.getElementById(location.hash.slice(1))
@@ -16,15 +18,18 @@ onMount(() => {
     
 });
 const getLocaldb =async () => {
+    const storage = createStorage()
     const localList:itemType[]= []
-    const root = await navigator.storage.getDirectory()  
-    for await (const path of root.keys()){
+    //createStorage().listFiles()
+    //const root = await navigator.storage.getDirectory()  
+    for (const path of await storage.listDirectories()){
         const l = localList.length;
         const item = {
             title:path,
             url:"/preview#"+encodeURIComponent(JSON.stringify({path})),del:()=>{ 
             if (!window.confirm("delete "+path))return;
-            root.removeEntry(path,{recursive:true})
+            //root.removeEntry(path,{recursive:true})
+            storage.deleteDirectory(path)
             //window.location.reload(); 
         }}
         localList.push(item) 

@@ -1,5 +1,5 @@
 <script lang="ts">
-import Edit,{newPackageCode,updateEditorDoc,type FileInfoType} from "$lib/components/Edit.svelte"; 
+import Edit,{getDirHandle,newPackageCode,updateEditorDoc,type FileInfoType} from "$lib/components/Edit.svelte"; 
 import { EditorView } from '@codemirror/view'; 
 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
@@ -14,28 +14,25 @@ function sendCodeToPreview(msg:any) {
     console.log("send",msg)
     if (msg.name){
         //const k = encodeURIComponent(msg.name)
-        FileInfo.DirHandle?.getFileHandle(encodeURIComponent(msg.name)).then(h=>{
-            h.getFile().then((f)=>{
-                f.arrayBuffer().then(db=>{
-                    const conn = ConnMap.get(msg.name)
-                    conn?.send(db)
-                    conn?.send("close")
-                })
-            })
+        FileInfo.DirHandle?.getFileHandle(encodeURIComponent(msg.name)).then(({read})=>{
+            read().then(db=>{
+                const conn = ConnMap.get(msg.name)
+                conn?.send(db)
+                conn?.send("close")
+            })             
         })
     } 
 }
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: EditorView)=>{
     FileInfo.path = reqdb.path 
-    const root = await navigator.storage.getDirectory();
-    FileInfo.DirHandle =await root.getDirectoryHandle(reqdb.path+"_"+reqdb.id,{create:true})
+    //const root = await navigator.storage.getDirectory();
+    FileInfo.DirHandle = await getDirHandle( reqdb.path ) //await root.getDirectoryHandle(reqdb.path+"_"+reqdb.id,{create:true})
     createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
         conn.pc.ondatachannel = async (e)=>{
-            FileInfo.FileHandle =await FileInfo.DirHandle?.getFileHandle(
-                e.channel.label,{create:true});
-                FileInfo.name = decodeURIComponent(e.channel.label)
-            const w = (await FileInfo.FileHandle?.createWritable())?.getWriter()
-            //w?.getWriter()
+            FileInfo.name = decodeURIComponent(e.channel.label)
+            const fh = await FileInfo.DirHandle?.getFileHandle(
+                e.channel.label ); 
+            const w =await fh?.createWriteStream() 
             ConnMap.set(FileInfo.name,e.channel)
             e.channel.onmessage =async (ev)=>{
                 //w?.write(ev.data)
@@ -45,18 +42,12 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
                     await w?.close()
 
                     if (FileInfo.name ==="./index.js"){
-                        const f = await FileInfo.FileHandle?.getFile() 
-                        updateEditorDoc(cm_view,await f?.text() ||newPackageCode)
+                        //const f = await FileInfo.FileHandle?.getFile() 
+                        updateEditorDoc(cm_view,await fh?.read() ||newPackageCode)
                     }
                     return
-                }
-                if (!w){
-                    return
-                }
-                if (w && w.desiredSize && w.desiredSize <= 0) {
-                    await w.ready; 
-                }
-                await w.write(ev.data);
+                } 
+                await w?.write(ev.data);
             }
             /*
             e.channel.onclose =async ()=>{

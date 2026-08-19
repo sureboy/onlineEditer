@@ -1,4 +1,7 @@
 <script lang="ts" module >
+import type {EntryInfo,ListDirectoryOptions,WriteStream} from "$lib/storage-adapter/types"
+import {createStorage} from '$lib/storage-adapter/factory'  
+import {StorageAdapter} from '$lib/storage-adapter/adapter'
 export const newPackageCode:string = `/*
 import modeling from '@jscad/modeling';
 import  manifold from 'manifold-3d';
@@ -24,14 +27,54 @@ export const main=(opt)=>{
   return [modeling.primitives.cube(option),option]
 }
 */`
+type myFileHandleType = {
+    write:(db:string )=>Promise<void>,
+    read:()=>Promise<string>,
+    del:()=>Promise<void>,
+    createWriteStream(): Promise<WriteStream>
+    //list:()=>Promise<EntryInfo[]>
+}
+type DirHandleType = {
+  getFileHandle:(name:string)=>Promise<myFileHandleType>,
+  name:string,
+  //root:StorageAdapter,
+  files:EntryInfo[]
+}
 export type FileInfoType  = {
     create?:boolean,
     name:string,
     path:string,
-    FileHandle?:
-    FileSystemFileHandle,
-    DirHandle?:FileSystemDirectoryHandle} 
-
+    //FileHandle?:FileSystemFileHandle,
+    DirHandle?:DirHandleType
+} 
+export const getDirHandle =async (name:string,create?:ListDirectoryOptions)=>{
+  const root = createStorage()
+  const files =await root.listFilesInDirectory(name,create)
+  //const name = p
+  const getFileHandle =async (file:string ) => {
+    const p = `${name}/${file}`
+    /*
+    if (!await root.fileExists(p) && create.create){
+        root.writeFile
+    }*/
+   console.log(p)
+    return {
+        createWriteStream:()=>{
+            return root.createWriteStream(p)
+        },
+        write:async (db:string )=>{
+            return await root.writeFile(p,db)
+        },
+        read:async ()=>{
+            return await root.readFile(p,'utf8') as string
+        },
+        del:()=>{
+            return root.deleteFile(p)
+        }
+    } as myFileHandleType
+  }
+  return {files,name,getFileHandle} as DirHandleType
+}
 export const updateEditorDoc =async (editorView:EditorView,value:string )=>{
     
     editorView.dispatch({
@@ -52,7 +95,7 @@ import { javascript } from "@codemirror/lang-javascript";
 import { EditorView } from '@codemirror/view'; 
 import { helpPanel,appendChildToDom } from "$lib/function/helpPanel";  
 import {jscadModelingCompletionSource,getImport,getImportAliases} from "$lib/function/parsingCode"
-import { autocompletion } from '@codemirror/autocomplete'; 
+import { autocompletion } from '@codemirror/autocomplete';  
 const {initWebrtcConn,
     sendCodeToPreview,
     FileInfo}:{
@@ -62,30 +105,31 @@ const {initWebrtcConn,
 const getFileHandle = async(FileInfo:FileInfoType) =>{
     try{
         if (!FileInfo.DirHandle){
-            const root = await navigator.storage.getDirectory(); 
-            FileInfo.DirHandle = await root.getDirectoryHandle(
+            //const root = await navigator.storage.getDirectory(); 
+            FileInfo.DirHandle = await getDirHandle(
                 FileInfo.path,{create:FileInfo.create})
         }
+        return await FileInfo.DirHandle.getFileHandle(encodeURIComponent(FileInfo.name))
+ 
+        /*
         if (!FileInfo.FileHandle  ){ 
             FileInfo.FileHandle = await FileInfo.DirHandle?.getFileHandle(
             encodeURIComponent(FileInfo.name),{create:true})  
             
         } 
         return {h:FileInfo.FileHandle,f:await FileInfo.FileHandle?.getFile()}
+        */
     }catch(err){
         throw err
     }
 }
 
 const saveFile = (v:string,FileInfo:FileInfoType)=>{
-    getFileHandle(FileInfo).then(({h})=>{
+    getFileHandle(FileInfo).then(({write})=>{
         //h.createSyncAccessHandle()
-        h?.createWritable().then(w=>{
-            w.write(v).then(()=>{
-                w.close().then(()=>{
-                    sendCodeToPreview( {Modal:true,...FileInfo})
-                });                
-            })
+        write(v).then(()=>{
+            sendCodeToPreview( {Modal:true,...FileInfo})
+            
         })
     }).catch(err=>{
         console.error(err)
@@ -103,8 +147,8 @@ const ready =async (cm_view: EditorView)=>{
             FileInfo , 
             reqdb
         ) 
-        await getFileHandle(FileInfo).then(({f})=>{
-            f?.text().then(db=>{ 
+        await getFileHandle(FileInfo).then(({read})=>{
+            read().then(db=>{ 
                 updateEditorDoc(cm_view,db ||newPackageCode)
             })
         }).catch((res)=>{
@@ -159,12 +203,13 @@ const createSelect = ()=>{
         if (!FileInfo.DirHandle)return;
         //ImportVarList.length = 0
         const oldItem = select.childNodes.values()
-        outerLoop: for await (const [_k,f] of  FileInfo.DirHandle?.entries()){
+        outerLoop: for  (const f of  FileInfo.DirHandle.files){
             //files.push(decodeURIComponent(k))
-            if (f.kind==="directory"){
+             
+            if (f.isDirectory){
                 continue;
             }
-            const k = decodeURIComponent(_k)
+            const k = decodeURIComponent(f.name)
             for (const child of oldItem){
                 if ((child as HTMLOptionElement).value === k){
                     continue outerLoop
@@ -176,11 +221,12 @@ const createSelect = ()=>{
             opt.value = k
             opt.defaultSelected=k===(FileInfo.name )
             //if (!opt.defaultSelected){
-                f.getFile().then(file=>{
-                    file.text().then(doc=>{
-                        getImport(doc,k) 
-                    })                    
-                }) 
+                FileInfo.DirHandle.getFileHandle(f.name).then(({read})=>{
+                    read().then(doc=>{
+                         getImport(doc,k) 
+                    })
+                })
+                
             //}
             //console.log(k,FileInfo.name,opt.defaultSelected)
             //if (!isSelect)
@@ -263,10 +309,13 @@ const initPanel =async ( )=>{
         //const fileName = FileInfo.name
         if (!FileInfo.name)return
         if (window.confirm(`Delete ${FileInfo.name} ?`)){
-            FileInfo.DirHandle?.removeEntry(encodeURIComponent(FileInfo.name)).then(()=>{
-                console.log("del",FileInfo)
-                window.location.hash = encodeURIComponent(JSON.stringify({path:FileInfo.path})) 
-                window.location.reload()
+            FileInfo.DirHandle?.getFileHandle(encodeURIComponent(FileInfo.name)).then(({del})=>{
+                del().then(()=>{
+                    console.log("del",FileInfo)
+                    window.location.hash = encodeURIComponent(JSON.stringify({path:FileInfo.path})) 
+                    window.location.reload()
+                })
+                
             })
         } 
     }),...createSelect(),run)        
