@@ -22,11 +22,17 @@ import QRCode from 'qrcode';
   let DialogDiv:HTMLDivElement 
   let showModal = true
   channel.onmessage = (event) => { 
-    if (event.data.Modal&&showModal ) { 
+    previewModule(event.data)
+     
+  };
+
+const previewModule = (data:{Modal?:boolean,
+  name: string; db: string; path: string;})=>{
+  if (data.Modal&&showModal ) { 
       if (DialogDiv){
         DialogDiv.innerHTML=''
         const p = document.createElement("p")
-        p.textContent = `'${event.data.name}' has been changed.`
+        p.textContent = `'${data.name}' has been changed.`
         const p1 = document.createElement("p")
         const check = document.createElement("input")
         check.type="checkbox"
@@ -38,7 +44,7 @@ import QRCode from 'qrcode';
         label.textContent = "Do not display"
         p1.append(check,label)
 
-        DialogDiv.append(p,p1,createBtnStartPreview(event.data,"Preview"))
+        DialogDiv.append(p,p1,createBtnStartPreview(data,"Preview"))
         
         //DialogDiv.append()
         openModal() 
@@ -46,11 +52,11 @@ import QRCode from 'qrcode';
     }else{
       closeModal();
       getWorker(onmessageListen).then( w=>{ 
-        w?.postMessage( event.data) 
+        w?.postMessage( data) 
         closeModal()
       }) 
     }
-  };
+}
   let geometrys:{geometry:any,material:any}[] =$state([])
 
   const solidControlConfig:{[k:string]:any} = $state({
@@ -86,7 +92,6 @@ const onmessageListen =async (e:MessageEvent)=>{
   if (e.data.module){
     //console.log(e.data.module)
     moduleInit(Object.assign({
-
       Clickhandle:ClickhandleWithMainMenu
     }, e.data.module))
     return
