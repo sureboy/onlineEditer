@@ -1,5 +1,7 @@
 <script lang="ts">
-import Edit,{getDirHandle,newPackageCode,updateEditorDoc,type FileInfoType} from "$lib/components/Edit.svelte"; 
+import {type FileInfoType,getDirHandle,updateEditorDoc,newPackageCode} from "$lib/function/edit"
+
+import Edit from "$lib/components/Edit.svelte"; 
 import { EditorView } from '@codemirror/view'; 
 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
@@ -7,10 +9,16 @@ const FileInfo:FileInfoType = {
     path:"",
     name:"./index.js" 
 } 
-const channel = new BroadcastChannel('code-preview');
+
 const ConnMap = new Map<string,RTCDataChannel>()
 function sendCodeToPreview(msg:any) {
-    channel.postMessage(msg);
+    try{
+        const channel = new BroadcastChannel('code-preview');
+        channel?.postMessage(msg);
+    }catch(err){
+        console.log(err)
+    }
+
     console.log("send",msg)
     if (msg.name){
         //const k = encodeURIComponent(msg.name)
@@ -43,7 +51,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
 
                     if (FileInfo.name ==="./index.js"){
                         //const f = await FileInfo.FileHandle?.getFile() 
-                        updateEditorDoc(cm_view,await fh?.read() ||newPackageCode)
+                        updateEditorDoc(await fh?.read() ||newPackageCode,cm_view)
                     }
                     return
                 } 
