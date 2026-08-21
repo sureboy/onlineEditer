@@ -1,61 +1,25 @@
 <script lang="ts">
-  import { Canvas } from '@threlte/core'
-  import Menu,{SetEditingHashInfo} from '$lib/components/Menu.svelte' 
-  //import {moduleInit} from "$lib/components/MainMenu.svelte";
-  import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte';
-  import { csg2Geo } from "$lib/function/csg2Three";
-  //import {toggleCamera} from "$lib/components/Camera.svelte"
-  //import MyWorker from '$lib/worker/worker?worker';
-  import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
-  import { onMount } from 'svelte';
-  import {refreshCamera,refreshCameraInit} from '$lib/components/OrthoScene.svelte' 
-  import {  Vector3 } from 'three';
-  import OrthoScene from '$lib/components/OrthoScene.svelte'; 
-  import DownMenu from "$lib/components/DownMenu.svelte";
-  import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
-  import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte"; 
-  import {jsonToForm,collectFormData} from '$lib/utils/jsonToForm'   
-  import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
+import { Canvas } from '@threlte/core'
+import Menu,{SetEditingHashInfo} from '$lib/components/Menu.svelte'  
+import {openModal,closeModal} from '$lib/components/Dialog.svelte';
+import { csg2Geo } from "$lib/function/csg2Three"; 
+import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
+import { onMount } from 'svelte';
+import {refreshCamera,refreshCameraInit} from '$lib/components/OrthoScene.svelte' 
+import {  Vector3 } from 'three';
+import OrthoScene from '$lib/components/OrthoScene.svelte'; 
+import DownMenu from "$lib/components/DownMenu.svelte";
+import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
+import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte"; 
+import {jsonToForm,collectFormData} from '$lib/utils/jsonToForm'   
+import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
 import QRCode from 'qrcode';
-
-  const channel = new BroadcastChannel('code-preview');
-  let DialogDiv:HTMLDivElement 
-  let showModal = true
-  channel.onmessage = (event) => { 
-    previewModule(event.data)
-     
-  };
-
-const previewModule = (data:{Modal?:boolean,
-  name: string; db: string; path: string;})=>{
-  if (data.Modal&&showModal ) { 
-      if (DialogDiv){
-        DialogDiv.innerHTML=''
-        const p = document.createElement("p")
-        p.textContent = `'${data.name}' has been changed.`
-        const p1 = document.createElement("p")
-        const check = document.createElement("input")
-        check.type="checkbox"
-        check.checked = false
-        check.onclick = (e)=>{
-          showModal = !check.checked
-        }
-        const label = document.createElement("label")
-        label.textContent = "Do not display"
-        p1.append(check,label)
-
-        DialogDiv.append(p,p1,createBtnStartPreview(data,"Preview"))
-        
-        //DialogDiv.append()
-        openModal() 
-      } 
-    }else{
-      closeModal();
-      getWorker(onmessageListen).then( w=>{ 
-        w?.postMessage( data) 
-        closeModal()
-      }) 
-    }
+import Exchange,{getDialogDiv } from '$lib/components/Exchange.svelte';
+//let DialogDiv = getDialogDiv()
+const previewHandle =async (data: any)=>{
+  const w = await getWorker(onmessageListen) 
+  w?.postMessage( data) 
+   
 }
   let geometrys:{geometry:any,material:any}[] =$state([])
 
@@ -70,9 +34,8 @@ const previewModule = (data:{Modal?:boolean,
     //getAspect:()=>{return aspect},
   })
   const ClickhandleWithMainMenu = (basename:string)=>{
-    getWorker().then(w=>{
-      w.postMessage({basename})
-    })
+    previewHandle({basename})
+ 
   }
   const Clickhandle=(k:string|{[k:string]:any}|null)=>{
     if (!k)return;
@@ -137,31 +100,17 @@ const onmessageListen =async (e:MessageEvent)=>{
     } 
   }
 } 
-  const createBtnStartPreview = (msg:{name:string,db:string,path:string},btnName?:string)=>{
-    const btn = document.createElement("button")
-    btn.textContent =btnName || msg.name
-    //tmpList.push(window.localStorage.key(i))
-    btn.onclick = ()=>{
-      getWorker(onmessageListen).then( w=>{ 
-        w?.postMessage(msg) 
-        closeModal()
-      }) 
-    }
-    return btn
-  }
+ 
   onMount(() => { 
     try{
       const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))
       //let path =
-      DialogDiv.innerHTML=''
+      getDialogDiv().innerHTML=''
       if (path){
         solidControlConfig.title = path
         SetEditingHashInfo({path})
-        getWorker(onmessageListen).then( w=>{ 
-          w?.postMessage({path })
-          //console.log(path)  
-          //window.location.hash=""
-        }) 
+        previewHandle({path })
+        
       } 
       return () => { 
         terminateWorker(); 
@@ -192,7 +141,7 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
   }) 
 }
 const QRCodeClick = (e:any)=>{ 
-    ShowSubmit(DialogDiv,getConnHostJsonStr(),(db)=>{
+    ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{
       //console.log(db)
        
       let url = `${window.location.protocol}//${window.location.host}/edit#${encodeURIComponent(
@@ -209,13 +158,14 @@ const QRCodeClick = (e:any)=>{
             light: '#ffffff'
           }
         }).then(src=>{
-          DialogDiv.innerHTML=`<h2>${db.id}</h2>`
+          getDialogDiv().innerHTML=`<h2>${db.id}</h2>`
           const img = document.createElement("img")
           img.src = src
-          DialogDiv.append(img)
+          getDialogDiv().append(img)
         })
       createWebrtcConnFromCenterUrl(db,async (conn)=>{
-        addMesh({conn})
+        const mesh = {conn,files:new Map()}
+        addMesh(mesh)
         const root = await navigator.storage.getDirectory();
         const dir = await  root.getDirectoryHandle(solidControlConfig.title)
         for await(let [k,v] of dir.entries()){
@@ -223,9 +173,17 @@ const QRCodeClick = (e:any)=>{
             const f = await v.getFile() 
             //const fdb =await f()
             const fileCHannel = conn.pc.createDataChannel(k)
+            mesh.files.set(k,fileCHannel);
+            /*
             fileCHannel.onmessage = (e)=>{
+              const fh = await FileInfo.DirHandle?.getFileHandle(
+              e.channel.label ); 
+              const w =await fh?.createWriteStream() 
+              meshList.forEach(m=>{
+
+              })
               //channel.onmessage?.({data:{name:k}})
-            }
+            }*/
             fileCHannel.onopen=async ()=>{ 
               const buf = await f.arrayBuffer()  
               fileCHannel.send(buf) 
@@ -251,10 +209,11 @@ const QRCodeClick = (e:any)=>{
 import type {connType} from "$lib/utils/webRTCPool"
 type meshInfoType = {
     conn:connType, 
-    remoteStream?: MediaStream,
-    video?:HTMLVideoElement,
+    files:Map<string,RTCDataChannel>
+    //remoteStream?: MediaStream,
+    //video?:HTMLVideoElement,
     //main?:string,
-    setSender?:(obj:any)=>void, 
+    //setSender?:(obj:any)=>void, 
 } 
 const meshList:(meshInfoType|null)[] =$state([])
 export const addMesh = (m:meshInfoType)=>{ 
@@ -306,9 +265,9 @@ const ShowSubmit = (content:HTMLDivElement,db:any,hand:(db:any)=>void)=>{
 <Canvas   >
  <OrthoScene  {solidControlConfig} {geometrys} ></OrthoScene>
 </Canvas> 
-
-<Dialog title = {solidControlConfig.title||""}><div bind:this={DialogDiv}>test</div></Dialog>
-<Menu    >
+<Exchange {solidControlConfig} {previewHandle}  > 
+</Exchange>
+ <Menu    >
 <MainMenu  show={solidControlConfig.show}   ></MainMenu>
 <Camera {Clickhandle} ></Camera>
   <DownMenu  

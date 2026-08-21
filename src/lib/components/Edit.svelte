@@ -1,12 +1,13 @@
  
 <script lang="ts">
 import {type FileInfoType,
-    getDirHandle,
-    updateEditorDoc,newPackageCode} from "$lib/function/edit"
+  //  getDirHandle,newPackageCode
+     } from "$lib/function/fileHandle"
+//import { updateEditorDoc} from "$lib/function/edit"
 import CodeMirror from "$lib/components/CodeMirror.svelte";
 import { javascript } from "@codemirror/lang-javascript"; 
 import { EditorView } from '@codemirror/view'; 
-import { helpPanel,appendChildToDom } from "$lib/function/helpPanel";  
+import { helpPanel } from "$lib/function/helpPanel";  
 import {jscadModelingCompletionSource,getImport,getImportAliases} from "$lib/function/parsingCode"
 import { autocompletion } from '@codemirror/autocomplete';  
 import {getFileHandle,initEditorView,initPanel} from '$lib/function/panel'
@@ -46,53 +47,7 @@ const ready =async (cm_view: EditorView)=>{
         await initEditorView(cm_view,FileInfo) 
     } 
     
-}
-
-/*
-const initPanel =async (cm_view: EditorView )=>{
-    if (!FileInfo.DirHandle){
-        const input = createInputElement(cm_view)
-        if (FileInfo.path){
-            input.value = FileInfo.path 
-        }else{
-            input.placeholder="create a project"
-        }
-        appendChildToDom(input,createButton("create","create",(e)=>{
-            if (input.value){
-
-                window.location.hash = encodeURIComponent(
-                JSON.stringify({path:input.value,create:true  }))  
-                window.location.reload() 
-            }                
-        }))
-        return;
-    }
-   
-    const run  = document.createElement('a')
-    run.textContent="Preview"
-    run.href = "/preview#"+encodeURIComponent(JSON.stringify({path:FileInfo.path}))
-    run.style.marginRight = '6px';
-    run.target="previewPopup" 
-    run.style.float = "right" 
-    appendChildToDom(createButton("Delete","X",(e)=>{
-        //const fileName = FileInfo.name
-        if (!FileInfo.name)return
-        if (window.confirm(`Delete ${FileInfo.name} ?`)){
-            FileInfo.DirHandle?.getFileHandle(encodeURIComponent(FileInfo.name)).then(({del})=>{
-                del().then(()=>{
-                    console.log("del",FileInfo)
-                    FileInfo.name = "./index.js"
-                    initEditorView(cm_view).then(()=>{
-                        initPanel(cm_view) 
-                    }) 
-                })
-                
-            })
-        } 
-    }),...createSelect(cm_view),run)        
-}
-*/
-
+} 
 const saveKeymap = {
     // 键名使用小写，用连字符连接
     key: "Mod-s", // Mod 键在 Windows/Linux 下代表 Ctrl，macOS 下代表 Cmd
@@ -123,16 +78,15 @@ let firstChange = false;
     "& .cm-editor": { padding: "0",border: "none" },  
     }} 
     onready = {(cm_view)=>{   
-         ready(cm_view).then(()=>{
+        ready(cm_view).then(()=>{
             initPanel(cm_view,FileInfo) 
-         })   
+        })   
     }}
     bounce={0} 
     onchange = {(v)=>{ 
         if (!FileInfo.name){
             return
-        }
-        
+        } 
         if (!firstChange){
             firstChange=true 
             getImportAliases(v,FileInfo.name)
