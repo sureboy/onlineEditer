@@ -21,14 +21,12 @@ const {initWebrtcConn,
 
 
 const saveFile = (v:string,FileInfo:FileInfoType)=>{
-    getFileHandle(FileInfo).then(({write})=>{
+    const handle = getFileHandle(FileInfo) 
         //h.createSyncAccessHandle()
-        write(v).then(()=>{
+        handle.write(v).then(()=>{
             sendCodeToPreview( {Modal:true,path:FileInfo.path,name:FileInfo.name}) 
         })
-    }).catch(err=>{
-        console.error(err)
-    })
+    
 } 
 
 const ready =async (cm_view: EditorView)=>{

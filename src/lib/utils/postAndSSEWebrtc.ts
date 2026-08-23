@@ -3,40 +3,42 @@ import {
     createOffer} from '$lib/utils/webrtc';
 import {pool } from "$lib/utils/webRTCPool";
 import type {connType} from "$lib/utils/webRTCPool";
-export const createWebrtcConnFromCenterUrl = (
+export const createWebrtcConnFromCenterUrl =async (
     obj:{
         id:string,
         create?:boolean,
         host:string
     },getConn:(conn:connType)=>void)=>{
-    postWebRTCMsg(obj).then(r=>{
-        if (r.ok){
-            if (obj.create){ 
-                const conn = createRtcConn((msg)=>{
+    const r =await  postWebRTCMsg(obj) 
+    if (r.ok){
+        if (obj.create){ 
+            const conn = createRtcConn((msg)=>{
+                postWebRTCMsg(Object.assign({msg:btoa(msg)},obj) );
+            },obj,getConn) ;
+            getWebRTCMsgFromSSE((MsgObj)=>{
+                setRemoteRTCMsg(MsgObj,conn) ;
+                if ("onmessage" in conn.dc){
+                    return false;
+                }else{
+                    return true;
+                }
+            } ,obj );
+        }else{ 
+            r.json().then(db=>{
+                const conn = appendRtcConn(obj.id,(msg)=>{ 
                     postWebRTCMsg(Object.assign({msg:btoa(msg)},obj) );
-                },obj,getConn) ;
-                getWebRTCMsgFromSSE((MsgObj)=>{
-                    setRemoteRTCMsg(MsgObj,conn) ;
-                    if ("onmessage" in conn.dc){
-                        return false;
-                    }else{
-                        return true;
-                    }
-                } ,obj );
-            }else{ 
-                r.json().then(db=>{
-                    const conn = appendRtcConn(obj.id,(msg)=>{ 
-                        postWebRTCMsg(Object.assign({msg:btoa(msg)},obj) );
-                    },getConn); 
-                    //console.log(db);
-                    (db as any[]).reverse().forEach((v,i)=>{
-                        setRemoteRTCMsg(JSON.parse(atob(v)),conn);
-                        console.log(i,atob(v));
-                    });
+                },getConn); 
+                //console.log(db);
+                (db as any[]).reverse().forEach((v,i)=>{
+                    setRemoteRTCMsg(JSON.parse(atob(v)),conn);
+                    console.log(i,atob(v));
                 });
-            } 
-        }
-    });
+            });
+        } 
+    }
+    return r
+  
+     
 };
 const getWebRTCMsgFromSSE = (msg:(msg:any)=>void,inputConfig={id:"",host:"http://127.0.0.1:8088/"})=>{
     let u=inputConfig.host+"?" ;

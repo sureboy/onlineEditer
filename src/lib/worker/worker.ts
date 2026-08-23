@@ -43,40 +43,20 @@ const postMessage = async (e:any)=>{
  
 
   
-  if (e.path){ 
-    //let name = e.path as string 
-    //if (name.endsWith(".js")){
-    //    name = e.path // (e.path as string).split("/").pop() || e.path
-    //}
-  
-    //console.log(name,e.path,globalOption.DirHandle)
-     // setTimeout( async()=>{
-    try{
-     
-      const db =await globalOption.DirHandle?.getFileHandle(
+  if (e.path){  
+    try{ 
+      const handle =globalOption.DirHandle?.getFileHandle(
         encodeURIComponent(e.path),
-      )
-        //name ,
-       // {create:false})
-      //const {f,d} = await getFileHandleFromOPFS(e.path,{create:false,root:globalOption.root}) 
+      ) 
+      if (handle){
+        const cur = handleCurrentMsg({db:await handle?.read() ,name:e.path },postMessage)  
+      }
       
-      //const _f = await  f?.getFile() 
-      //const db = await _f?.text()
-      //console.log(db)
-      //setTimeout(()=>{
-        //console.log("t",name,e.path)
-        const cur = handleCurrentMsg({db ,name:e.path },postMessage) 
-        //console.log("time ",cur)
-      //})
-    }catch(err){ 
-      //console.error(err)
-      //setTimeout(()=>{
+    }catch(err){  
         handleCurrentMsg({name:e.path})!.getUri = async ()=>new URL(
         includeImport[e.path] ||e.path  ,
-        new URL(import.meta.url).origin).toString();     
-      //})
-    }
-      // })
+        new URL(import.meta.url).origin).toString();    
+    } 
   }
   
 }
@@ -97,7 +77,7 @@ const getIndex = (c:currentObj )=>{
     return c
   } 
 }
-const runCode =async (cur:currentObj,basename:string="main")=>{
+const runCode =async (cur:currentObj,basename:string )=>{
  try{
     globalOption.indexCurrent = getIndex(cur)
     const u = await globalOption.indexCurrent.getUri() 
@@ -108,7 +88,6 @@ const runCode =async (cur:currentObj,basename:string="main")=>{
     }
     const module = {list,basename:(list.includes(basename))?basename:list[0]} 
     self.postMessage({module}) 
-     
     const tmpDB = src[module.basename]()
     getCsgObjArray(tmpDB,(msg)=>{ 
       if ('index' in msg ){
@@ -140,30 +119,37 @@ self.onmessage =async (event: MessageEvent) => {
       }catch(err){
         console.error(err)
       }
-
+    }
+    if (event.data.files){
+      self.postMessage({path:event.data.path,files:(await globalOption.DirHandle?.files())?.map(f=>{return decodeURIComponent(f.name)})})
     }
   }
-  if ( globalOption.DirHandle){
+  //if ( globalOption.DirHandle){
     const name = event.data.name || "./index.js"
+    const fileName= encodeURIComponent(name)
     let db = event.data.db
-    const handle = globalOption.DirHandle.getFileHandle(encodeURIComponent(name))  
-    try{ 
-      
+    const handle = globalOption.DirHandle?.getFileHandle(fileName)  
+    try{  
       if (!db){     
-        db = await  handle.read()  
+        db = await  handle?.read()  
+        if (event.data.src){
+          self.postMessage({db,name,fileName})
+          return
+        }
       }else{
-        await handle.write(db)
+        await handle?.write(db)
+ 
       } 
     const cur =    handleCurrentMsg({db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
      
-      if (cur){
-        await runCode( cur);
+      if (cur && event.data.basename){
+        await runCode( cur,event.data.basename);
       }  
     }catch(err){
       //self.postMessage({err})
       console.error(err)
     }
-  }
+ // }
     
     /*
     const {f,d} =await getFileHandleFromOPFS(event.data.name,{create:true})

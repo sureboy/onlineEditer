@@ -1,5 +1,5 @@
 <script lang="ts">
-//import { updateEditorDoc} from "$lib/function/edit"
+import { updateEditorDoc} from "$lib/function/panel"
 import {type FileInfoType,getDirHandle,newPackageCode} from "$lib/function/fileHandle"
 import Edit from "$lib/components/Edit.svelte"; 
 import { EditorView } from '@codemirror/view'; 
@@ -18,7 +18,7 @@ function sendCodeToPreview(msg:any) {
     }catch(err){
         console.log(err)
     } 
-    console.log("send",msg)
+    //console.log("send",msg)
     if (msg.name){
         //const k = encodeURIComponent(msg.name)
         FileInfo.DirHandle?.getFileHandle( encodeURIComponent(msg.name)).read().then(db=>{ 
@@ -29,19 +29,7 @@ function sendCodeToPreview(msg:any) {
        
     } 
 }
-const updateEditorDoc =async (value:string,
-    editorView:EditorView,
- )=>{
-    //console.log(value,editorView)
-    editorView.dispatch({
-        changes: {
-        from: 0,
-        to: editorView.state.doc.length,
-        insert:value
-        }
-    });
-    
-}
+
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: EditorView)=>{
     FileInfo.path = reqdb.path 
     //const root = await navigator.storage.getDirectory();
@@ -53,7 +41,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
         } 
         conn.pc.ondatachannel = async (e)=>{
             FileInfo.name = decodeURIComponent(e.channel.label)
-            const fh = await FileInfo.DirHandle?.getFileHandle(
+            const fh =  FileInfo.DirHandle?.getFileHandle(
                 e.channel.label ); 
             const w =await fh?.createWriteStream() 
             ConnMap.set(FileInfo.name,e.channel)
@@ -79,8 +67,6 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
             
     })
 }
- 
- 
 </script>
 
 <Edit {initWebrtcConn} {sendCodeToPreview}  {FileInfo}></Edit>  

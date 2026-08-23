@@ -65,12 +65,13 @@ export const getDirHandle =(name:string,create?:ListDirectoryOptions)=>{
             return await root.writeFile(p,db)
         },
         read:async ()=>{
-            try{
+            //try{
                 return await root.readFile(p,'utf8') as string
-            }catch(err){
+            //}catch(err){
+            //    throw err
                 //console.log(err)
-                return newPackageCode
-            }
+                //return newPackageCode
+            //}
             
         },
         del:()=>{

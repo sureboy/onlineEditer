@@ -1,30 +1,40 @@
 import { EditorView } from '@codemirror/view'; 
 import {type FileInfoType,
     getDirHandle,
-    updateEditorDoc,newPackageCode} from "$lib/function/edit"
+     newPackageCode} from "$lib/function/fileHandle"
 import { appendChildToDom } from "$lib/function/helpPanel";  
 import { getImport } from "$lib/function/parsingCode"
-
-export    const initEditorView =async ( editorView: EditorView,FileInfo:FileInfoType)=>{
-    await getFileHandle(FileInfo).then(({read})=>{ 
-        read().then(db=>{ 
-            //console.log("read",db)
-            updateEditorDoc(db ||newPackageCode,editorView)
-        })
-    }).catch((res)=>{
-        console.error(res) 
-        updateEditorDoc(newPackageCode,editorView)
-    })
+export const updateEditorDoc =async (value:string,
+    editorView:EditorView,
+ )=>{
+    //console.log(value,editorView)
+    editorView.dispatch({
+        changes: {
+        from: 0,
+        to: editorView.state.doc.length,
+        insert:value
+        }
+    });
+    
 }
-export const getFileHandle = async(FileInfo:FileInfoType) =>{
+export    const initEditorView =async ( editorView: EditorView,FileInfo:FileInfoType)=>{
+    const handle =  getFileHandle(FileInfo) 
+    try{ 
+        updateEditorDoc(await handle.read()  ,editorView) 
+    }catch(err){ 
+        console.error(err) 
+        updateEditorDoc(newPackageCode,editorView)
+    }
+}
+export const getFileHandle = (FileInfo:FileInfoType) =>{
     //console.log("get",FileInfo)
     try{
         if (!FileInfo.DirHandle || FileInfo.create){
             //const root = await navigator.storage.getDirectory(); 
-            FileInfo.DirHandle = await getDirHandle(
+            FileInfo.DirHandle = getDirHandle(
                 FileInfo.path,{create:FileInfo.create})
         }
-        return await FileInfo.DirHandle.getFileHandle(
+        return FileInfo.DirHandle.getFileHandle(
             encodeURIComponent(FileInfo.name)
         )
  
@@ -69,14 +79,14 @@ export const initPanel =async (cm_view: EditorView,FileInfo: FileInfoType )=>{
         //const fileName = FileInfo.name
         if (!FileInfo.name)return
         if (window.confirm(`Delete ${FileInfo.name} ?`)){
-            FileInfo.DirHandle?.getFileHandle(encodeURIComponent(FileInfo.name)).then(({del})=>{
-                del().then(()=>{
-                    console.log("del",FileInfo)
-                    FileInfo.name = "./index.js"
-                    initEditorView(cm_view,FileInfo).then(()=>{
-                        initPanel(cm_view,FileInfo) 
-                    }) 
-                })
+            const handle = FileInfo.DirHandle?.getFileHandle(encodeURIComponent(FileInfo.name)) 
+            handle?.del().then(()=>{
+                console.log("del",FileInfo)
+                FileInfo.name = "./index.js"
+                initEditorView(cm_view,FileInfo).then(()=>{
+                    initPanel(cm_view,FileInfo) 
+                }) 
+                
                 
             })
         } 
@@ -166,11 +176,11 @@ const selectClickHandle =async (
         opt.textContent = k; 
         opt.value = k
         //opt.defaultSelected=k===(FileInfo.name ) 
-        FileInfo.DirHandle?.getFileHandle(f.name).then(({read})=>{
-            read().then(doc=>{
-                    getImport(doc,k) 
-            })
-        }) 
+        const handle = FileInfo.DirHandle?.getFileHandle(f.name) 
+        handle?.read().then(doc=>{
+            getImport(doc,k) 
+        })
+      
         select.appendChild(opt);
     }
     //select.childNodes.values()

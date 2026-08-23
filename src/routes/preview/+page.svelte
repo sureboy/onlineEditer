@@ -17,6 +17,9 @@ import QRCode from 'qrcode';
 import Exchange,{getDialogDiv } from '$lib/components/Exchange.svelte';
 //let DialogDiv = getDialogDiv()
 const previewHandle =async (data: any)=>{
+  if (!data.basename){
+    data.basename="main"
+  }
   const w = await getWorker(onmessageListen) 
   w?.postMessage( data) 
    
@@ -140,64 +143,73 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
     solidControlConfig.Grid=Grid; 
   }) 
 }
+const ShowQRImg = (db:any)=>{
+  let url = `${window.location.protocol}//${window.location.host}/edit#${encodeURIComponent(
+    JSON.stringify({
+      path:solidControlConfig.title,
+      id:db.id,
+      host:db.host})
+  )}`
+  console.log(url)
+  QRCode.toDataURL(url,{
+    width: 200, 
+    color: {
+      dark: '#3b82f6',
+      light: '#ffffff'
+    }
+  }).then(src=>{
+    getDialogDiv().innerHTML=`<h2>${db.id}</h2>`
+    const img = document.createElement("img")
+    img.src = src
+    getDialogDiv().append(img)
+  }) 
+}
 const QRCodeClick = (e:any)=>{ 
-    ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{
-      //console.log(db)
-       
-      let url = `${window.location.protocol}//${window.location.host}/edit#${encodeURIComponent(
-        JSON.stringify({
-          path:solidControlConfig.title,
-          id:db.id,
-          host:db.host})
-      )}`
-      console.log(url)
-        QRCode.toDataURL(url,{
-          width: 200, 
-          color: {
-            dark: '#3b82f6',
-            light: '#ffffff'
+  ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
+    createWebrtcConnFromCenterUrl(db,async (conn)=>{
+      const mesh = {conn,files:new Map()}
+      const w =await getWorker()
+      w.addEventListener("message",(e)=>{
+        if (e.data.path && e.data.files){
+          e.data.files.forEach((name:string) => {
+            w.postMessage({name,src:true})
+          });
+          console.log(e.data)
+        }
+        if (e.data.name && e.data.db){
+          const k = encodeURIComponent(e.data.name)
+          const fileCHannel = conn.pc.createDataChannel(k)
+          mesh.files.set(k,fileCHannel);
+          let getdb = ""
+          fileCHannel.onmessage = (e)=>{
+            if (e.data==="close"){
+              console.log("rtc update",getdb)
+              previewHandle({name:e.data.name,db:getdb})
+              getdb=""
+              return
+            } 
+            getdb += e.data
           }
-        }).then(src=>{
-          getDialogDiv().innerHTML=`<h2>${db.id}</h2>`
-          const img = document.createElement("img")
-          img.src = src
-          getDialogDiv().append(img)
-        })
-      createWebrtcConnFromCenterUrl(db,async (conn)=>{
-        const mesh = {conn,files:new Map()}
-        addMesh(mesh)
-        const root = await navigator.storage.getDirectory();
-        const dir = await  root.getDirectoryHandle(solidControlConfig.title)
-        for await(let [k,v] of dir.entries()){
-          if (v.kind==="file"){
-            const f = await v.getFile() 
-            //const fdb =await f()
-            const fileCHannel = conn.pc.createDataChannel(k)
-            mesh.files.set(k,fileCHannel);
-            /*
-            fileCHannel.onmessage = (e)=>{
-              const fh = await FileInfo.DirHandle?.getFileHandle(
-              e.channel.label ); 
-              const w =await fh?.createWriteStream() 
-              meshList.forEach(m=>{
-
-              })
-              //channel.onmessage?.({data:{name:k}})
-            }*/
-            fileCHannel.onopen=async ()=>{ 
-              const buf = await f.arrayBuffer()  
-              fileCHannel.send(buf) 
-              fileCHannel.send("close")
-               
-            }
-
+          fileCHannel.onopen=async ()=>{ 
+            //const buf = e.data.db//await f.arrayBuffer()  
+            fileCHannel.send(e.data.db) 
+            fileCHannel.send("close")
+              
           }
         }
-        
-
-        closeModal()
       })
-    }); 
+      w.postMessage({path:solidControlConfig.title,files:true})
+      addMesh(mesh)
+      
+
+      closeModal()
+    }).then(r=>{
+      if (!r.ok){
+        return
+      }
+      ShowQRImg(db)
+    })
+  }); 
     //DialogDiv.innerHTML=''
     //const p = document.createElement("p")
     //p.textContent = `'${"test"}' has been changed.`
