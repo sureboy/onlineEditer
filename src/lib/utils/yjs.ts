@@ -1,11 +1,11 @@
 
 import * as Y from 'yjs'
 
-export const initDoc = (fileCHannel: RTCDataChannel,getText:(t:string)=>void,_origin:"remote"|"local"="remote")=>{
+export const initDoc = (fileCHannel: RTCDataChannel,getText:(t:string)=>void)=>{
     const ydoc =new Y.Doc()
     ydoc.on("update",(update,origin)=>{
         console.log("ydoc on update",origin)
-        if (origin===_origin)return;
+        if (origin==='remote')return;
         if (fileCHannel.readyState==="open"){
             const safeUpdate = new Uint8Array(update);
             fileCHannel.send(safeUpdate)
@@ -13,12 +13,12 @@ export const initDoc = (fileCHannel: RTCDataChannel,getText:(t:string)=>void,_or
     })
     fileCHannel.onmessage = (event)=>{  
         console.log(event)
-        updateDoc(event.data,ydoc,_origin)
+        updateDoc(event.data,ydoc)
         getText(ydoc.getText("content").toString())
     }
     return ydoc
 }
-const updateDoc = (data:any,ydoc:Y.Doc,_origin:"remote"|"local")=>{
+const updateDoc = (data:any,ydoc:Y.Doc)=>{
 
     if (data == null) {
         console.warn('Received null/undefined data, ignoring');
@@ -31,9 +31,9 @@ const updateDoc = (data:any,ydoc:Y.Doc,_origin:"remote"|"local")=>{
         const binaryString = atob(data); // 解码 Base64
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
+            bytes[i] = binaryString.charCodeAt(i);
         }
-        Y.applyUpdate(ydoc, bytes, _origin);
+        Y.applyUpdate(ydoc, bytes, 'remote');
     } catch (e) {
         console.error('Failed to decode Base64 string:', e);
     }

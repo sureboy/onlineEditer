@@ -55,7 +55,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
                 if (name ==="./index.js"){
                     updateEditorDoc(db ,cm_view) 
                 }
-            },'local')
+            })
             ConnMap.set(FileInfo.name,ydoc)
             /*
             e.channel.onmessage =async (ev)=>{

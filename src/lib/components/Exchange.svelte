@@ -128,17 +128,9 @@ export const QRCodeHandle = (path:string)=>{
           console.log(data.name,"pc close")
         })
         const ydoc =initDoc(fileCHannel,(text)=>{
-          const postdb = {name:data.name,db:text}
-          //if (data.name==="./index.js"){
-            previewHandle(postdb)
-          //}else{
-          //  w.postMessage(postdb)
-          //}
-            
-          
-          
-          //previewHandle()
-        },'remote')
+          const postdb = {name:data.name,db:text} 
+          previewHandle(postdb) 
+        })
         
         mesh.files.set(k,{d:fileCHannel,y:ydoc});
         //let getdb = ""
