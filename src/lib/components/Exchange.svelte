@@ -3,11 +3,13 @@ import {jsonToForm,collectFormData} from '$lib/utils/jsonToForm'
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
 import { getWorker } from '$lib/worker/globalWorker';
 import QRCode from 'qrcode';
-
+import {getFileList} from "$lib/function/tar"
+import {initDoc} from "$lib/utils/yjs"
+import * as Y from 'yjs'
 //import type {connType} from "$lib/utils/webRTCPool"
 type meshInfoType = {
     conn:connType, 
-    files:Map<string,RTCDataChannel>
+    files:Map<string,{d:RTCDataChannel,y:Y.Doc}>
     //remoteStream?: MediaStream,
     //video?:HTMLVideoElement,
     //main?:string,
@@ -114,36 +116,7 @@ const getConnHostJsonStr = ()=>{
     }  
 } 
 
-export const getFileList =async (path:string,getFile:(db:{name:string,db:string})=>void)=>{
-  const w =await getWorker()
-  await new Promise((resolve,reject)=>{
-    const files = new Set<string>() 
-    const handleFiles = (e:any)=>{
-      console.log("get list",e.data,files)
-      if (e.data.path && e.data.files){
-        e.data.files.forEach((f:any) => {
-          w.postMessage({name:decodeURIComponent(f.name),src:true})
-          files.add(f.name)
-        });
-        console.log(e.data)
-      }
-      if (e.data.name && e.data.db){
-        getFile(e.data)
-        files.delete(e.data.fileName || encodeURIComponent(e.data.name) )
-        if (files.size===0){
-          files.clear()
-          
-          w.removeEventListener("message",handleFiles)
-          resolve(undefined)
-        }
-      }
-    }
-    w?.addEventListener("message",handleFiles)
-    w?.postMessage({path,files:true})
-  }) 
-  
-}
-
+ 
 export const QRCodeHandle = (path:string)=>{ 
   ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
     createWebrtcConnFromCenterUrl(db,async (conn)=>{
@@ -151,20 +124,20 @@ export const QRCodeHandle = (path:string)=>{
       getFileList(path,(data)=>{
         const k = encodeURIComponent(data.name)
         const fileCHannel = conn.pc.createDataChannel(k)
-        mesh.files.set(k,fileCHannel);
-        let getdb = ""
-        fileCHannel.onmessage = (e)=>{
-          if (e.data==="close"){
-            console.log("rtc update",getdb)
-            previewHandle({name:e.data.name,db:getdb})
-            getdb=""
-            return
-          } 
-          getdb += e.data
-        }
+        const ydoc =initDoc(fileCHannel)
+        
+        mesh.files.set(k,{d:fileCHannel,y:ydoc});
+        //let getdb = ""
+        
         fileCHannel.onopen=async ()=>{   
-          fileCHannel.send(data.db) 
-          fileCHannel.send("close") 
+          //ydoc.getText("content").insert(0, data.db);
+          const tempDoc = new Y.Doc();
+          tempDoc.getText('content').insert(0, data.db);
+          const update = Y.encodeStateAsUpdate(tempDoc);
+          Y.applyUpdate(ydoc, update,'local');  
+
+          //fileCHannel.send(data.db) 
+          //fileCHannel.send("close") 
         }
       })
        
@@ -208,11 +181,13 @@ const ShowQRImg = (db:any,path:string)=>{
 <script lang="ts">
 import type {connType} from "$lib/utils/webRTCPool"
 import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte';
-const {solidControlConfig,
+    import { or } from 'three/tsl';
+const {title,
   //previewHandle
 }:{ 
+  title?:string
     //previewHandle:(db:any)=>Promise<void>,
-    solidControlConfig:{[k:string]:any} ,
+    //solidControlConfig:{[k:string]:any} ,
     //children?:any,
     
 } = $props()
@@ -225,7 +200,7 @@ channel.onmessage = (event) => {
 }; 
 
 </script>
-<Dialog title = {solidControlConfig.title||""}  >
+<Dialog title = {title||""}  >
   
      <div bind:this={DialogDiv}>test</div> 
  </Dialog>

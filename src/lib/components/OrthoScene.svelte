@@ -1,4 +1,4 @@
-<script lang="ts" module>
+<script lang="ts" module> 
 //import {useThrelte} from "@threlte/core"
 import { OrbitControls as Orb } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
@@ -7,6 +7,22 @@ import {
     PerspectiveCamera, 
      WebGLRenderer
 } from 'three';
+  import {type ThrelteContext } from '@threlte/core'
+ export type ConfigType = {
+    title?:string,
+    Light:boolean,
+    Axes:boolean,
+    Grid:boolean,
+    isOrthographic:boolean,
+    show:boolean,
+    MaxSize:Vector3,
+    GridSize:number,
+    main:any[],
+    Context?:ThrelteContext<WebGLRenderer>
+    getAspect:()=>number
+    //[k:string]:any,
+
+  }
 let camera:OrthographicCamera|PerspectiveCamera|undefined = $state(undefined)
 let Controls :Orb|undefined = $state(undefined) ;
 //const useT= useThrelte()
@@ -82,13 +98,13 @@ export const refreshCameraInit =(opt:{
     cam.position.setZ( groupSize /2/Math.tan(fov/2)); 	
     //viewDistance =  camera.position.z;	
     cam.aspect = aspect	;
-    console.log("fov",fov,cam.position,cam.fov)
+    //console.log("fov",fov,cam.position,cam.fov)
   }
   //console.log("qv",QviewDistance)
   camera.updateProjectionMatrix();
   
   //setTimeout(()=>{
-    console.log("show ")
+    //console.log("show ")
     camera?.lookAt(0,0,0) ;
     Controls?.target.set(0, 0, 0);
     Controls?.update();
@@ -103,7 +119,7 @@ export const refreshCamera = (direction:string,isOrthographic:boolean,MaxSize:Ve
   const views = isOrthographic ? orthographicViews : perspectiveViews;
 	const view = views[direction];
 	//console.log(direction,view);
-      console.log(direction,isOrthographic)
+   //   console.log(direction,isOrthographic)
 	if (view) {
     //console.log(camera,Controls)
     //return
@@ -128,31 +144,24 @@ export const refreshCamera = (direction:string,isOrthographic:boolean,MaxSize:Ve
 //import {useThrelte} from "@threlte/core"
   import { onMount } from 'svelte';
  
-  const {
-    //MaxSize,
-    geometrys,
-    //GridSize,
-    //getCamera,getControls,
-    solidControlConfig}:{
-    //MaxSize:Vector3,
-    solidControlConfig:{[k:string]:any},
-    //getCamera:(ref:any)=>void,
-    //getControls:(ref:any)=>void,
-    //GridSize:number,
-    //isOrthographic:boolean,
+
+  const { 
+    geometrys, 
+    getContext,
+    solidControlConfig}:{ 
+      getContext:any
+    solidControlConfig:ConfigType, 
     geometrys:{geometry:any,material:any}[] 
 } = $props()
+
 const Context= useThrelte()
-const getContext = ()=>{
-  return Context
-}
+
+ 
+//const getContext = 
 onMount(()=>{
-  const {size} = Context
-  solidControlConfig['getContext']=getContext
-   solidControlConfig["getAspect"]=()=>{
-    console.log(size.current)
-    return size.current.width/size.current.height
-  }
+  getContext(Context)
+ 
+ 
 })
 
  

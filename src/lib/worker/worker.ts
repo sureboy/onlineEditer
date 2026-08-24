@@ -2,6 +2,8 @@ import {handleCurrentMsg} from '$lib/function/ImportParser'
 import type {currentObj} from '$lib/function/ImportParser'
 //import { javascript } from '@codemirror/lang-javascript';
 import {getCsgObjArray} from '$lib/function/csgChange'
+//import * as Y from 'yjs'
+//import {Doc} from 'yjs'
 //import {getFileHandleFromOPFS} from "$lib/function/OPFS";
 //import modeling from '@jscad/modeling'
 const includeImport:{[key:string]:string} = {
@@ -39,6 +41,7 @@ const getDirHandle =async (name:string)=>{
 }*/
 //const encoder = new TextEncoder();
 //let root = await navigator.storage.getDirectory()
+ 
 const postMessage = async (e:any)=>{
  
 
@@ -107,8 +110,7 @@ const runCode =async (cur:currentObj,basename:string )=>{
   }catch(err){
     throw err 
   } 
-} 
- 
+}  
 self.onmessage =async (event: MessageEvent) => { 
   //console.log("get msg",event.data)
   if ( event.data.path){
@@ -125,41 +127,40 @@ self.onmessage =async (event: MessageEvent) => {
     }
   }
   //if ( globalOption.DirHandle){
-    const name = event.data.name || "./index.js"
-    const fileName= encodeURIComponent(name)
-    let db = event.data.db
-    const handle = globalOption.DirHandle?.getFileHandle(fileName)  
-    try{  
-      if (!db){     
-        db = await  handle?.read()  
-        if (event.data.src){
-          self.postMessage({db,name,fileName})
-          return
-        }
-      }else{
-        await handle?.write(db)
- 
-      } 
+  const name = event.data.name || "./index.js"
+  const fileName= encodeURIComponent(name)
+  let db = event.data.db
+  const handle = globalOption.DirHandle?.getFileHandle(fileName)  
+  try{  
+    if (!db){     
+      db = await  handle?.read()  
+      if (event.data.src){
+        self.postMessage({db,name,fileName})
+        return
+      }
+    }else{ 
+      /*
+      let d = DocMap.get(name)
+      if (!d){
+        d = new Y.Doc()
+        DocMap.set(name,d)
+        //d.getText(db)
+      }
+      Y.applyUpdate(d,db,"remote")
+*/
+      await handle?.write(db) 
+    } 
     const cur =    handleCurrentMsg({db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
-     
-      if (cur && event.data.basename){
+   
+    if (cur){ 
+      if (event.data.basename){
         await runCode( cur,event.data.basename);
-      }  
-    }catch(err){
-      //self.postMessage({err})
-      console.error(err)
-    }
- // }
-    
-    /*
-    const {f,d} =await getFileHandleFromOPFS(event.data.name,{create:true})
-    const h = await f.createSyncAccessHandle()
-
-    const writeBuffer = encoder.encode(event.data.db);
-    h.write(writeBuffer,{at:0});
-    h.truncate(writeBuffer.byteLength);
-    h.flush()*/
- 
+      }
+    }  
+  }catch(err){
+    //self.postMessage({err})
+    console.error(err)
+  } 
   if (globalOption.indexCurrent && event.data.basename){
     runCode(globalOption.indexCurrent,event.data.basename)
   } 

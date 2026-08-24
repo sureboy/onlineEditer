@@ -36,6 +36,7 @@
 		"svelte-codemirror-editor": "^2.1.0",
 		"svelte-language-server-web": "^0.0.8",
 		"three": "^0.185.1",
-		"three-3mf-exporter": "^45.2.0"
+		"three-3mf-exporter": "^45.2.0",
+		"yjs": "^13.6.32"
 	}
 }

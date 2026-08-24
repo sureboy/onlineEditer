@@ -3,10 +3,9 @@ import { Canvas } from '@threlte/core'
 import Menu,{SetEditingHashInfo} from '$lib/components/Menu.svelte'   
 import { csg2Geo } from "$lib/function/csg2Three"; 
 import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
-import { onMount } from 'svelte';
-import {refreshCamera,refreshCameraInit} from '$lib/components/OrthoScene.svelte' 
-import {  Vector3 } from 'three';
-import OrthoScene from '$lib/components/OrthoScene.svelte'; 
+import { onMount } from 'svelte'; 
+import {  Vector3,WebGLRenderer } from 'three';
+import OrthoScene,{refreshCamera,refreshCameraInit,type ConfigType}  from '$lib/components/OrthoScene.svelte'; 
 import DownMenu from "$lib/components/DownMenu.svelte";
 import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
 import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte"; 
@@ -26,22 +25,27 @@ const previewHandle =async (data: any)=>{
   //console.log(data) 
 }
   let geometrys:{geometry:any,material:any}[] =$state([])
-
-  const solidControlConfig:{[k:string]:any} = $state({
+ 
+  const solidControlConfig:ConfigType = $state({
     //title:"welcome",
     Light:true,
     Axes:true,Grid:true,main:[],
     isOrthographic:false,
     MaxSize :new Vector3(),
     GridSize:10,
-    show:false
+    show:false,
+    getAspect:()=>{
+              if (!solidControlConfig.Context)return 1
+          const {size} = solidControlConfig.Context
+          return size.current.width/size.current.height
+        }
     //getAspect:()=>{return aspect},
   })
   const ClickhandleWithMainMenu = (basename:string)=>{
     previewHandle({basename})
  
   }
-  const Clickhandle=(k:string|{[k:string]:any}|null)=>{
+  const Clickhandle=(k:string|{[key:string]:any}|null)=>{
     if (!k)return;
     if (typeof k === 'string'){
         //console.log(k)
@@ -49,7 +53,7 @@ const previewHandle =async (data: any)=>{
         return
     }
     if (k.id in solidControlConfig){
-        solidControlConfig[k.id] = k.checked
+        (solidControlConfig as {[key:string]:any})[k.id] = k.checked
     }
   }
 const onmessageListen =async (e:MessageEvent)=>{
@@ -72,7 +76,7 @@ const onmessageListen =async (e:MessageEvent)=>{
     //console.log("start")
   }
   if (e.data.end){ 
-    refreshCameraInit(solidControlConfig as any)
+    refreshCameraInit(solidControlConfig  )
     solidControlConfig.show = true
     return
  
@@ -103,8 +107,7 @@ const onmessageListen =async (e:MessageEvent)=>{
       
     } 
   }
-} 
- 
+}  
 onMount(() => { 
   try{
     const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))
@@ -128,7 +131,7 @@ function switchView(direction:string) {
   if (direction==="camera"){ 
     solidControlConfig.isOrthographic = toggleCamera()==='Orthographic'
     setTimeout(()=>{
-      refreshCameraInit(solidControlConfig as any)
+      refreshCameraInit(solidControlConfig )
     })
     return;
   } 
@@ -139,20 +142,23 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
   solidControlConfig.Axes=false;
   solidControlConfig.Grid=false;
   setTimeout(async ()=>{
-    await fn(solidControlConfig['getContext']?.()) 
+    await fn(solidControlConfig.Context) 
     solidControlConfig.Axes=Axes;
     solidControlConfig.Grid=Grid; 
   }) 
 }
+  import {type ThrelteContext } from '@threlte/core'
 
- 
+const getContext = (Context: ThrelteContext<WebGLRenderer>)=>{
+  solidControlConfig.Context = Context
+}
 
 
  
 </script>
 <div   class="preview">
 <Canvas   >
- <OrthoScene  {solidControlConfig} {geometrys} ></OrthoScene>
+ <OrthoScene  {solidControlConfig} {geometrys} {getContext} ></OrthoScene>
 </Canvas> 
 
  <Menu    >
@@ -164,11 +170,11 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
   <button 
   style="height:48:px;line-height:48px;cursor: pointer;" 
   onclick={(e)=>{
-     QRCodeHandle(solidControlConfig.title)
+     QRCodeHandle(solidControlConfig.title||"")
   }} >QRCode</button>     
 </DownMenu>
  
-<Exchange {solidControlConfig}  > 
+<Exchange title ={solidControlConfig.title}  > 
 </Exchange>
   <div style="color:white;text-align: left;">
   <a target="editPopup"  onclick={(e)=>{

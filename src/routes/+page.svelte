@@ -4,7 +4,7 @@ import NavMenu from '$lib/components/NavMenu.svelte';
 import List from '$lib/website/List.svelte';
 import type {itemType} from '$lib/website/List.svelte'
  
-import { extractTarStreamToOPFS } from '$lib/function/OPFS'; 
+import { extractTarStreamToOPFS } from '$lib/function/tar'; 
 import { onMount } from 'svelte';
 import {createStorage} from '$lib/storage-adapter/factory' 
 
@@ -62,7 +62,7 @@ const getLocaldb =async () => {
         const files = (event.target as HTMLInputElement).files;
         if (!files)return; 
         const file = files[0]
-        console.log(file,files)
+        //console.log(file,files)
         extractTarStreamToOPFS(file).then(()=>{
           window.location.reload();
         })         
