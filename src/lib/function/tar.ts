@@ -52,12 +52,12 @@ export async function extractTarStreamToOPFS( tarFile:File) {
     } 
 } 
 
-export const getFileList =async (path:string,getFile:(db:{name:string,db:string})=>void)=>{
+export const getFileList =async (path:string,getFile:(db:{name:string,db:string},_w: Worker)=>void)=>{
   const w =await getWorker()
   await new Promise((resolve,reject)=>{
     const files = new Set<string>() 
     const handleFiles = (e:any)=>{
-      console.log("get list",e.data,files)
+      //console.log("get list",e.data,files)
       if (e.data.path && e.data.files){
         e.data.files.forEach((f:any) => {
           w.postMessage({name:decodeURIComponent(f.name),src:true})
@@ -66,7 +66,7 @@ export const getFileList =async (path:string,getFile:(db:{name:string,db:string}
         console.log(e.data)
       }
       if (e.data.name && e.data.db){
-        getFile(e.data)
+        getFile(e.data,w)
         files.delete(e.data.fileName || encodeURIComponent(e.data.name) )
         if (files.size===0){
           files.clear()

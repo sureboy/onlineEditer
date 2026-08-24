@@ -121,10 +121,24 @@ export const QRCodeHandle = (path:string)=>{
   ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
     createWebrtcConnFromCenterUrl(db,async (conn)=>{
       const mesh = {conn,files:new Map()}
-      getFileList(path,(data)=>{
+      getFileList(path,(data,w)=>{
         const k = encodeURIComponent(data.name)
         const fileCHannel = conn.pc.createDataChannel(k)
-        const ydoc =initDoc(fileCHannel)
+        fileCHannel.addEventListener("close",(e)=>{
+          console.log(data.name,"pc close")
+        })
+        const ydoc =initDoc(fileCHannel,(text)=>{
+          const postdb = {name:data.name,db:text}
+          //if (data.name==="./index.js"){
+            previewHandle(postdb)
+          //}else{
+          //  w.postMessage(postdb)
+          //}
+            
+          
+          
+          //previewHandle()
+        },'remote')
         
         mesh.files.set(k,{d:fileCHannel,y:ydoc});
         //let getdb = ""
@@ -134,7 +148,7 @@ export const QRCodeHandle = (path:string)=>{
           const tempDoc = new Y.Doc();
           tempDoc.getText('content').insert(0, data.db);
           const update = Y.encodeStateAsUpdate(tempDoc);
-          Y.applyUpdate(ydoc, update,'local');  
+          Y.applyUpdate(ydoc, update,'remote');  
 
           //fileCHannel.send(data.db) 
           //fileCHannel.send("close") 

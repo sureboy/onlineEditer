@@ -1,6 +1,6 @@
 <script lang="ts">
 import { updateEditorDoc} from "$lib/function/panel"
-import {type FileInfoType,getDirHandle,newPackageCode} from "$lib/function/fileHandle"
+import {type FileInfoType,getDirHandle} from "$lib/function/fileHandle"
 import Edit from "$lib/components/Edit.svelte"; 
 import { EditorView } from '@codemirror/view'; 
 import {initDoc} from '$lib/utils/yjs'
@@ -25,7 +25,9 @@ function sendCodeToPreview(msg:any) {
         //const k = encodeURIComponent(msg.name)
         FileInfo.DirHandle?.getFileHandle( encodeURIComponent(msg.name)).read().then(db=>{ 
             const conn = ConnMap.get(msg.name)
-            conn?.getText("content").insert(0,msg.db)
+            const ytext = conn?.getText("content")
+            ytext?.delete(0, ytext.length);
+            ytext?.insert(0,msg.db)
             //conn?.send("close")
         })             
        
@@ -42,14 +44,20 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
             return
         } 
         conn.pc.ondatachannel = async (e)=>{
-            FileInfo.name = decodeURIComponent(e.channel.label)
+            const name = decodeURIComponent(e.channel.label)
             const fh =  FileInfo.DirHandle?.getFileHandle(
                 e.channel.label ); 
-            const w =await fh?.createWriteStream() 
+            //const w =await fh?.createWriteStream() 
             
 
-            const ydoc = initDoc(e.channel)
+            const ydoc = initDoc(e.channel,(db)=>{
+                fh?.write(db)
+                if (name ==="./index.js"){
+                    updateEditorDoc(db ,cm_view) 
+                }
+            })
             ConnMap.set(FileInfo.name,ydoc)
+            /*
             e.channel.onmessage =async (ev)=>{
                 //w?.write(ev.data)
                 if ( ev.data ==="close"){
@@ -66,7 +74,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
                     return
                 } 
                 await w?.write(ev.data);
-            }
+            }*/
  
         }
             

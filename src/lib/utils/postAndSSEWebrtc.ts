@@ -57,7 +57,7 @@ const getWebRTCMsgFromSSE = (msg:(msg:any)=>void,inputConfig={id:"",host:"http:/
             msg(obj);
             if (!obj.online){
                 source.close();
-                console.log("close source",source.CLOSED);
+                //console.log("close source",source.CLOSED);
             }
             //console.log(e)
             //console.log(event.data )
