@@ -1,5 +1,7 @@
 import { createTarPacker,createTarDecoder } from 'modern-tar';
 
+import {type DirHandleType,getDirHandle} from "$lib/function/fileHandle"
+
 export async function extractTarStreamToOPFS( tarFile:File) { 
     const fileStream = tarFile.stream(); 
     const decompressedStream = fileStream.pipeThrough(new DecompressionStream('gzip')); 
@@ -13,8 +15,10 @@ export async function extractTarStreamToOPFS( tarFile:File) {
     //const tarStream = decompressedStream.pipeThrough(createTarDecoder());
     // 使用 modern-tar 解包 TAR 数据
     //const entries = await unpackTar(tarBuffer);
-    const root = await navigator.storage.getDirectory();
-    const dirHandle =await root.getDirectoryHandle(PathName,{create:true})
+    const dirHandle = getDirHandle(PathName,{create:true})
+     
+    //const root = await navigator.storage.getDirectory();
+    //const dirHandle =await root.getDirectoryHandle(PathName,{create:true})
     const reader = tarStream.getReader();
     try {
         while (true) {
@@ -27,11 +31,20 @@ export async function extractTarStreamToOPFS( tarFile:File) {
 
             if (entry.header.type === 'file') { 
               console.log(entry)
-              const f = await dirHandle.getFileHandle(encodeURIComponent(entry.header.name),{create:true})
+              const handle = dirHandle.getFileHandle(encodeURIComponent(entry.header.name) )
               //dirHandle.getFileHandle()
               //const f =await getFileHandleFromOPFS( entry.header.name,{create:true,root}) 
-              const w =await  f.createWritable() 
-              await entry.body.pipeTo(w); 
+              const w =await  handle.createWriteStream()//.createWritable() 
+              const reader = entry.body.getReader() 
+              while (true) {
+                const { done, value } = await reader.read(); // value 是 Uint8Array
+                if (done) break;
+                await w.write(value)
+               // result += decoder.decode(value, { stream: true }); // 逐块解码为字符串
+              }
+              await w.close()
+              
+              //await entry.body.pipeTo(w); 
             }
         }
     } finally {

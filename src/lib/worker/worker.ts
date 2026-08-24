@@ -121,7 +121,7 @@ self.onmessage =async (event: MessageEvent) => {
       }
     }
     if (event.data.files){
-      self.postMessage({path:event.data.path,files:(await globalOption.DirHandle?.files())?.map(f=>{return decodeURIComponent(f.name)})})
+      self.postMessage({path:event.data.path,files:(await globalOption.DirHandle?.files())})
     }
   }
   //if ( globalOption.DirHandle){

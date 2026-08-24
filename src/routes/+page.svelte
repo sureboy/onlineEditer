@@ -15,7 +15,6 @@ onMount(() => {
         const btn = document.getElementById(location.hash.slice(1))
         btn?.click()
     })
-    
 });
 const getLocaldb =async () => {
     const storage = createStorage()

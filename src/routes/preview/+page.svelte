@@ -1,7 +1,6 @@
 <script lang="ts">
 import { Canvas } from '@threlte/core'
-import Menu,{SetEditingHashInfo} from '$lib/components/Menu.svelte'  
-import {openModal,closeModal} from '$lib/components/Dialog.svelte';
+import Menu,{SetEditingHashInfo} from '$lib/components/Menu.svelte'   
 import { csg2Geo } from "$lib/function/csg2Three"; 
 import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
 import { onMount } from 'svelte';
@@ -11,18 +10,20 @@ import OrthoScene from '$lib/components/OrthoScene.svelte';
 import DownMenu from "$lib/components/DownMenu.svelte";
 import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
 import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte"; 
-import {jsonToForm,collectFormData} from '$lib/utils/jsonToForm'   
-import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
-import QRCode from 'qrcode';
-import Exchange,{getDialogDiv } from '$lib/components/Exchange.svelte';
+ 
+//import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
+
+import Exchange,{getDialogDiv,QRCodeHandle } from '$lib/components/Exchange.svelte';
 //let DialogDiv = getDialogDiv()
+
+ 
 const previewHandle =async (data: any)=>{
   if (!data.basename){
     data.basename="main"
   }
   const w = await getWorker(onmessageListen) 
   w?.postMessage( data) 
-   
+  //console.log(data) 
 }
   let geometrys:{geometry:any,material:any}[] =$state([])
 
@@ -53,7 +54,7 @@ const previewHandle =async (data: any)=>{
   }
 const onmessageListen =async (e:MessageEvent)=>{
   //if (e.data.err){
-  //  console.log(e.data.err)
+  //  console.log(e.data)
   //}
   if (e.data.module){
     //console.log(e.data.module)
@@ -104,24 +105,24 @@ const onmessageListen =async (e:MessageEvent)=>{
   }
 } 
  
-  onMount(() => { 
-    try{
-      const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))
-      //let path =
-      getDialogDiv().innerHTML=''
-      if (path){
-        solidControlConfig.title = path
-        SetEditingHashInfo({path})
-        previewHandle({path })
-        
-      } 
-      return () => { 
-        terminateWorker(); 
-      };
-    }catch(err){
-      console.error(err)
-    }
-  });
+onMount(() => { 
+  try{
+    const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))
+    //let path =
+    getDialogDiv().innerHTML=''
+    if (path){
+      solidControlConfig.title = path
+      SetEditingHashInfo({path})
+      previewHandle({path })
+      
+    } 
+    return () => { 
+      terminateWorker(); 
+    };
+  }catch(err){
+    console.error(err)
+  }
+});
  
 function switchView(direction:string) {
   if (direction==="camera"){ 
@@ -143,142 +144,17 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
     solidControlConfig.Grid=Grid; 
   }) 
 }
-const ShowQRImg = (db:any)=>{
-  let url = `${window.location.protocol}//${window.location.host}/edit#${encodeURIComponent(
-    JSON.stringify({
-      path:solidControlConfig.title,
-      id:db.id,
-      host:db.host})
-  )}`
-  console.log(url)
-  QRCode.toDataURL(url,{
-    width: 200, 
-    color: {
-      dark: '#3b82f6',
-      light: '#ffffff'
-    }
-  }).then(src=>{
-    getDialogDiv().innerHTML=`<h2>${db.id}</h2>`
-    const img = document.createElement("img")
-    img.src = src
-    getDialogDiv().append(img)
-  }) 
-}
-const QRCodeClick = (e:any)=>{ 
-  ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
-    createWebrtcConnFromCenterUrl(db,async (conn)=>{
-      const mesh = {conn,files:new Map()}
-      const w =await getWorker()
-      w.addEventListener("message",(e)=>{
-        if (e.data.path && e.data.files){
-          e.data.files.forEach((name:string) => {
-            w.postMessage({name,src:true})
-          });
-          console.log(e.data)
-        }
-        if (e.data.name && e.data.db){
-          const k = encodeURIComponent(e.data.name)
-          const fileCHannel = conn.pc.createDataChannel(k)
-          mesh.files.set(k,fileCHannel);
-          let getdb = ""
-          fileCHannel.onmessage = (e)=>{
-            if (e.data==="close"){
-              console.log("rtc update",getdb)
-              previewHandle({name:e.data.name,db:getdb})
-              getdb=""
-              return
-            } 
-            getdb += e.data
-          }
-          fileCHannel.onopen=async ()=>{ 
-            //const buf = e.data.db//await f.arrayBuffer()  
-            fileCHannel.send(e.data.db) 
-            fileCHannel.send("close")
-              
-          }
-        }
-      })
-      w.postMessage({path:solidControlConfig.title,files:true})
-      addMesh(mesh)
-      
 
-      closeModal()
-    }).then(r=>{
-      if (!r.ok){
-        return
-      }
-      ShowQRImg(db)
-    })
-  }); 
-    //DialogDiv.innerHTML=''
-    //const p = document.createElement("p")
-    //p.textContent = `'${"test"}' has been changed.`
-   // DialogDiv?.append(p)
-   
+ 
 
-  openModal()
-}
-import type {connType} from "$lib/utils/webRTCPool"
-type meshInfoType = {
-    conn:connType, 
-    files:Map<string,RTCDataChannel>
-    //remoteStream?: MediaStream,
-    //video?:HTMLVideoElement,
-    //main?:string,
-    //setSender?:(obj:any)=>void, 
-} 
-const meshList:(meshInfoType|null)[] =$state([])
-export const addMesh = (m:meshInfoType)=>{ 
-    for (let i=0;i<meshList.length;i++){
-        const v = meshList[i]
-        if (v && v.conn.id ===m.conn.id){
-            meshList[i] = m
-            return
-        }
-    }
-    const len = meshList.length;
-    m.conn.onClose = ()=>{
-        if (meshList[len]) meshList[len] = null
-        console.log("----",m)
-    }
-    meshList.push(m)
-}
-const getConnHostJsonStr = ()=>{
-    return  {
-        _comment:"跨网信令交换服务",
-        id:Date.now().toString(32).slice(4),
-        id_comment:"[加入]端需要输入[生成]端的id",
-        create:true,
-        create_comment:"[生成/加入]WebRtc会话",
-        host_comment:"信令交换服务公共网址",
-        host:"https://www.zaddone.com/rtc"
-    }  
-} 
-const ShowSubmit = (content:HTMLDivElement,db:any,hand:(db:any)=>void)=>{ 
-    jsonToForm(db ,content)  
-    const btn = document.createElement('button');
-    btn.textContent = '确定';
-    Object.assign(btn.style, {
-        marginTop: '1rem',
-        padding: '0.5rem 1rem',
-        backgroundColor: '#007bff',
-        color: 'white',
-        border: 'none',
-        borderRadius: '4px',
-        cursor: 'pointer'
-    });
-    btn.onclick = () => { 
-        hand(collectFormData(content)) 
-    };
-    content.appendChild(btn); 
-}
+
+ 
 </script>
 <div   class="preview">
 <Canvas   >
  <OrthoScene  {solidControlConfig} {geometrys} ></OrthoScene>
 </Canvas> 
-<Exchange {solidControlConfig} {previewHandle}  > 
-</Exchange>
+
  <Menu    >
 <MainMenu  show={solidControlConfig.show}   ></MainMenu>
 <Camera {Clickhandle} ></Camera>
@@ -287,27 +163,13 @@ const ShowSubmit = (content:HTMLDivElement,db:any,hand:(db:any)=>void)=>{
   >
   <button 
   style="height:48:px;line-height:48px;cursor: pointer;" 
-  onclick={QRCodeClick} >QRCode</button>     
+  onclick={(e)=>{
+     QRCodeHandle(solidControlConfig.title)
+  }} >QRCode</button>     
 </DownMenu>
-{#each meshList as mesh,k }
-{#if mesh}
-  <details    >
-    <summary   style="cursor: pointer; text-align: left;height:48px; line-height: 48px;"  >
-        {mesh.conn.id}
-    </summary>
-    <div   style="color:white;text-align: center;" >
-        <button onclick={(e)=>{
-            mesh.conn.dc?.send(JSON.stringify({  
-                name:"local" ,
-                msg: 0,
-                 
-            })) 
-        }}>reload </button> 
-    </div>
-</details>
-{/if}
-{/each}
-
+ 
+<Exchange {solidControlConfig}  > 
+</Exchange>
   <div style="color:white;text-align: left;">
   <a target="editPopup"  onclick={(e)=>{
     const width =window.screen.width/2;
@@ -323,6 +185,8 @@ const ShowSubmit = (content:HTMLDivElement,db:any,hand:(db:any)=>void)=>{
    </div>
  
 </Menu>
+
+
 </div>
 <style>
 .preview {
