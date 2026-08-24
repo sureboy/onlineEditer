@@ -24,10 +24,17 @@ function sendCodeToPreview(msg:any) {
     if (msg.name){
         //const k = encodeURIComponent(msg.name)
         FileInfo.DirHandle?.getFileHandle( encodeURIComponent(msg.name)).read().then(db=>{ 
-            const conn = ConnMap.get(msg.name)
-            const ytext = conn?.getText("content")
-            ytext?.delete(0, ytext.length);
-            ytext?.insert(0,msg.db)
+            const ydoc = ConnMap.get(msg.name)
+            if (!ydoc)return;
+            //Y.applyUpdate(ydoc, db,'local');  
+            //const ytext = ydoc?.getText("content")
+            //ytext?.delete(0, ytext.length);
+            //ytext?.insert(0,db)
+            ydoc.transact(() => {
+                const ytext = ydoc.getText('content');
+                ytext.delete(0, ytext.length); // 删除全部
+                ytext.insert(0, db);           // db 必须是 string
+            }, 'remote'); 
             //conn?.send("close")
         })             
        
@@ -55,7 +62,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
                 if (name ==="./index.js"){
                     updateEditorDoc(db ,cm_view) 
                 }
-            })
+            },"local")
             ConnMap.set(FileInfo.name,ydoc)
             /*
             e.channel.onmessage =async (ev)=>{

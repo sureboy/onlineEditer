@@ -140,7 +140,7 @@ export const QRCodeHandle = (path:string)=>{
           const tempDoc = new Y.Doc();
           tempDoc.getText('content').insert(0, data.db);
           const update = Y.encodeStateAsUpdate(tempDoc);
-          Y.applyUpdate(ydoc, update,'remote');  
+          Y.applyUpdate(ydoc, update,'local');  
 
           //fileCHannel.send(data.db) 
           //fileCHannel.send("close") 

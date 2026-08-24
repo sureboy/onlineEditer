@@ -1,11 +1,11 @@
 
 import * as Y from 'yjs'
 
-export const initDoc = (fileCHannel: RTCDataChannel,getText:(t:string)=>void)=>{
+export const initDoc = (fileCHannel: RTCDataChannel,getText:(t:string)=>void,_origin:"remote"|"local" = "remote")=>{
     const ydoc =new Y.Doc()
     ydoc.on("update",(update,origin)=>{
         console.log("ydoc on update",origin)
-        if (origin==='remote')return;
+        if (origin===_origin)return;
         if (fileCHannel.readyState==="open"){
             const safeUpdate = new Uint8Array(update);
             fileCHannel.send(safeUpdate)
@@ -13,12 +13,12 @@ export const initDoc = (fileCHannel: RTCDataChannel,getText:(t:string)=>void)=>{
     })
     fileCHannel.onmessage = (event)=>{  
         console.log(event)
-        updateDoc(event.data,ydoc)
+        updateDoc(event.data,ydoc,_origin)
         getText(ydoc.getText("content").toString())
     }
     return ydoc
 }
-const updateDoc = (data:any,ydoc:Y.Doc)=>{
+const updateDoc = (data:any,ydoc:Y.Doc,_origin:"remote"|"local")=>{
 
     if (data == null) {
         console.warn('Received null/undefined data, ignoring');
@@ -33,7 +33,7 @@ const updateDoc = (data:any,ydoc:Y.Doc)=>{
         for (let i = 0; i < binaryString.length; i++) {
             bytes[i] = binaryString.charCodeAt(i);
         }
-        Y.applyUpdate(ydoc, bytes, 'remote');
+        Y.applyUpdate(ydoc, bytes, _origin);
     } catch (e) {
         console.error('Failed to decode Base64 string:', e);
     }
@@ -44,7 +44,7 @@ const updateDoc = (data:any,ydoc:Y.Doc)=>{
     const reader = new FileReader();
     reader.onload = () => {
         const update = new Uint8Array(reader.result  as ArrayBuffer);
-        Y.applyUpdate(ydoc, update, 'remote');
+        Y.applyUpdate(ydoc, update, _origin);
     };
     reader.readAsArrayBuffer(data);
     return;
@@ -52,7 +52,7 @@ const updateDoc = (data:any,ydoc:Y.Doc)=>{
     
     if (data instanceof ArrayBuffer) {
     const update = new Uint8Array(data);
-    Y.applyUpdate(ydoc, update, 'remote');
+    Y.applyUpdate(ydoc, update, _origin);
     return;
     }
 
