@@ -129,15 +129,13 @@ export const QRCodeHandle = (path:string)=>{
           previewHandle(postdb) 
         },conn.dc?.label||"preview")
         
-        mesh.files.set(k,{d:fileCHannel,y:ydoc});
-        //let getdb = ""
-        
+        mesh.files.set(k,{d:fileCHannel,y:ydoc}); 
         fileCHannel.onopen=async ()=>{   
           //ydoc.getText("content").insert(0, data.db);
           const tempDoc = new Y.Doc();
           tempDoc.getText('content').insert(0, data.db);
           const update = Y.encodeStateAsUpdate(tempDoc);
-          Y.applyUpdate(ydoc, update,'edit');  
+          Y.applyUpdate(ydoc, update,(conn.dc?.label||"preview")+'_edit');  
         }
       })
        

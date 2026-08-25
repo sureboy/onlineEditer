@@ -24,8 +24,7 @@ export const diffUpdate=(text:string,ydoc:Y.Doc,origin:string)=>{
 
 export const initDoc = (fileCHannel: RTCDataChannel,getText:(t:string)=>void,_origin:string  )=>{
     const ydoc =new Y.Doc()
-    ydoc.on("update",(update,origin)=>{
-        //console.log("ydoc on update",origin)
+    ydoc.on("update",(update,origin)=>{ 
         if (origin===_origin)return;
         if (fileCHannel.readyState==="open"){
             const safeUpdate = new Uint8Array(update);
