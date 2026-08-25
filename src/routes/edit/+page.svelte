@@ -3,15 +3,16 @@ import { updateEditorDoc} from "$lib/function/panel"
 import {type FileInfoType,getDirHandle} from "$lib/function/fileHandle"
 import Edit from "$lib/components/Edit.svelte"; 
 import { EditorView } from '@codemirror/view'; 
-import {initDoc} from '$lib/utils/yjs'
+import {initDoc,diffUpdate} from '$lib/utils/yjs'
 import * as Y from 'yjs'
+
 //import type {connType} from "$lib/utils/webRTCPool";
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
 const FileInfo:FileInfoType = {
     path:"",
     name:"./index.js" 
 }  
-const ConnMap = new Map<string,Y.Doc>()
+const ConnMap = new Map<string,{origin:string,ydoc:Y.Doc}>()
 //const ConnList:Map<string,{conn:connType,map:Map<string,RTCDataChannel>}> = new Map()
 function sendCodeToPreview(msg:any) {
     try{
@@ -24,17 +25,15 @@ function sendCodeToPreview(msg:any) {
     if (msg.name){
         //const k = encodeURIComponent(msg.name)
         FileInfo.DirHandle?.getFileHandle( encodeURIComponent(msg.name)).read().then(db=>{ 
-            const ydoc = ConnMap.get(msg.name)
-            if (!ydoc)return;
+            const conn= ConnMap.get(msg.name)
+            if (!conn)return;
+            const {origin,ydoc}  = conn
             //Y.applyUpdate(ydoc, db,'local');  
             //const ytext = ydoc?.getText("content")
             //ytext?.delete(0, ytext.length);
             //ytext?.insert(0,db)
-            ydoc.transact(() => {
-                const ytext = ydoc.getText('content');
-                ytext.delete(0, ytext.length); // 删除全部
-                ytext.insert(0, db);           // db 必须是 string
-            }, 'remote'); 
+            diffUpdate(db,ydoc,origin)
+        
             //conn?.send("close")
         })             
        
@@ -42,12 +41,12 @@ function sendCodeToPreview(msg:any) {
 }
 
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: EditorView)=>{
-    FileInfo.path = reqdb.path 
+    FileInfo.path = reqdb.path +"_"+reqdb.id
     //const root = await navigator.storage.getDirectory();
-    FileInfo.DirHandle = getDirHandle( reqdb.path ) //await root.getDirectoryHandle(reqdb.path+"_"+reqdb.id,{create:true})
+    FileInfo.DirHandle = getDirHandle(FileInfo.path) //await root.getDirectoryHandle(reqdb.path+"_"+reqdb.id,{create:true})
     createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
-        const key = conn.dc?.label
-        if (!key){
+        const origin = conn.dc?.label
+        if (!origin){
             return
         } 
         conn.pc.ondatachannel = async (e)=>{
@@ -62,8 +61,8 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
                 if (name ==="./index.js"){
                     updateEditorDoc(db ,cm_view) 
                 }
-            },"local")
-            ConnMap.set(FileInfo.name,ydoc)
+            },origin+"_edit")
+            ConnMap.set(FileInfo.name,{origin, ydoc})
             /*
             e.channel.onmessage =async (ev)=>{
                 //w?.write(ev.data)

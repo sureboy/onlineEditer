@@ -1,10 +1,31 @@
 
 import * as Y from 'yjs'
+import diff from 'fast-diff'; 
 
-export const initDoc = (fileCHannel: RTCDataChannel,getText:(t:string)=>void,_origin:"remote"|"local" = "remote")=>{
+export const diffUpdate=(text:string,ydoc:Y.Doc,origin:string)=>{
+    const ytext = ydoc.getText('content');
+    // 2. 获取当前文本
+    const oldText = ytext.toString();
+    //const newText = "这是只修改了几个字的新句子";
+    const diffs = diff(oldText, text);
+    const delta = diffs.map(([op, value]) => {
+        if (op === diff.INSERT) {
+            return { insert: value };
+        } else if (op === diff.DELETE) {
+            return { delete: value.length };
+        } else { // op === diff.EQUAL
+            return { retain: value.length };
+        }
+    });
+    ydoc.transact(() => {
+        ytext.applyDelta(delta);
+    },origin);
+}
+
+export const initDoc = (fileCHannel: RTCDataChannel,getText:(t:string)=>void,_origin:string  )=>{
     const ydoc =new Y.Doc()
     ydoc.on("update",(update,origin)=>{
-        console.log("ydoc on update",origin)
+        //console.log("ydoc on update",origin)
         if (origin===_origin)return;
         if (fileCHannel.readyState==="open"){
             const safeUpdate = new Uint8Array(update);
@@ -18,7 +39,7 @@ export const initDoc = (fileCHannel: RTCDataChannel,getText:(t:string)=>void,_or
     }
     return ydoc
 }
-const updateDoc = (data:any,ydoc:Y.Doc,_origin:"remote"|"local")=>{
+const updateDoc = (data:any,ydoc:Y.Doc,_origin:string)=>{
 
     if (data == null) {
         console.warn('Received null/undefined data, ignoring');

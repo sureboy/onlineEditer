@@ -6,30 +6,26 @@ import QRCode from 'qrcode';
 import {getFileList} from "$lib/function/tar"
 import {initDoc} from "$lib/utils/yjs"
 import * as Y from 'yjs'
-//import type {connType} from "$lib/utils/webRTCPool"
+
 type meshInfoType = {
     conn:connType, 
     files:Map<string,{d:RTCDataChannel,y:Y.Doc}>
-    //remoteStream?: MediaStream,
-    //video?:HTMLVideoElement,
-    //main?:string,
-    //setSender?:(obj:any)=>void, 
 } 
 const meshList:(meshInfoType|null)[] =$state([])
 const addMesh = (m:meshInfoType)=>{ 
-    for (let i=0;i<meshList.length;i++){
-        const v = meshList[i]
-        if (v && v.conn.id ===m.conn.id){
-            meshList[i] = m
-            return
-        }
+  for (let i=0;i<meshList.length;i++){
+    const v = meshList[i]
+    if (v && v.conn.id ===m.conn.id){
+      meshList[i] = m
+      return
     }
-    const len = meshList.length;
-    m.conn.onClose = ()=>{
-        if (meshList[len]) meshList[len] = null
-        console.log("----",m)
-    }
-    meshList.push(m)
+  }
+  const len = meshList.length;
+  m.conn.onClose = ()=>{
+    if (meshList[len]) meshList[len] = null
+    console.log("----",m)
+  }
+  meshList.push(m)
 }
 let DialogDiv:HTMLDivElement
 let showModal = true
@@ -129,8 +125,9 @@ export const QRCodeHandle = (path:string)=>{
         })
         const ydoc =initDoc(fileCHannel,(text)=>{
           const postdb = {name:data.name,db:text} 
+          
           previewHandle(postdb) 
-        })
+        },conn.dc?.label||"preview")
         
         mesh.files.set(k,{d:fileCHannel,y:ydoc});
         //let getdb = ""
@@ -140,10 +137,7 @@ export const QRCodeHandle = (path:string)=>{
           const tempDoc = new Y.Doc();
           tempDoc.getText('content').insert(0, data.db);
           const update = Y.encodeStateAsUpdate(tempDoc);
-          Y.applyUpdate(ydoc, update,'local');  
-
-          //fileCHannel.send(data.db) 
-          //fileCHannel.send("close") 
+          Y.applyUpdate(ydoc, update,'edit');  
         }
       })
        
@@ -186,23 +180,15 @@ const ShowQRImg = (db:any,path:string)=>{
 </script>
 <script lang="ts">
 import type {connType} from "$lib/utils/webRTCPool"
-import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte';
-    import { or } from 'three/tsl';
-const {title,
-  //previewHandle
+import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte'; 
+const {
+  title, 
 }:{ 
-  title?:string
-    //previewHandle:(db:any)=>Promise<void>,
-    //solidControlConfig:{[k:string]:any} ,
-    //children?:any,
-    
-} = $props()
-//let DialogDiv:HTMLDivElement  
- 
+  title?:string     
+} = $props() 
 const channel = new BroadcastChannel('code-preview'); 
 channel.onmessage = (event) => { 
-    previewModule(event.data,previewHandle)
-    
+  previewModule(event.data,previewHandle) 
 }; 
 
 </script>
