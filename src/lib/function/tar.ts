@@ -51,7 +51,19 @@ export async function extractTarStreamToOPFS( tarFile:File) {
         reader.releaseLock();
     } 
 } 
-
+export const getFileData = async (name:string)=>{
+  const w =await getWorker()
+  return new Promise<{name:string,db:string}>((resolve,reject)=>{
+    const handle = (e:any)=>{
+      if (e.data.name && e.data.db && e.data.name === name){
+        w.removeEventListener("message",handle)
+        resolve({name,db:e.data.db})
+      }
+    }
+    w?.addEventListener("message",handle)
+    w.postMessage({name,src:true})
+  }) 
+}
 export const getFileList =async (path:string,getFile:(db:{name:string,db:string},_w: Worker)=>void)=>{
   const w =await getWorker()
   await new Promise((resolve,reject)=>{

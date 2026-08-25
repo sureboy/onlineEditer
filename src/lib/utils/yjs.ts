@@ -1,8 +1,9 @@
 
 import * as Y from 'yjs'
 import diff from 'fast-diff'; 
+const channelYdoc = new Map<string,{ydoc:Y.Doc,DataChannels:RTCDataChannel[]}>()
 
-export const diffUpdate=(text:string,ydoc:Y.Doc,origin:string)=>{
+export const diffUpdate=(text:string,ydoc:Y.Doc,origin?:string)=>{
     const ytext = ydoc.getText('content');
     // 2. 获取当前文本
     const oldText = ytext.toString();
@@ -22,23 +23,37 @@ export const diffUpdate=(text:string,ydoc:Y.Doc,origin:string)=>{
     },origin);
 }
 
-export const initDoc = (fileCHannel: RTCDataChannel,getText:(t:string)=>void,_origin:string  )=>{
-    const ydoc =new Y.Doc()
-    ydoc.on("update",(update,origin)=>{ 
-        if (origin===_origin)return;
-        if (fileCHannel.readyState==="open"){
-            const safeUpdate = new Uint8Array(update);
-            fileCHannel.send(safeUpdate)
+export const initDoc = (filename:string,fileCHannel?: RTCDataChannel,getText?:(t:string)=>void  )=>{
+    let handle = channelYdoc.get(filename)
+    if (!handle && fileCHannel){
+        handle = {ydoc:new Y.Doc(),DataChannels:[]}
+        
+        channelYdoc.set(filename,handle)
+        handle.ydoc.on("update",(update,origin)=>{ 
+            //if (  origin===_origin)return;
+            handle?.DataChannels.forEach(c=>{
+                if (c.label===origin || c.readyState!="open"){
+                    return
+                }
+                c.send(update as Uint8Array<ArrayBuffer>)
+                //if (c.readyState!="open")
+            })
+            
+        })
+    } 
+    const ydoc =handle?.ydoc
+    if (fileCHannel && ydoc){
+        handle?.DataChannels.push(fileCHannel) 
+        fileCHannel.onmessage = (event)=>{  
+            console.log("get channel",event)
+            updateDoc(event.data,ydoc,fileCHannel.label)
+            getText?.(ydoc.getText("content").toString())
         }
-    })
-    fileCHannel.onmessage = (event)=>{  
-        console.log(event)
-        updateDoc(event.data,ydoc,_origin)
-        getText(ydoc.getText("content").toString())
     }
+
     return ydoc
 }
-const updateDoc = (data:any,ydoc:Y.Doc,_origin:string)=>{
+const updateDoc = (data:any,ydoc:Y.Doc,_origin:string )=>{
 
     if (data == null) {
         console.warn('Received null/undefined data, ignoring');
@@ -72,7 +87,7 @@ const updateDoc = (data:any,ydoc:Y.Doc,_origin:string)=>{
     
     if (data instanceof ArrayBuffer) {
     const update = new Uint8Array(data);
-    Y.applyUpdate(ydoc, update, _origin);
+    Y.applyUpdate(ydoc, update  , _origin);
     return;
     }
 

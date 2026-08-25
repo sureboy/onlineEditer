@@ -50,19 +50,21 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
             return
         } 
         conn.pc.ondatachannel = async (e)=>{
-            const name = decodeURIComponent(e.channel.label)
+            //const name = e.channel.label
             const fh =  FileInfo.DirHandle?.getFileHandle(
-                e.channel.label ); 
+                encodeURIComponent(e.channel.label) ); 
             //const w =await fh?.createWriteStream() 
-            
+            const filename = e.channel.label.slice(0,e.channel.label.lastIndexOf("_"))
 
-            const ydoc = initDoc(e.channel,(db)=>{
-                fh?.write(db)
-                if (name ==="./index.js"){
-                    updateEditorDoc(db ,cm_view) 
-                }
-            },origin+"_edit")
-            ConnMap.set(FileInfo.name,{origin, ydoc})
+            const ydoc = initDoc(filename,e.channel,(db)=>{
+                fh?.write(db).then(()=>{
+                    if (e.channel.label.includes("index")  ){
+                        updateEditorDoc(db ,cm_view) 
+                    }
+                })
+                
+            } )
+            ConnMap.set(filename,{origin, ydoc:ydoc!})
             /*
             e.channel.onmessage =async (ev)=>{
                 //w?.write(ev.data)

@@ -3,8 +3,8 @@ import {jsonToForm,collectFormData} from '$lib/utils/jsonToForm'
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
 import { getWorker } from '$lib/worker/globalWorker';
 import QRCode from 'qrcode';
-import {getFileList} from "$lib/function/tar"
-import {initDoc} from "$lib/utils/yjs"
+import {getFileList,getFileData} from "$lib/function/tar"
+import {initDoc,diffUpdate} from "$lib/utils/yjs"
 import * as Y from 'yjs'
 
 type meshInfoType = {
@@ -118,24 +118,29 @@ export const QRCodeHandle = (path:string)=>{
     createWebrtcConnFromCenterUrl(db,async (conn)=>{
       const mesh = {conn,files:new Map()}
       getFileList(path,(data,w)=>{
-        const k = encodeURIComponent(data.name)
-        const fileCHannel = conn.pc.createDataChannel(k)
+        //const k =  data.name
+        const fileCHannel = conn.pc.createDataChannel(`${data.name}_${conn.dc?.label}`)
         fileCHannel.addEventListener("close",(e)=>{
           console.log(data.name,"pc close")
         })
-        const ydoc =initDoc(fileCHannel,(text)=>{
+        const ydoc =initDoc(data.name,fileCHannel,(text)=>{
           const postdb = {name:data.name,db:text} 
           
           previewHandle(postdb) 
-        },conn.dc?.label||"preview")
+        } )
         
-        mesh.files.set(k,{d:fileCHannel,y:ydoc}); 
+        mesh.files.set(data.name,{d:fileCHannel,y:ydoc}); 
         fileCHannel.onopen=async ()=>{   
           //ydoc.getText("content").insert(0, data.db);
-          const tempDoc = new Y.Doc();
-          tempDoc.getText('content').insert(0, data.db);
-          const update = Y.encodeStateAsUpdate(tempDoc);
-          Y.applyUpdate(ydoc, update,(conn.dc?.label||"preview")+'_edit');  
+          const ytext = ydoc?.getText("content")
+          if (ytext?.length===0){
+            ytext.insert(0,data.db)
+          }
+          //const tempDoc = new Y.Doc();
+          //tempDoc.getText('content').insert(0, data.db);
+          const update = Y.encodeStateAsUpdate(ydoc!);
+          fileCHannel.send(update as Uint8Array<ArrayBuffer>)
+          //Y.applyUpdate(ydoc, update,(conn.dc?.label||"preview")+'_edit');  
         }
       })
        
@@ -186,7 +191,14 @@ const {
 } = $props() 
 const channel = new BroadcastChannel('code-preview'); 
 channel.onmessage = (event) => { 
+  console.log(event.data)
   previewModule(event.data,previewHandle) 
+  const ydoc = initDoc(event.data.name)
+  if (ydoc){
+    getFileData(event.data.name).then(db=>{ 
+      diffUpdate(db.db,ydoc) 
+    })
+  }
 }; 
 
 </script>
