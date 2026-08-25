@@ -14,9 +14,12 @@ const FileInfo:FileInfoType = {
 }  
 const ConnMap = new Map<string,{origin:string,ydoc:Y.Doc}>()
 //const ConnList:Map<string,{conn:connType,map:Map<string,RTCDataChannel>}> = new Map()
+const channel = new BroadcastChannel('code-preview');
+channel.onmessage=(event)=>{
+    console.log(event.data)
+}
 function sendCodeToPreview(msg:any) {
-    try{
-        const channel = new BroadcastChannel('code-preview');
+    try{ 
         channel?.postMessage(msg);
     }catch(err){
         console.log(err)
