@@ -4,11 +4,18 @@ import {type FileInfoType,
      newPackageCode} from "$lib/function/fileHandle"
 import { appendChildToDom } from "$lib/function/helpPanel";  
 import { getImport } from "$lib/function/parsingCode"
+
+//import { Annotation } from '@codemirror/state'; 
+//let isSilentUpdate = false;
 export const updateEditorDoc =async (value:string,
-    editorView:EditorView,
+    editorView:EditorView
+    //,silentUpdate:boolean=false
  )=>{
-    //console.log(value,editorView)
+    //isSilentUpdate = silentUpdate
+    //console.log(value,editorView,silentUpdate)
+   
     editorView.dispatch({
+        // annotations: [silentUpdateAnnotation.of(true)] ,
         changes: {
         from: 0,
         to: editorView.state.doc.length,

@@ -1,11 +1,11 @@
 <script lang="ts">
 import { updateEditorDoc} from "$lib/function/panel"
 import {type FileInfoType,getDirHandle} from "$lib/function/fileHandle"
-import Edit from "$lib/components/Edit.svelte"; 
+import Edit,{StopTimeOut} from "$lib/components/Edit.svelte"; 
 import { EditorView } from '@codemirror/view'; 
 import {initDoc,diffUpdate} from '$lib/utils/yjs'
 import * as Y from 'yjs'
-
+//import {onMount} from 'svelte'
 //import type {connType} from "$lib/utils/webRTCPool";
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
 const FileInfo:FileInfoType = {
@@ -13,18 +13,9 @@ const FileInfo:FileInfoType = {
     name:"./index.js" 
 }  
 const ConnMap = new Map<string,{origin:string,ydoc:Y.Doc}>()
-//const ConnList:Map<string,{conn:connType,map:Map<string,RTCDataChannel>}> = new Map()
-const channel = new BroadcastChannel('code-preview');
-channel.onmessage=(event)=>{
-    console.log(event.data)
-}
-function sendCodeToPreview(msg:any) {
-    try{ 
-        channel?.postMessage(msg);
-    }catch(err){
-        console.log(err)
-    } 
-    //console.log("send",msg)
+
+ 
+function sendCodeToPreview(msg:any) { 
     if (msg.name){
         //const k = encodeURIComponent(msg.name)
         FileInfo.DirHandle?.getFileHandle( encodeURIComponent(msg.name)).read().then(db=>{ 
@@ -62,31 +53,14 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
             const ydoc = initDoc(filename,e.channel,(db)=>{
                 fh?.write(db).then(()=>{
                     if (e.channel.label.includes("index")  ){
-                        updateEditorDoc(db ,cm_view) 
+                        updateEditorDoc(db ,cm_view).then(()=>{
+                            StopTimeOut()
+                        })
                     }
                 })
                 
             } )
             ConnMap.set(filename,{origin, ydoc:ydoc!})
-            /*
-            e.channel.onmessage =async (ev)=>{
-                //w?.write(ev.data)
-                if ( ev.data ==="close"){
-                    //w?.close()
-                    //e.channel.close()
-                    await w?.close()
-                    const db = await fh?.read()||newPackageCode
-                    //broadcastForwarding({name:e.channel.label,db,Exclude:[key]})
-                    if (FileInfo.name ==="./index.js"){
-                        //const f = await FileInfo.FileHandle?.getFile() 
-                        updateEditorDoc(db ,cm_view)
-                    }
-
-                    return
-                } 
-                await w?.write(ev.data);
-            }*/
- 
         }
             
     })

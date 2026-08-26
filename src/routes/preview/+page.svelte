@@ -12,18 +12,11 @@ import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";
  
 //import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
 
-import Exchange,{getDialogDiv,QRCodeHandle } from '$lib/components/Exchange.svelte';
+import Exchange,{getDialogDiv,QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte';
 //let DialogDiv = getDialogDiv()
 
  
-const previewHandle =async (data: any)=>{
-  if (!data.basename){
-    data.basename="main"
-  }
-  const w = await getWorker(onmessageListen) 
-  w?.postMessage( data) 
-  //console.log(data) 
-}
+ 
   let geometrys:{geometry:any,material:any}[] =$state([])
  
   const solidControlConfig:ConfigType = $state({
@@ -42,7 +35,7 @@ const previewHandle =async (data: any)=>{
     //getAspect:()=>{return aspect},
   })
   const ClickhandleWithMainMenu = (basename:string)=>{
-    previewHandle({basename})
+    previewHandle({basename},onmessageListen)
  
   }
   const Clickhandle=(k:string|{[key:string]:any}|null)=>{
@@ -116,7 +109,7 @@ onMount(() => {
     if (path){
       solidControlConfig.title = path
       SetEditingHashInfo({path})
-      previewHandle({path })
+      previewHandle({path },onmessageListen)
       
     } 
     return () => { 

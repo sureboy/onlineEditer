@@ -32,16 +32,17 @@ let showModal = true
 export const getDialogDiv = ()=>{
   return DialogDiv
 }
-const previewHandle =async (data: any)=>{
+export const previewHandle =async (data: any,onmessage?: (e: MessageEvent) => void)=>{
   if (!data.basename){
     data.basename="main"
   }
-  const w = await getWorker() 
+  //console.log(data,onmessage)
+  const w = await getWorker(onmessage) 
   w?.postMessage( data) 
    
 }
-export const previewModule = (data:{Modal?:boolean,
-  name: string; db: string; path: string;},previewHandle:(db:any)=>Promise<void>)=>{
+const previewModule = (data:{Modal?:boolean,
+  name: string; db: string; path?: string;} )=>{
   if (data.Modal&&showModal ) { 
       if (DialogDiv){
         DialogDiv.innerHTML=''
@@ -125,8 +126,8 @@ export const QRCodeHandle = (path:string)=>{
         })
         const ydoc =initDoc(data.name,fileCHannel,(text)=>{
           const postdb = {name:data.name,db:text} 
-          
-          previewHandle(postdb) 
+          channel?.postMessage(postdb)
+          previewModule(postdb) 
         } )
         
         mesh.files.set(data.name,{d:fileCHannel,y:ydoc}); 
@@ -180,26 +181,36 @@ const ShowQRImg = (db:any,path:string)=>{
     getDialogDiv().append(img)
   }) 
 }
+let channel:BroadcastChannel|undefined=undefined
 </script>
 <script lang="ts">
 import type {connType} from "$lib/utils/webRTCPool"
 import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte'; 
+//import {onMount} from 'svelte'
 const {
   title, 
 }:{ 
   title?:string     
 } = $props() 
-const channel = new BroadcastChannel('code-preview'); 
-channel.onmessage = (event) => { 
-  console.log(event.data)
-  previewModule(event.data,previewHandle) 
-  const ydoc = initDoc(event.data.name)
-  if (ydoc){
-    getFileData(event.data.name).then(db=>{ 
-      diffUpdate(db.db,ydoc) 
-    })
+
+$effect(() => {
+  if (!title || channel){
+    return;
   }
-}; 
+  channel = new BroadcastChannel(title); 
+  //console.log(title,channel)
+  channel.onmessage = (event) => { 
+    //console.log(event.data)
+    previewModule(event.data) 
+    const ydoc = initDoc(event.data.name)
+    if (ydoc){
+      getFileData(event.data.name).then(db=>{ 
+        diffUpdate(db.db,ydoc) 
+      })
+    }
+  }; 
+})
+
 
 </script>
 <Dialog title = {title||""}  >
