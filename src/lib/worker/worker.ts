@@ -23,24 +23,11 @@ type DirHandleType = {
 }*/
 const globalOption:{
   indexCurrent?:currentObj,
-  //root:StorageAdapter,
-  //relPath?:string
+ 
   DirHandle?:DirHandleType
 } = { 
-  //root : createStorage(),
+ 
 }
-/*
-const getDirHandle =async (name:string)=>{
-  const root = createStorage()
-  const files =await root.listFilesInDirectory(name)
-  //const name = p
-  const getFileHandle = (file:string) => {
-    return root.readFile(`${name}/${file}`)
-  }
-  return {files,name,getFileHandle}
-}*/
-//const encoder = new TextEncoder();
-//let root = await navigator.storage.getDirectory()
  
 const postMessage = async (e:any)=>{
  
@@ -60,8 +47,7 @@ const postMessage = async (e:any)=>{
         includeImport[e.path] ||e.path  ,
         new URL(import.meta.url).origin).toString();    
     } 
-  }
-  
+  }  
 }
 const getIndex = (c:currentObj )=>{
  

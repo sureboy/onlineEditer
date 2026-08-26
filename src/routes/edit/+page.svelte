@@ -1,36 +1,36 @@
 <script lang="ts">
-import { updateEditorDoc} from "$lib/function/panel"
+import { initEditorView} from "$lib/components/panel.svelte"
 import {type FileInfoType,getDirHandle} from "$lib/function/fileHandle"
-import Edit,{StopTimeOut} from "$lib/components/Edit.svelte"; 
+import Edit,{setValue} from "$lib/components/Edit.svelte"; 
 import { EditorView } from '@codemirror/view'; 
 import {initDoc,diffUpdate} from '$lib/utils/yjs'
-import * as Y from 'yjs'
+//import * as Y from 'yjs'
 //import {onMount} from 'svelte'
 //import type {connType} from "$lib/utils/webRTCPool";
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
+//    import { preview } from "vite";
 const FileInfo:FileInfoType = {
     path:"",
     name:"./index.js" 
 }  
-const ConnMap = new Map<string,{origin:string,ydoc:Y.Doc}>()
-
- 
+//const ConnMap = new Map<string,{origin:string,ydoc:Y.Doc}>() 
 function sendCodeToPreview(msg:any) { 
-    if (msg.name){
+    if (!msg.name){
+        return
+    }
+    const handle = initDoc(msg.name)
+    if (handle){
+        console.log("preview",msg)
         //const k = encodeURIComponent(msg.name)
         FileInfo.DirHandle?.getFileHandle( encodeURIComponent(msg.name)).read().then(db=>{ 
-            const conn= ConnMap.get(msg.name)
-            if (!conn)return;
-            const {origin,ydoc}  = conn
-            //Y.applyUpdate(ydoc, db,'local');  
-            //const ytext = ydoc?.getText("content")
-            //ytext?.delete(0, ytext.length);
-            //ytext?.insert(0,db)
-            diffUpdate(db,ydoc,origin)
-        
-            //conn?.send("close")
-        })             
-       
+            const {ydoc} = handle
+            //const handle = initDoc(msg.name)
+
+            //const conn= ConnMap.get(msg.name)
+            //if (!conn)return;
+            //const {origin,ydoc}  = conn 
+            diffUpdate(db,ydoc) 
+        })    
     } 
 }
 
@@ -45,22 +45,25 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
         } 
         conn.pc.ondatachannel = async (e)=>{
             //const name = e.channel.label
-            const fh =  FileInfo.DirHandle?.getFileHandle(
-                encodeURIComponent(e.channel.label) ); 
+            
             //const w =await fh?.createWriteStream() 
             const filename = e.channel.label.slice(0,e.channel.label.lastIndexOf("_"))
-
-            const ydoc = initDoc(filename,e.channel,(db)=>{
+            const fh =  FileInfo.DirHandle?.getFileHandle(
+                encodeURIComponent(filename) ); 
+            initDoc(filename,e.channel,(db)=>{
+                console.log("write",filename)
                 fh?.write(db).then(()=>{
-                    if (e.channel.label.includes("index")  ){
-                        updateEditorDoc(db ,cm_view).then(()=>{
-                            StopTimeOut()
-                        })
+                    if (filename.includes("index")  ){
+                        setValue(db);
+                        initEditorView(FileInfo)
+                         
+                        //updateEditorDoc(db ,cm_view).then(()=>{
+                        //    StopTimeOut()
+                        //})
                     }
                 })
-                
             } )
-            ConnMap.set(filename,{origin, ydoc:ydoc!})
+            //ConnMap.set(filename,{origin, ydoc:ydoc!})
         }
             
     })

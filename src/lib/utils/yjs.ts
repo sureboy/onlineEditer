@@ -23,7 +23,8 @@ export const diffUpdate=(text:string,ydoc:Y.Doc,origin?:string)=>{
     },origin);
 }
 
-export const initDoc = (filename:string,fileCHannel?: RTCDataChannel,getText?:(t:string)=>void  )=>{
+export const initDoc = (filename:string,fileCHannel?: RTCDataChannel,getdb?:(t:string)=>void  )=>{
+    //console.log("initDoc",filename)
     let handle = channelYdoc.get(filename)
     if (!handle && fileCHannel){
         handle = {ydoc:new Y.Doc(),DataChannels:[]}
@@ -35,6 +36,7 @@ export const initDoc = (filename:string,fileCHannel?: RTCDataChannel,getText?:(t
                 if (c.label===origin || c.readyState!="open"){
                     return
                 }
+                //console.log("send",filename)
                 c.send(update as Uint8Array<ArrayBuffer>)
                 //if (c.readyState!="open")
             })
@@ -44,14 +46,15 @@ export const initDoc = (filename:string,fileCHannel?: RTCDataChannel,getText?:(t
     const ydoc =handle?.ydoc
     if (fileCHannel && ydoc){
         handle?.DataChannels.push(fileCHannel) 
+        //console.log(fileCHannel.label,handle)
         fileCHannel.onmessage = (event)=>{  
-            console.log("get channel",event)
+            //console.log("get channel",event,channelYdoc.size)
             updateDoc(event.data,ydoc,fileCHannel.label)
-            getText?.(ydoc.getText("content").toString())
+            getdb?.(ydoc.getText("content").toString())
         }
     }
 
-    return ydoc
+    return handle
 }
 const updateDoc = (data:any,ydoc:Y.Doc,_origin:string )=>{
 

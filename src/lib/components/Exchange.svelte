@@ -124,11 +124,11 @@ export const QRCodeHandle = (path:string)=>{
         fileCHannel.addEventListener("close",(e)=>{
           console.log(data.name,"pc close")
         })
-        const ydoc =initDoc(data.name,fileCHannel,(text)=>{
+        const {ydoc} =initDoc(data.name,fileCHannel,(text)=>{
           const postdb = {name:data.name,db:text} 
           channel?.postMessage(postdb)
           previewModule(postdb) 
-        } )
+        } )!
         
         mesh.files.set(data.name,{d:fileCHannel,y:ydoc}); 
         fileCHannel.onopen=async ()=>{   
@@ -202,10 +202,10 @@ $effect(() => {
   channel.onmessage = (event) => { 
     //console.log(event.data)
     previewModule(event.data) 
-    const ydoc = initDoc(event.data.name)
-    if (ydoc){
+    const handle = initDoc(event.data.name)
+    if (handle){
       getFileData(event.data.name).then(db=>{ 
-        diffUpdate(db.db,ydoc) 
+        diffUpdate(db.db,handle.ydoc) 
       })
     }
   }; 

@@ -1,37 +1,26 @@
-import { EditorView } from '@codemirror/view'; 
+<script lang="ts" module>
+//import { EditorView } from '@codemirror/view'; 
 import {type FileInfoType,
     getDirHandle,
      newPackageCode} from "$lib/function/fileHandle"
 import { appendChildToDom } from "$lib/function/helpPanel";  
 import { getImport } from "$lib/function/parsingCode"
-
-//import { Annotation } from '@codemirror/state'; 
-//let isSilentUpdate = false;
-export const updateEditorDoc =async (value:string,
-    editorView:EditorView
-    //,silentUpdate:boolean=false
- )=>{
-    //isSilentUpdate = silentUpdate
-    //console.log(value,editorView,silentUpdate)
-   
-    editorView.dispatch({
-        // annotations: [silentUpdateAnnotation.of(true)] ,
-        changes: {
-        from: 0,
-        to: editorView.state.doc.length,
-        insert:value
-        }
-    });
-    
-}
-export    const initEditorView =async ( editorView: EditorView,FileInfo:FileInfoType)=>{
+import {setValue} from "$lib/components/Edit.svelte"
+export    const initEditorView =async ( 
+    //editorView: EditorView,
+    //setValue:(v: string)=> void,
+    FileInfo:FileInfoType)=>{
     const handle =  getFileHandle(FileInfo) 
     try{ 
-        updateEditorDoc(await handle.read()  ,editorView) 
+        setValue(await handle.read()  ) 
     }catch(err){ 
         console.error(err) 
-        updateEditorDoc(newPackageCode,editorView)
+        setValue(newPackageCode)
     }
+    setTimeout(()=>{
+        initPanel(FileInfo) 
+    })
+    
 }
 export const getFileHandle = (FileInfo:FileInfoType) =>{
     //console.log("get",FileInfo)
@@ -57,22 +46,26 @@ export const getFileHandle = (FileInfo:FileInfoType) =>{
         throw err
     }
 }
-export const initPanel =async (cm_view: EditorView,FileInfo: FileInfoType )=>{
-    if (!FileInfo.DirHandle){
-        const input = createInputElement(cm_view,FileInfo)
-        if (FileInfo.path){
-            input.value = FileInfo.path 
-        }else{
-            input.placeholder="create a project"
-        }
-        appendChildToDom(input,createButton("create","create",(e)=>{
-            if (input.value){
+const createPackage = (FileInfo: FileInfoType)=>{
+    const input = createInputElement(FileInfo)
+    if (FileInfo.path){
+        input.value = FileInfo.path 
+    }else{
+        input.placeholder="create a project"
+    }
+    appendChildToDom(input,createButton("create","create",(e)=>{
+        if (input.value){
 
-                window.location.hash = encodeURIComponent(
-                JSON.stringify({path:input.value,create:true  }))  
-                window.location.reload() 
-            }                
-        }))
+            window.location.hash = encodeURIComponent(
+            JSON.stringify({path:input.value,create:true  }))  
+            window.location.reload() 
+        }                
+    }))
+}
+export const initPanel =async ( FileInfo: FileInfoType )=>{
+    if (!FileInfo.DirHandle){
+        createPackage(FileInfo)
+         
         return;
     }
    
@@ -90,18 +83,20 @@ export const initPanel =async (cm_view: EditorView,FileInfo: FileInfoType )=>{
             handle?.del().then(()=>{
                 console.log("del",FileInfo)
                 FileInfo.name = "./index.js"
-                initEditorView(cm_view,FileInfo).then(()=>{
-                    initPanel(cm_view,FileInfo) 
-                }) 
+                initEditorView(
+                    //cm_view,
+                    FileInfo)//.then(()=>{
+                //    initPanel(FileInfo) 
+                //}) 
                 
                 
             })
         } 
-    }),...createSelect(cm_view,FileInfo),run)        
+    }),...createSelect(FileInfo),run)        
 }
 
 
-const createSelect = (cm_view: EditorView,FileInfo: FileInfoType)=>{
+const createSelect = ( FileInfo: FileInfoType)=>{
  //const files:string[] = []
     const select = document.createElement("select")
     const firstOpt = document.createElement("option");
@@ -125,14 +120,16 @@ const createSelect = (cm_view: EditorView,FileInfo: FileInfoType)=>{
         switch (select.value) {
         case firstOpt.textContent:
             console.log("new file") 
-            content.append(createInputElement(cm_view,FileInfo))
+            content.append(createInputElement(FileInfo))
             
             //input.focus()
             //appendChildToDom(input)
             return
         default:
             FileInfo.name = select.value;
-            initEditorView(cm_view,FileInfo)
+            initEditorView(
+                //cm_view,
+                FileInfo)
             //window.location.hash = encodeURIComponent(
             //JSON.stringify({name:select.value ,path:FileInfo.path})) 
             //window.location.reload()
@@ -194,7 +191,7 @@ const selectClickHandle =async (
 }
 
 
-const createInputElement = (cm_view: EditorView,FileInfo: FileInfoType)=>{
+const createInputElement = ( FileInfo: FileInfoType)=>{
     const input = document.createElement("input")
     input.type = "text"
     input.placeholder="./index.js"
@@ -221,10 +218,13 @@ const createInputElement = (cm_view: EditorView,FileInfo: FileInfoType)=>{
             }
             //getDirHandle(FileInfo.path)
             //window.location.reload() 
-            initEditorView(cm_view,FileInfo).then(()=>{
-                initPanel(cm_view,FileInfo) 
-            })
+            initEditorView(
+                //cm_view,
+                FileInfo)//.then(()=>{
+              //  initPanel(FileInfo) 
+           // })
         }
     }
     return input
 }
+</script>

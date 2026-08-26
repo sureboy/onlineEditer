@@ -1,27 +1,20 @@
- 
-<script lang="ts" module>
-let timeout: number;
-let value = $state("sss")
-export const StopTimeOut = ()=>{
-    if (timeout===0)return;
-    clearTimeout(timeout) 
-    timeout=0
-}
+<script lang="ts" module> 
+import {type FileInfoType, 
+     newPackageCode} from "$lib/function/fileHandle"
+let value = $state(newPackageCode) 
 export const setValue = (v:string)=>{
     value = v
 }
 </script>
 <script lang="ts">
-import {type FileInfoType,
-  //  getDirHandle,newPackageCode
-     } from "$lib/function/fileHandle" 
+ 
 import CodeMirror from "$lib/components/CodeMirror.svelte";
 import { javascript } from "@codemirror/lang-javascript"; 
 import { EditorView } from '@codemirror/view'; 
 import { helpPanel } from "$lib/function/helpPanel";  
 import {jscadModelingCompletionSource,getImportAliases} from "$lib/function/parsingCode"
 import { autocompletion } from '@codemirror/autocomplete';  
-import {getFileHandle,initEditorView,initPanel,updateEditorDoc} from '$lib/function/panel'
+import {getFileHandle,initEditorView,initPanel} from '$lib/components/panel.svelte'
 //import {initDoc,diffUpdate} from '$lib/utils/yjs'
 //    import type { RGBA_ASTC_10x10_Format } from "three";
 
@@ -33,7 +26,12 @@ const {initWebrtcConn,
         initWebrtcConn:(db:any,cm_view: EditorView)=>void} = $props()
 
 let channel:BroadcastChannel|undefined=undefined
- 
+let timeout: number;
+const StopTimeOut = ()=>{
+    if (timeout===0)return;
+    clearTimeout(timeout) 
+    timeout=0
+}
  
 const saveFile = (v:string,FileInfo:FileInfoType)=>{
     const handle = getFileHandle(FileInfo) 
@@ -64,22 +62,23 @@ const ready =async (cm_view: EditorView)=>{
             reqdb
         ) 
         //FileInfo.cm_view = cm_view;
-        await initEditorView(cm_view,FileInfo) 
+        await initEditorView(
+            //cm_view,
+            FileInfo) 
         
         channel = new BroadcastChannel(FileInfo.path || 'code-preview');
         //console.log(FileInfo.path,channel)
         channel.onmessage=(event:any)=>{
-            console.log(event.data)
+            //console.log(event.data)
             if (event.data.name && event.data.name===FileInfo.name){
                 FileInfo.DirHandle?.getFileHandle(encodeURIComponent(FileInfo.name)).read().then(db=>{
-                    updateEditorDoc(db ,cm_view).then(()=>{
-                        StopTimeOut()
-                    })
-                    //console.log('silentUpdate')
+                    setValue(db)
                 })
             }
         }
-    } 
+    } else{
+        initPanel(FileInfo)
+    }
     
 } 
 const saveKeymap = {
@@ -113,9 +112,10 @@ let firstChange = false;
     "& .cm-editor": { padding: "0",border: "none" },  
     }} 
     onready = {(cm_view)=>{   
-        ready(cm_view).then(()=>{
-            initPanel(cm_view,FileInfo) 
-        })   
+        ready(cm_view)
+        //.then(()=>{
+        //    initPanel(FileInfo) 
+        //})   
     }}
     bounce={0} 
     onchange = {(v)=>{ 
