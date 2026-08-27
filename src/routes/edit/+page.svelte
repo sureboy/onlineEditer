@@ -2,7 +2,7 @@
 import { initEditorView} from "$lib/components/panel.svelte"
 import {type FileInfoType,getDirHandle} from "$lib/function/fileHandle"
 import Edit,{setValue} from "$lib/components/Edit.svelte"; 
-import { EditorView } from '@codemirror/view'; 
+//import { EditorView } from '@codemirror/view'; 
 import {initDoc,diffUpdate} from '$lib/utils/yjs'
 //import * as Y from 'yjs'
 //import {onMount} from 'svelte'
@@ -34,15 +34,15 @@ function sendCodeToPreview(msg:any) {
     } 
 }
 
-const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: EditorView)=>{
-    FileInfo.path = reqdb.path +"_"+reqdb.id
-    //const root = await navigator.storage.getDirectory();
-    FileInfo.DirHandle = getDirHandle(FileInfo.path) //await root.getDirectoryHandle(reqdb.path+"_"+reqdb.id,{create:true})
-    createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
-        const origin = conn.dc?.label
-        if (!origin){
-            return
-        } 
+const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
+ 
+    const ok  = await createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
+
+        //const origin = conn.dc?.label
+        //if (!origin){
+        //    return
+        //} 
+        console.log(conn)
         conn.pc.ondatachannel = async (e)=>{
             //const name = e.channel.label
             
@@ -66,7 +66,13 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string},cm_view: 
             //ConnMap.set(filename,{origin, ydoc:ydoc!})
         }
             
-    })
+    }) 
+    if (ok){
+        FileInfo.path = reqdb.path +"_"+reqdb.id 
+        FileInfo.DirHandle = getDirHandle(FileInfo.path) 
+    }
+    return ok
+    
 }
 </script>
 

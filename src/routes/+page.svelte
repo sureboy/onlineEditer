@@ -7,15 +7,49 @@ import type {itemType} from '$lib/website/List.svelte'
 import { extractTarStreamToOPFS } from '$lib/function/tar'; 
 import { onMount } from 'svelte';
 import {createStorage} from '$lib/storage-adapter/factory' 
-
+import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte'; 
+import {jsonToForm,collectFormData,ShowSubmit} from '$lib/utils/jsonToForm'    
+let DialogDiv:HTMLDivElement
+let title = ""
+const getConnHostJsonStr = ()=>{
+    return  {
+        _comment:"webRTC P2P",
+        id:"",
+        id_comment:"输入识别id",
+        path:"SolidJSCAD",
+        path_comment:"模型名称",
+        //create:true,
+        //create_comment:"[生成/加入]WebRtc会话",
+        host_comment:"信令交换服务公共网址",
+        host:"https://www.zaddone.com/rtc"
+    }  
+} 
 onMount(() => {
+
     
-    window.addEventListener("hashchange",(ev)=>{
-        console.log(window.location.hash)
-        const btn = document.getElementById(location.hash.slice(1))
-        btn?.click()
-    })
+    
 });
+const webRTCP2P = ()=>{
+    openModal()
+    ShowSubmit(DialogDiv,getConnHostJsonStr(),(db)=>{  
+        console.log(db)
+        if (!db.id){
+            alert("id is NULL!! ")
+            return
+        }
+        if (!db.host){
+            db.host = 'https://www.zaddone.com/rtc'
+        }
+        //DialogDiv.innerHTML=""
+        const editPage = document.createElement("a")
+        editPage.href = "/edit#"+encodeURIComponent(JSON.stringify(db))
+        editPage.textContent = db.path
+        DialogDiv.appendChild(editPage)
+        editPage.click()
+
+    })
+    
+}
 const getLocaldb =async () => {
     const storage = createStorage()
     const localList:itemType[]= []
@@ -39,7 +73,11 @@ const getLocaldb =async () => {
  
 <div style="display: block;  "> 
 <NavMenu menuItems = {[
+     { key: 'webRTC', label: 'P2P连接',url:"/#webRTC", click:()=>{
+        const btn = document.getElementById("webRTC")
 
+        btn?.click()
+    } },
     { key: 'start', label: '开始',url:"/edit/" },
     { key: 'open', label: '打开',url:"/#open", click:()=>{
         const btn = document.getElementById("open")
@@ -56,7 +94,13 @@ const getLocaldb =async () => {
     <a href="https://marketplace.visualstudio.com/items?itemName=WeijieZhao.solidjscad" rel="noopener noreferrer" target="_blank">安装 VSCode 插件</a>
 ,开始本地化建模创作。
 </p>
-
+<p>
+    <button id="webRTC" onclick={(e)=>{
+        console.log("Open")
+        webRTCP2P()
+    }}>P2P连接</button>
+    <a href="/edit">Create a project</a>
+</p>
 <p>
     <input type="file" id="open"  onchange={(event)=>{
         const files = (event.target as HTMLInputElement).files;
@@ -77,3 +121,7 @@ const getLocaldb =async () => {
 </div>
 
 </div>
+<Dialog title = {title }  >
+  
+     <div bind:this={DialogDiv}>test</div> 
+ </Dialog>

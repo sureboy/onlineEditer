@@ -24,19 +24,22 @@ export const createWebrtcConnFromCenterUrl =async (
                 }
             } ,obj );
         }else{ 
-            r.json().then(db=>{
-                const conn = appendRtcConn(obj.id,(msg)=>{ 
-                    postWebRTCMsg(Object.assign({msg:btoa(msg)},obj) );
-                },getConn); 
-                //console.log(db);
-                (db as any[]).reverse().forEach((v,i)=>{
-                    setRemoteRTCMsg(JSON.parse(atob(v)),conn);
-                    console.log(i,atob(v));
-                });
+            const db = await r.json() as any[]
+            if (db.length===0){
+                return false
+            }
+            const conn = appendRtcConn(obj.id,(msg)=>{ 
+                postWebRTCMsg(Object.assign({msg:btoa(msg)},obj) );
+            },getConn); 
+            //console.log(db);
+            (db as any[]).reverse().forEach((v,i)=>{
+                setRemoteRTCMsg(JSON.parse(atob(v)),conn);
+                console.log(i,atob(v));
             });
+             
         } 
     }
-    return r
+    return r.ok
   
      
 };

@@ -23,7 +23,7 @@ const {initWebrtcConn,
     FileInfo}:{
         sendCodeToPreview:(msg:any)=>void,
         FileInfo:FileInfoType,
-        initWebrtcConn:(db:any,cm_view: EditorView)=>void} = $props()
+        initWebrtcConn:(db:any )=>Promise<boolean>} = $props()
 
 let channel:BroadcastChannel|undefined=undefined
 let timeout: number;
@@ -49,25 +49,33 @@ const saveFile = (v:string,FileInfo:FileInfoType)=>{
     
 } 
 
-const ready =async (cm_view: EditorView)=>{
+const ready =async ( )=>{
     const hashPath = window.location.hash.slice(1);
     if (hashPath){
         const reqdb = JSON.parse(decodeURIComponent(hashPath))
+        //Object.assign(
+        //    FileInfo , 
+        //    reqdb
+        //) 
         if (reqdb.id && reqdb.host && reqdb.path){
-            initWebrtcConn(reqdb,cm_view )
+            if (!await initWebrtcConn(reqdb )){
+                await initPanel(FileInfo)
+                return
+            }
             //return
         }
-        Object.assign(
-            FileInfo , 
-            reqdb
-        ) 
+
         //FileInfo.cm_view = cm_view;
         await initEditorView(
             //cm_view,
             FileInfo) 
         
-        channel = new BroadcastChannel(FileInfo.path || 'code-preview');
-        //console.log(FileInfo.path,channel)
+
+    } else{
+        await initPanel(FileInfo)
+    }
+    if (FileInfo.path){ 
+        channel = new BroadcastChannel(FileInfo.path ); 
         channel.onmessage=(event:any)=>{
             //console.log(event.data)
             if (event.data.name && event.data.name===FileInfo.name){
@@ -76,8 +84,6 @@ const ready =async (cm_view: EditorView)=>{
                 })
             }
         }
-    } else{
-        initPanel(FileInfo)
     }
     
 } 
@@ -112,7 +118,7 @@ let firstChange = false;
     "& .cm-editor": { padding: "0",border: "none" },  
     }} 
     onready = {(cm_view)=>{   
-        ready(cm_view)
+        ready()
         //.then(()=>{
         //    initPanel(FileInfo) 
         //})   

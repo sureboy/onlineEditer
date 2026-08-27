@@ -2,7 +2,7 @@
 import { Canvas } from '@threlte/core'
 import Menu,{SetEditingHashInfo} from '$lib/components/Menu.svelte'   
 import { csg2Geo } from "$lib/function/csg2Three"; 
-import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
+//import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
 import { onMount } from 'svelte'; 
 import {  Vector3,WebGLRenderer } from 'three';
 import OrthoScene,{refreshCamera,refreshCameraInit,type ConfigType}  from '$lib/components/OrthoScene.svelte'; 
@@ -112,9 +112,10 @@ onMount(() => {
       previewHandle({path },onmessageListen)
       
     } 
+    /*
     return () => { 
       terminateWorker(); 
-    };
+    };*/
   }catch(err){
     console.error(err)
   }

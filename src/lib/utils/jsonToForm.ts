@@ -47,6 +47,25 @@ function getMainFieldFromCommentKey(commentKey: string): string {
     return commentKey.slice(0, -8); // 去掉 "_comment"
 }
 
+
+export const ShowSubmit = (content:HTMLDivElement,db:any,hand:(db:any)=>void)=>{ 
+  jsonToForm(db ,content)  
+  const btn = document.createElement('button');
+  btn.textContent = '确定';
+  Object.assign(btn.style, {
+      marginTop: '1rem',
+      padding: '0.5rem 1rem',
+      backgroundColor: '#007bff',
+      color: 'white',
+      border: 'none',
+      borderRadius: '4px',
+      cursor: 'pointer'
+  });
+  btn.onclick = () => { 
+      hand(collectFormData(content)) 
+  };
+  content.appendChild(btn); 
+}
 // ==================== 核心渲染函数 ====================
 
 /**

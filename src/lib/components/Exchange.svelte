@@ -1,5 +1,5 @@
 <script lang="ts" module>
-import {jsonToForm,collectFormData} from '$lib/utils/jsonToForm'   
+import {jsonToForm,collectFormData,ShowSubmit} from '$lib/utils/jsonToForm'   
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
 import { getWorker } from '$lib/worker/globalWorker';
 import QRCode from 'qrcode';
@@ -28,7 +28,7 @@ const addMesh = (m:meshInfoType)=>{
   meshList.push(m)
 }
 let DialogDiv:HTMLDivElement
-let showModal = true
+let showModal = false
 export const getDialogDiv = ()=>{
   return DialogDiv
 }
@@ -83,24 +83,7 @@ const previewModule = (data:{Modal?:boolean,
       //}) 
     }
 }
-const ShowSubmit = (content:HTMLDivElement,db:any,hand:(db:any)=>void)=>{ 
-  jsonToForm(db ,content)  
-  const btn = document.createElement('button');
-  btn.textContent = '确定';
-  Object.assign(btn.style, {
-      marginTop: '1rem',
-      padding: '0.5rem 1rem',
-      backgroundColor: '#007bff',
-      color: 'white',
-      border: 'none',
-      borderRadius: '4px',
-      cursor: 'pointer'
-  });
-  btn.onclick = () => { 
-      hand(collectFormData(content)) 
-  };
-  content.appendChild(btn); 
-}
+ 
 const getConnHostJsonStr = ()=>{
     return  {
         _comment:"跨网信令交换服务",
@@ -149,8 +132,8 @@ export const QRCodeHandle = (path:string)=>{
       
 
       closeModal()
-    }).then(r=>{
-      if (!r.ok){
+    }).then(ok=>{
+      if (!ok){
         return
       }
       ShowQRImg(db,path)
