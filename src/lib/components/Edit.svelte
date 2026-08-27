@@ -5,9 +5,12 @@ let value = $state(newPackageCode)
 export const setValue = (v:string)=>{
     value = v
 }
+let manager: FullscreenWakeLockManager | undefined;
+export const getFullscreenManager = ()=> manager;
 </script>
 <script lang="ts">
  
+import FullscreenWakeLockManager from '$lib/utils/FullscreenWakeLockManager';
 import CodeMirror from "$lib/components/CodeMirror.svelte";
 import { javascript } from "@codemirror/lang-javascript"; 
 import { EditorView } from '@codemirror/view'; 
@@ -34,6 +37,7 @@ const StopTimeOut = ()=>{
 }
  
 const saveFile = (v:string,FileInfo:FileInfoType)=>{
+
     const handle = getFileHandle(FileInfo) 
         //h.createSyncAccessHandle()
         handle.write(v).then(()=>{
@@ -53,16 +57,18 @@ const ready =async ( )=>{
     const hashPath = window.location.hash.slice(1);
     if (hashPath){
         const reqdb = JSON.parse(decodeURIComponent(hashPath))
-        //Object.assign(
-        //    FileInfo , 
-        //    reqdb
-        //) 
+
         if (reqdb.id && reqdb.host && reqdb.path){
             if (!await initWebrtcConn(reqdb )){
                 await initPanel(FileInfo)
                 return
             }
             //return
+        }else{
+            Object.assign(
+                FileInfo , 
+                reqdb
+            ) 
         }
 
         //FileInfo.cm_view = cm_view;
@@ -106,6 +112,7 @@ let firstChange = false;
 
 
 <CodeMirror  
+lineWrapping={true}
     {value}
     extensions={[helpPanel(),autocompletion({
             override:[ 
@@ -117,7 +124,9 @@ let firstChange = false;
     styles={{
     "& .cm-editor": { padding: "0",border: "none" },  
     }} 
+    
     onready = {(cm_view)=>{   
+        manager = new FullscreenWakeLockManager();
         ready()
         //.then(()=>{
         //    initPanel(FileInfo) 

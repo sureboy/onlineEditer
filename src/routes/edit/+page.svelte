@@ -1,13 +1,27 @@
 <script lang="ts">
+import {onMount} from 'svelte'
+import FullscreenWakeLockManager from '$lib/utils/FullscreenWakeLockManager';
+
+
 import { initEditorView} from "$lib/components/panel.svelte"
 import {type FileInfoType,getDirHandle} from "$lib/function/fileHandle"
 import Edit,{setValue} from "$lib/components/Edit.svelte"; 
 //import { EditorView } from '@codemirror/view'; 
 import {initDoc,diffUpdate} from '$lib/utils/yjs'
 //import * as Y from 'yjs'
-//import {onMount} from 'svelte'
+
 //import type {connType} from "$lib/utils/webRTCPool";
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
+
+  let manager: FullscreenWakeLockManager | undefined;
+  onMount(() => {
+    manager = new FullscreenWakeLockManager();
+    return ()=>{
+         manager?.destroy();
+    }
+  });
+
+ 
 //    import { preview } from "vite";
 const FileInfo:FileInfoType = {
     path:"",

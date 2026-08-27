@@ -1,11 +1,12 @@
 <script lang="ts" module>
+
 //import { EditorView } from '@codemirror/view'; 
 import {type FileInfoType,
     getDirHandle,
      newPackageCode} from "$lib/function/fileHandle"
 import { appendChildToDom } from "$lib/function/helpPanel";  
 import { getImport } from "$lib/function/parsingCode"
-import {setValue} from "$lib/components/Edit.svelte"
+import {setValue,getFullscreenManager} from "$lib/components/Edit.svelte"
 export    const initEditorView =async ( 
     //editorView: EditorView,
     //setValue:(v: string)=> void,
@@ -92,7 +93,18 @@ export const initPanel =async ( FileInfo: FileInfoType )=>{
                 
             })
         } 
-    }),...createSelect(FileInfo),run)        
+    }),...createSelect(FileInfo),createButton("screen","[]",(e)=>{
+        const btn = (e!.target as HTMLButtonElement)
+        if (btn.textContent==="[]"){
+            getFullscreenManager()?.enterFullscreen();
+            btn.textContent="]["
+        }else{
+            btn.textContent="[]";
+            getFullscreenManager()?.exitFullscreen();
+        }
+        
+
+    }),run)        
 }
 
 
@@ -137,7 +149,7 @@ const createSelect = ( FileInfo: FileInfoType)=>{
     }
     return [select,content]
 }
-function createButton(id:string,name?:string,onclick?:(e?:any)=>void){
+function createButton(id:string,name?:string,onclick?:(e?:PointerEvent)=>void){
     const but = document.createElement("button")
     but.id=id
     but.textContent=name||id
