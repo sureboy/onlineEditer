@@ -1,25 +1,20 @@
 <script lang="ts">
 import {onMount} from 'svelte'
-import FullscreenWakeLockManager from '$lib/utils/FullscreenWakeLockManager';
-
-
-import { initEditorView} from "$lib/components/panel.svelte"
+import FullscreenWakeLockManager from '$lib/utils/FullscreenWakeLockManager'; 
+import {getFileHandle, initEditorView} from "$lib/components/panel.svelte"
 import {type FileInfoType,getDirHandle} from "$lib/function/fileHandle"
-import Edit,{setValue} from "$lib/components/Edit.svelte"; 
-//import { EditorView } from '@codemirror/view'; 
-import {initDoc,diffUpdate} from '$lib/utils/yjs'
-//import * as Y from 'yjs'
-
-//import type {connType} from "$lib/utils/webRTCPool";
+import Edit,{setValue} from "$lib/components/Edit.svelte";  
+import {initDoc,diffUpdate} from '$lib/utils/yjs' 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
+//import {getFileHandle,initEditorView,initPanel} from '$lib/components/panel.svelte'
 
-  let manager: FullscreenWakeLockManager | undefined;
-  onMount(() => {
+let manager: FullscreenWakeLockManager | undefined;
+onMount(() => {
     manager = new FullscreenWakeLockManager();
     return ()=>{
-         manager?.destroy();
+        manager?.destroy();
     }
-  });
+});
 
  
 //    import { preview } from "vite";
@@ -47,39 +42,39 @@ function sendCodeToPreview(msg:any) {
         })    
     } 
 }
+const saveFile =async (v:string,FileInfo:FileInfoType)=>{
 
+    const handle = getFileHandle(FileInfo)  
+    await handle.write(v) 
+    const msg = {Modal:true,path:FileInfo.path,name:FileInfo.name}
+    try{ 
+        FileInfo.channel?.postMessage(msg);
+        sendCodeToPreview(msg) 
+    }catch(err){
+        console.log(err)
+    }  
+     
+} 
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
  
     const ok  = await createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
-
-        //const origin = conn.dc?.label
-        //if (!origin){
-        //    return
-        //} 
         console.log(conn)
         conn.pc.ondatachannel = async (e)=>{
-            //const name = e.channel.label
-            
-            //const w =await fh?.createWriteStream() 
             const filename = e.channel.label.slice(0,e.channel.label.lastIndexOf("_"))
             const fh =  FileInfo.DirHandle?.getFileHandle(
                 encodeURIComponent(filename) ); 
             initDoc(filename,e.channel,(db)=>{
                 console.log("write",filename)
                 fh?.write(db).then(()=>{
+                    const msg = {Modal:true,path:FileInfo.path,name:FileInfo.name}
+                    FileInfo.channel?.postMessage(msg);
                     if (filename.includes("index")  ){
                         setValue(db);
                         initEditorView(FileInfo)
-                         
-                        //updateEditorDoc(db ,cm_view).then(()=>{
-                        //    StopTimeOut()
-                        //})
                     }
                 })
-            } )
-            //ConnMap.set(filename,{origin, ydoc:ydoc!})
-        }
-            
+            })
+        }            
     }) 
     if (ok){
         FileInfo.path = reqdb.path +"_"+reqdb.id 
@@ -90,6 +85,6 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
 }
 </script>
 
-<Edit {initWebrtcConn} {sendCodeToPreview}  {FileInfo}></Edit>  
+<Edit {initWebrtcConn} {saveFile}  {FileInfo}></Edit>  
   
   

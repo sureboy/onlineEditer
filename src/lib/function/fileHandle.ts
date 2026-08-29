@@ -42,6 +42,7 @@ export type FileInfoType  = {
     create?:boolean,
     name:string,
     path:string,
+    channel?:BroadcastChannel,
     //cm_view?: EditorView
     //FileHandle?:FileSystemFileHandle,
     DirHandle?:DirHandleType

@@ -22,56 +22,49 @@ import {getFileHandle,initEditorView,initPanel} from '$lib/components/panel.svel
 //    import type { RGBA_ASTC_10x10_Format } from "three";
 
 const {initWebrtcConn,
-    sendCodeToPreview,
+    saveFile,
     FileInfo}:{
-        sendCodeToPreview:(msg:any)=>void,
+        saveFile:(v:string,FileInfo:FileInfoType)=>void,
         FileInfo:FileInfoType,
         initWebrtcConn:(db:any )=>Promise<boolean>} = $props()
 
-let channel:BroadcastChannel|undefined=undefined
+//let channel:BroadcastChannel|undefined=undefined
 let timeout: number;
 const StopTimeOut = ()=>{
     if (timeout===0)return;
     clearTimeout(timeout) 
     timeout=0
 }
- 
+ /*
 const saveFile = (v:string,FileInfo:FileInfoType)=>{
 
-    const handle = getFileHandle(FileInfo) 
-        //h.createSyncAccessHandle()
-        handle.write(v).then(()=>{
-            const msg = {Modal:true,path:FileInfo.path,name:FileInfo.name}
-            try{ 
-                channel?.postMessage(msg);
-                sendCodeToPreview(msg) 
-            }catch(err){
-                console.log(err)
-            } 
-            
-        })
-    
+    const handle = getFileHandle(FileInfo)  
+    handle.write(v).then(()=>{
+        const msg = {Modal:true,path:FileInfo.path,name:FileInfo.name}
+        try{ 
+            FileInfo.channel?.postMessage(msg);
+            sendCodeToPreview(msg) 
+        }catch(err){
+            console.log(err)
+        }  
+    }) 
 } 
-
+*/
 const ready =async ( )=>{
     const hashPath = window.location.hash.slice(1);
     if (hashPath){
-        const reqdb = JSON.parse(decodeURIComponent(hashPath))
-
+        const reqdb = JSON.parse(decodeURIComponent(hashPath)) 
         if (reqdb.id && reqdb.host && reqdb.path){
             if (!await initWebrtcConn(reqdb )){
                 await initPanel(FileInfo)
                 return
-            }
-            //return
+            } 
         }else{
             Object.assign(
                 FileInfo , 
                 reqdb
             ) 
-        }
-
-        //FileInfo.cm_view = cm_view;
+        } 
         await initEditorView(
             //cm_view,
             FileInfo) 
@@ -81,8 +74,8 @@ const ready =async ( )=>{
         await initPanel(FileInfo)
     }
     if (FileInfo.path){ 
-        channel = new BroadcastChannel(FileInfo.path ); 
-        channel.onmessage=(event:any)=>{
+        FileInfo.channel = new BroadcastChannel(FileInfo.path ); 
+        FileInfo.channel.onmessage=(event:any)=>{
             //console.log(event.data)
             if (event.data.name && event.data.name===FileInfo.name){
                 FileInfo.DirHandle?.getFileHandle(encodeURIComponent(FileInfo.name)).read().then(db=>{
