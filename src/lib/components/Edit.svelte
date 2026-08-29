@@ -17,7 +17,7 @@ import { EditorView } from '@codemirror/view';
 import { helpPanel } from "$lib/function/helpPanel";  
 import {jscadModelingCompletionSource,getImportAliases} from "$lib/function/parsingCode"
 import { autocompletion } from '@codemirror/autocomplete';  
-import {getFileHandle,initEditorView,initPanel} from '$lib/components/panel.svelte'
+import {initEditorView,initPanel} from '$lib/components/panel.svelte'
 //import {initDoc,diffUpdate} from '$lib/utils/yjs'
 //    import type { RGBA_ASTC_10x10_Format } from "three";
 
@@ -35,21 +35,7 @@ const StopTimeOut = ()=>{
     clearTimeout(timeout) 
     timeout=0
 }
- /*
-const saveFile = (v:string,FileInfo:FileInfoType)=>{
-
-    const handle = getFileHandle(FileInfo)  
-    handle.write(v).then(()=>{
-        const msg = {Modal:true,path:FileInfo.path,name:FileInfo.name}
-        try{ 
-            FileInfo.channel?.postMessage(msg);
-            sendCodeToPreview(msg) 
-        }catch(err){
-            console.log(err)
-        }  
-    }) 
-} 
-*/
+  
 const ready =async ( )=>{
     const hashPath = window.location.hash.slice(1);
     if (hashPath){
