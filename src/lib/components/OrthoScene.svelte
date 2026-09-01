@@ -10,6 +10,7 @@ import {
   import {type ThrelteContext } from '@threlte/core'
  export type ConfigType = {
     title?:string,
+    //Fullscreen:boolean,
     Light:boolean,
     Axes:boolean,
     Grid:boolean,

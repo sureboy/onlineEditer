@@ -13,11 +13,15 @@ export function toggleCamera() {
 }
 </script>
 <script lang="ts" >
+import FullscreenWakeLockManager from '$lib/utils/FullscreenWakeLockManager';
   //import { HelperGroupChange} from "./function/threeScene" 
-  const {Clickhandle}:{Clickhandle:(name:string|{[k:string]:any}|null)=>void } = $props()
-
+import {onMount} from "svelte"
+const {Clickhandle}:{Clickhandle:(name:string|{[k:string]:any}|null)=>void } = $props()
+let manager: FullscreenWakeLockManager 
   //let inputCheckBoxStruct = HelperGroupChange(3)
-
+onMount(()=>{
+  manager =new FullscreenWakeLockManager()
+})
   const kMap:{[k:string]:string} = {
     "x":"right",
     "X":"left",
@@ -85,6 +89,17 @@ export function toggleCamera() {
   <label><input checked  onclick={(e)=>{
     Clickhandle?.(e.target)
   }} type="checkbox"   value="Grid" name="Grid" id="Grid"  > Grid</label>
+
+  <label><input onclick={(e)=>{
+    //Clickhandle?.(e.target)
+    const ht = e.target as HTMLInputElement
+    if (ht.checked){
+      manager.enterFullscreen();
+    }else{
+      manager.exitFullscreen();
+    }
+    
+  }} type="checkbox"   value="Fullscreen" name="Fullscreen" id="Fullscreen" /> Fullscreen </label>
 </p>
 <p>Right-click and drag, or use two-finger touch and drag</p>
 </div>

@@ -8,47 +8,40 @@ import {  Vector3,WebGLRenderer } from 'three';
 import OrthoScene,{refreshCamera,refreshCameraInit,type ConfigType}  from '$lib/components/OrthoScene.svelte'; 
 import DownMenu from "$lib/components/DownMenu.svelte";
 import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
-import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte"; 
- 
-//import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
+import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
+import Exchange,{getDialogDiv,QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte'; 
+let geometrys:{geometry:any,material:any}[] =$state([]) 
+const solidControlConfig:ConfigType = $state({
+  //title:"welcome",
+  //Fullscreen:false,
+  Light:true,
+  Axes:true,Grid:true,main:[],
+  isOrthographic:false,
+  MaxSize :new Vector3(),
+  GridSize:10,
+  show:false,
+  getAspect:()=>{
+            if (!solidControlConfig.Context)return 1
+        const {size} = solidControlConfig.Context
+        return size.current.width/size.current.height
+      }
+  //getAspect:()=>{return aspect},
+})
+const ClickhandleWithMainMenu = (basename:string)=>{
+  previewHandle({basename},onmessageListen)
 
-import Exchange,{getDialogDiv,QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte';
-//let DialogDiv = getDialogDiv()
-
- 
- 
-  let geometrys:{geometry:any,material:any}[] =$state([])
- 
-  const solidControlConfig:ConfigType = $state({
-    //title:"welcome",
-    Light:true,
-    Axes:true,Grid:true,main:[],
-    isOrthographic:false,
-    MaxSize :new Vector3(),
-    GridSize:10,
-    show:false,
-    getAspect:()=>{
-              if (!solidControlConfig.Context)return 1
-          const {size} = solidControlConfig.Context
-          return size.current.width/size.current.height
-        }
-    //getAspect:()=>{return aspect},
-  })
-  const ClickhandleWithMainMenu = (basename:string)=>{
-    previewHandle({basename},onmessageListen)
- 
+}
+const Clickhandle=(k:string|{[key:string]:any}|null)=>{
+  if (!k)return;
+  if (typeof k === 'string'){
+      //console.log(k)
+      switchView(k)
+      return
   }
-  const Clickhandle=(k:string|{[key:string]:any}|null)=>{
-    if (!k)return;
-    if (typeof k === 'string'){
-        //console.log(k)
-        switchView(k)
-        return
-    }
-    if (k.id in solidControlConfig){
-        (solidControlConfig as {[key:string]:any})[k.id] = k.checked
-    }
+  if (k.id in solidControlConfig){
+      (solidControlConfig as {[key:string]:any})[k.id] = k.checked
   }
+}
 const onmessageListen =async (e:MessageEvent)=>{
   //if (e.data.err){
   //  console.log(e.data)
@@ -120,7 +113,6 @@ onMount(() => {
     console.error(err)
   }
 });
- 
 function switchView(direction:string) {
   if (direction==="camera"){ 
     solidControlConfig.isOrthographic = toggleCamera()==='Orthographic'
@@ -128,7 +120,7 @@ function switchView(direction:string) {
       refreshCameraInit(solidControlConfig )
     })
     return;
-  } 
+  }  
   refreshCamera(direction,solidControlConfig.isOrthographic,solidControlConfig.MaxSize)
 }  
 const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
