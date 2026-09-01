@@ -153,12 +153,8 @@ export const refreshCamera = (direction:string,isOrthographic:boolean,MaxSize:Ve
       getContext:any
     solidControlConfig:ConfigType, 
     geometrys:{geometry:any,material:any}[] 
-} = $props()
-
-const Context= useThrelte()
-
- 
-//const getContext = 
+} = $props() 
+const Context= useThrelte() 
 onMount(()=>{
   getContext(Context)
  

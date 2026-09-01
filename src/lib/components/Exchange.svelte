@@ -1,5 +1,8 @@
 <script lang="ts" module>
-import {jsonToForm,collectFormData,ShowSubmit} from '$lib/utils/jsonToForm'   
+import {
+  //jsonToForm,
+  //collectFormData,
+  ShowSubmit} from '$lib/utils/jsonToForm'   
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
 import { getWorker } from '$lib/worker/globalWorker';
 import QRCode from 'qrcode';
@@ -11,6 +14,7 @@ type meshInfoType = {
     conn:connType, 
     files:Map<string,{d:RTCDataChannel,y:Y.Doc}>
 } 
+let channel:BroadcastChannel|undefined=$state(undefined)
 const meshList:(meshInfoType|null)[] =$state([])
 const addMesh = (m:meshInfoType)=>{ 
   for (let i=0;i<meshList.length;i++){
@@ -109,6 +113,7 @@ export const QRCodeHandle = (path:string)=>{
         })
         const {ydoc} =initDoc(data.name,fileCHannel,(text)=>{
           const postdb = {name:data.name,db:text} 
+          console.log(channel,postdb)
           channel?.postMessage(postdb)
           previewModule(postdb) 
         } )!
@@ -164,23 +169,24 @@ const ShowQRImg = (db:any,path:string)=>{
     getDialogDiv().append(img)
   }) 
 }
-let channel:BroadcastChannel|undefined=undefined
+
 </script>
 <script lang="ts">
 import type {connType} from "$lib/utils/webRTCPool"
+import type {ConfigType} from "$lib/components/OrthoScene.svelte"
 import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte'; 
 //import {onMount} from 'svelte'
 const {
-  title, 
+  solidControlConfig, 
 }:{ 
-  title?:string     
+  solidControlConfig:ConfigType     
 } = $props() 
 
 $effect(() => {
-  if (!title || channel){
+  if (!solidControlConfig.title || channel){
     return;
   }
-  channel = new BroadcastChannel(title); 
+  channel = new BroadcastChannel(solidControlConfig.title); 
   //console.log(title,channel)
   channel.onmessage = (event) => { 
     //console.log(event.data)
@@ -196,7 +202,7 @@ $effect(() => {
 
 
 </script>
-<Dialog title = {title||""}  >
+<Dialog title = {solidControlConfig.title||""}  >
   
      <div bind:this={DialogDiv}>test</div> 
  </Dialog>
@@ -208,7 +214,9 @@ $effect(() => {
     </summary>
     <div   style="color:white;text-align: center;" >
         <button onclick={(e)=>{
-            mesh.conn.dc?.send(JSON.stringify({  
+          console.log(e)
+          return;
+            mesh?.conn.dc?.send(JSON.stringify({  
                 name:"local" ,
                 msg: 0,
                  

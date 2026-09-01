@@ -138,9 +138,6 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
 const getContext = (Context: ThrelteContext<WebGLRenderer>)=>{
   solidControlConfig.Context = Context
 }
-
-
- 
 </script>
 <div   class="preview">
 <Canvas   >
@@ -157,10 +154,10 @@ const getContext = (Context: ThrelteContext<WebGLRenderer>)=>{
   style="height:48:px;line-height:48px;cursor: pointer;" 
   onclick={(e)=>{
      QRCodeHandle(solidControlConfig.title||"")
-  }} >QRCode</button>     
+  }} >webRTC P2P</button>     
 </DownMenu>
  
-<Exchange title ={solidControlConfig.title}  > 
+<Exchange {solidControlConfig}  > 
 </Exchange>
   <div style="color:white;text-align: left;">
   <a target="editPopup"  onclick={(e)=>{

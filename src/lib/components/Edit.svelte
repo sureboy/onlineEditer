@@ -18,7 +18,7 @@ import { helpPanel } from "$lib/function/helpPanel";
 import {jscadModelingCompletionSource,getImportAliases} from "$lib/function/parsingCode"
 import { autocompletion } from '@codemirror/autocomplete';  
 import {initEditorView,initPanel} from '$lib/components/panel.svelte'
-//import {initDoc,diffUpdate} from '$lib/utils/yjs'
+import {initDoc,diffUpdate} from '$lib/utils/yjs'
 //    import type { RGBA_ASTC_10x10_Format } from "three";
 
 const {initWebrtcConn,
@@ -62,11 +62,15 @@ const ready =async ( )=>{
     if (FileInfo.path){ 
         FileInfo.channel = new BroadcastChannel(FileInfo.path ); 
         FileInfo.channel.onmessage=(event:any)=>{
-            //console.log(event.data)
-            if (event.data.name && event.data.name===FileInfo.name){
-                FileInfo.DirHandle?.getFileHandle(encodeURIComponent(FileInfo.name)).read().then(db=>{
-                    setValue(db)
-                })
+            //console.log(event.data,FileInfo)
+            if (event.data.name && event.data.db ){
+                const ydoc = initDoc(event.data.name)
+                if (ydoc){
+                    diffUpdate(event.data.db,ydoc.ydoc)
+                }
+                if(event.data.name===FileInfo.name ){
+                    setValue( event.data.db) 
+                }
             }
         }
     }
