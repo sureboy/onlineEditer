@@ -16,7 +16,7 @@ export const wordHover = hoverTooltip((view, pos, side) => {
     return null
 
     const code = text.slice(start - from, end - from)
-   console.log(code.slice(0,code.indexOf('.')),cadImport)
+   //console.log(code.slice(0,code.indexOf('.')),cadImport)
     let opt = cadImport[code.slice(0,code.indexOf('.'))] as Completion[]
     //if (cadImport)
     if (!opt) return null
@@ -32,7 +32,7 @@ export const wordHover = hoverTooltip((view, pos, side) => {
     })
     
     if (opt.length===0)return null
-    console.log(code,opt)
+   // console.log(code,opt)
   return {
     pos: start,
     end,
