@@ -15,12 +15,12 @@ import CodeMirror from "$lib/components/CodeMirror.svelte";
 import { javascript } from "@codemirror/lang-javascript"; 
 import { EditorView } from '@codemirror/view'; 
 import { helpPanel } from "$lib/function/helpPanel";  
-import {jscadModelingCompletionSource,getImportAliases} from "$lib/function/parsingCode"
+import {jscadModelingCompletionSource,getImportAliases,wordHover} from "$lib/function/parsingCode"
 import { autocompletion } from '@codemirror/autocomplete';  
 import {initEditorView,initPanel} from '$lib/components/panel.svelte'
 import {initDoc,diffUpdate} from '$lib/utils/yjs'
 //    import type { RGBA_ASTC_10x10_Format } from "three";
-
+//import {cursorTooltip} from "$lib/function/Tooltip"
 const {initWebrtcConn,
     saveFile,
     FileInfo}:{
@@ -87,8 +87,7 @@ const saveKeymap = {
         return true;
     }
 }
-
-     
+   
 
 let firstChange = false;
 </script>
@@ -97,7 +96,9 @@ let firstChange = false;
 <CodeMirror  
 lineWrapping={true}
     {value}
-    extensions={[helpPanel(),autocompletion({
+    extensions={[
+        wordHover,
+        helpPanel(),autocompletion({
             override:[ 
                 jscadModelingCompletionSource
         ]

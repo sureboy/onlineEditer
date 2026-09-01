@@ -1,17 +1,69 @@
 import { autocompletion,CompletionContext } from '@codemirror/autocomplete'; 
 //import jscadCompletions from '$lib/assets/jscadCompletions.json';
 import { snippets } from '@codemirror/lang-javascript';
-import type {CompletionResult} from '@codemirror/autocomplete'
+import type {CompletionResult,Completion} from '@codemirror/autocomplete'
 import { javascriptLanguage, } from '@codemirror/lang-javascript';
 //import {TreeCursor}  from '@codemirror/lang-javascript'
 import { type TreeCursor } from '@lezer/common'; 
-let cadImport:{[k:string]:any} = {}
+import {hoverTooltip} from "@codemirror/view"
+
+export const wordHover = hoverTooltip((view, pos, side) => {
+  let {from, to, text} = view.state.doc.lineAt(pos)
+  let start = pos, end = pos
+  while (start > from && /[\w.]+/.test(text[start - from - 1])) start--
+  while (end < to && /[\w.]+/.test(text[end - from])) end++
+  if (start == pos && side < 0 || end == pos && side > 0)
+    return null
+
+    const code = text.slice(start - from, end - from)
+   console.log(code.slice(0,code.indexOf('.')),cadImport)
+    let opt = cadImport[code.slice(0,code.indexOf('.'))] as Completion[]
+    //if (cadImport)
+    if (!opt) return null
+    //const item = opt[code]
+    opt = opt.filter(item=>{
+        if (
+            item.label.startsWith(code) &&
+            item.info
+        ){
+            return true;
+        }else
+            return false
+    })
+    
+    if (opt.length===0)return null
+    console.log(code,opt)
+  return {
+    pos: start,
+    end,
+    above: true,
+    create(view) {
+        let dom = document.createElement("div") 
+        opt.forEach(async item => { 
+            //if (!item.info)return
+            if (  typeof item.info ===  'string'){
+                const p = document.createElement("p")
+                p.textContent = JSON.stringify(item.info)
+                dom.appendChild(p) 
+            }else{
+                 const objdom = await item.info?.(item)
+                 if (objdom &&  'dom' in objdom)
+                dom.appendChild(objdom.dom)
+            }
+            
+            
+        }) 
+        return {dom} 
+    }
+  }
+})
+let cadImport:{[k:string]:Completion[]} = {}
 let VariableList:any[] = []
 const ImportVarList:{[k:string]:{doc:string,tree:TreeCursor,list:any[]}}  = {}
 export function jscadModelingCompletionSource (context:CompletionContext): CompletionResult | null  {
     let word = context.matchBefore(/[\w.]+/);
     if (!word || (word.from == word.to && !context.explicit)) return null; 
-    let opt = cadImport[word.text.slice(0,word.text.indexOf('.'))] as any[]
+    let opt = cadImport[word.text.slice(0,word.text.indexOf('.'))] as Completion[]
     if (opt){
         const lastd =word.text.lastIndexOf(".")
         
