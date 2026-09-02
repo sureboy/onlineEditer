@@ -288,7 +288,7 @@ const handleTreeCursorExport  = (iter:TreeCursor,doc: string,getVar:(vari:any)=>
                 }
                 break
             default:
-                console.log(iter.name,doc.slice(iter.from,iter.to))
+                //console.log(iter.name,doc.slice(iter.from,iter.to))
         }
      } while (iter.nextSibling());
      //VariableList.push(Variable)

@@ -9,7 +9,15 @@ import { autocompletion } from '@codemirror/autocomplete';
 import {type FileInfoType} from "$lib/function/fileHandle"
 import { appendChildToDom,createButton,createPackage,createSelect } from "$lib/function/helpPanel";  
 let manager: FullscreenWakeLockManager | undefined; 
-const initPanel =async ( FileInfo: FileInfoType  )=>{
+const {ready,
+    saveFile,
+    FileInfo
+}:{
+        saveFile:(v:string,FileInfo:FileInfoType)=>void,
+        FileInfo:FileInfoType,
+        ready:()=>any} = $props() 
+let timeout: number;
+const initPanel =async (  )=>{
     if (!FileInfo.DirHandle){
         createPackage(FileInfo) 
         return;
@@ -42,13 +50,7 @@ const initPanel =async ( FileInfo: FileInfoType  )=>{
         } 
     }),run)        
 } 
-const {ready,
-    saveFile,
-    FileInfo}:{
-        saveFile:(v:string,FileInfo:FileInfoType)=>void,
-        FileInfo:FileInfoType,
-        ready:()=>any} = $props() 
-let timeout: number;
+
 const StopTimeOut = ()=>{
     if (timeout===0)return;
     clearTimeout(timeout) 
@@ -58,7 +60,7 @@ const StopTimeOut = ()=>{
 $effect(()=>{
     //console.log(value)
     if (FileInfo.value)
-    initPanel(FileInfo) 
+    initPanel() 
 })
 const saveKeymap = {
     // 键名使用小写，用连字符连接

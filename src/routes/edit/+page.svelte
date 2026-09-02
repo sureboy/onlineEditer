@@ -1,17 +1,23 @@
-<script lang="ts">
-//import {onMount} from 'svelte'
-//import FullscreenWakeLockManager from '$lib/utils/FullscreenWakeLockManager'; 
-//import {getFileHandle,initPanel} from "$lib/components/panel.svelte"
+<script lang="ts"> 
 import {type FileInfoType,getDirHandle,newPackageCode} from "$lib/function/fileHandle"
 import Edit from "$lib/components/Edit.svelte";  
 import {initDoc,diffUpdate} from '$lib/utils/yjs' 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
 import {getImportAliases} from "$lib/function/parsingCode"
-//import {getFileHandle,initEditorView,initPanel} from '$lib/components/panel.svelte'
 
- 
- 
-//    import { preview } from "vite";
+const initFileHandle = (FileInfo:FileInfoType) =>{ 
+    try{
+        if (!FileInfo.DirHandle || FileInfo.create){ 
+            FileInfo.DirHandle = getDirHandle(
+                FileInfo.path,{create:FileInfo.create})
+        }
+        return FileInfo.DirHandle.getFileHandle(
+            encodeURIComponent(FileInfo.name)
+        )
+    }catch(err){
+        throw err
+    }
+}
 const FileInfo:FileInfoType =$state( {
     path:"",
     name:"./index.js" ,
@@ -77,19 +83,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     return ok
     
 }
-const initFileHandle = (FileInfo:FileInfoType) =>{ 
-    try{
-        if (!FileInfo.DirHandle || FileInfo.create){ 
-            FileInfo.DirHandle = getDirHandle(
-                FileInfo.path,{create:FileInfo.create})
-        }
-        return FileInfo.DirHandle.getFileHandle(
-            encodeURIComponent(FileInfo.name)
-        )
-    }catch(err){
-        throw err
-    }
-}
+
 
 const ready =async ( )=>{
     const hashPath = window.location.hash.slice(1);
