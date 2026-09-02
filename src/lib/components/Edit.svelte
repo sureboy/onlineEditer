@@ -1,81 +1,65 @@
-<script lang="ts" module> 
-import {type FileInfoType, 
-     newPackageCode} from "$lib/function/fileHandle"
-let value = $state(newPackageCode) 
-export const setValue = (v:string)=>{
-    value = v
-}
-let manager: FullscreenWakeLockManager | undefined;
-export const getFullscreenManager = ()=> manager;
-</script>
-<script lang="ts">
- 
+<script lang="ts" > 
 import FullscreenWakeLockManager from '$lib/utils/FullscreenWakeLockManager';
 import CodeMirror from "$lib/components/CodeMirror.svelte";
 import { javascript } from "@codemirror/lang-javascript"; 
 import { EditorView } from '@codemirror/view'; 
 import { helpPanel } from "$lib/function/helpPanel";  
 import {jscadModelingCompletionSource,getImportAliases,wordHover} from "$lib/function/parsingCode"
-import { autocompletion } from '@codemirror/autocomplete';  
-import {initEditorView,initPanel} from '$lib/components/panel.svelte'
-import {initDoc,diffUpdate} from '$lib/utils/yjs'
-//    import type { RGBA_ASTC_10x10_Format } from "three";
-//import {cursorTooltip} from "$lib/function/Tooltip"
-const {initWebrtcConn,
+import { autocompletion } from '@codemirror/autocomplete';    
+import {type FileInfoType} from "$lib/function/fileHandle"
+import { appendChildToDom,createButton,createPackage,createSelect } from "$lib/function/helpPanel";  
+let manager: FullscreenWakeLockManager | undefined; 
+const initPanel =async ( FileInfo: FileInfoType  )=>{
+    if (!FileInfo.DirHandle){
+        createPackage(FileInfo) 
+        return;
+    } 
+    const run  = document.createElement('a')
+    run.textContent="Preview"
+    run.href = "/preview#"+encodeURIComponent(JSON.stringify({path:FileInfo.path}))
+    run.style.marginRight = '6px';
+    run.target="previewPopup" 
+    run.style.float = "right" 
+    appendChildToDom(createButton("Delete","X",(e)=>{
+        //const fileName = FileInfo.name
+        if (!FileInfo.name)return
+        if (window.confirm(`Delete ${FileInfo.name} ?`)){
+            const handle = FileInfo.DirHandle?.getFileHandle(encodeURIComponent(FileInfo.name)) 
+            handle?.del().then(()=>{
+                console.log("del",FileInfo)
+                FileInfo.name = "./index.js"
+                FileInfo.initEditorView()
+            })
+        } 
+    }),...createSelect(FileInfo),createButton("screen","[]",(e)=>{
+        const btn = (e!.target as HTMLButtonElement)
+        if (btn.textContent==="[]"){
+            manager?.enterFullscreen();
+            btn.textContent="]["
+        }else{
+            btn.textContent="[]";
+            manager?.exitFullscreen();
+        } 
+    }),run)        
+} 
+const {ready,
     saveFile,
     FileInfo}:{
         saveFile:(v:string,FileInfo:FileInfoType)=>void,
         FileInfo:FileInfoType,
-        initWebrtcConn:(db:any )=>Promise<boolean>} = $props()
-
-//let channel:BroadcastChannel|undefined=undefined
+        ready:()=>any} = $props() 
 let timeout: number;
 const StopTimeOut = ()=>{
     if (timeout===0)return;
     clearTimeout(timeout) 
     timeout=0
 }
-  
-const ready =async ( )=>{
-    const hashPath = window.location.hash.slice(1);
-    if (hashPath){
-        const reqdb = JSON.parse(decodeURIComponent(hashPath)) 
-        if (reqdb.id && reqdb.host && reqdb.path){
-            if (!await initWebrtcConn(reqdb )){
-                await initPanel(FileInfo)
-                return
-            } 
-        }else{
-            Object.assign(
-                FileInfo , 
-                reqdb
-            ) 
-        } 
-        await initEditorView(
-            //cm_view,
-            FileInfo) 
-        
-
-    } else{
-        await initPanel(FileInfo)
-    }
-    if (FileInfo.path){ 
-        FileInfo.channel = new BroadcastChannel(FileInfo.path ); 
-        FileInfo.channel.onmessage=(event:any)=>{
-            //console.log(event.data,FileInfo)
-            if (event.data.name && event.data.db ){
-                const ydoc = initDoc(event.data.name)
-                if (ydoc){
-                    diffUpdate(event.data.db,ydoc.ydoc)
-                }
-                if(event.data.name===FileInfo.name ){
-                    setValue( event.data.db) 
-                }
-            }
-        }
-    }
-    
-} 
+//$derived()
+$effect(()=>{
+    //console.log(value)
+    if (FileInfo.value)
+    initPanel(FileInfo) 
+})
 const saveKeymap = {
     // 键名使用小写，用连字符连接
     key: "Mod-s", // Mod 键在 Windows/Linux 下代表 Ctrl，macOS 下代表 Cmd
@@ -86,16 +70,13 @@ const saveKeymap = {
         timeout=0
         return true;
     }
-}
-   
-
-let firstChange = false;
+} 
 </script>
 
 
 <CodeMirror  
 lineWrapping={true}
-    {value}
+    value={FileInfo.value}
     extensions={[
         wordHover,
         helpPanel(),autocompletion({
@@ -117,25 +98,8 @@ lineWrapping={true}
         //})   
     }}
     bounce={0} 
-    onchange = {(v)=>{ 
-        if (!FileInfo.name){
-            return
-        } 
-        if (!firstChange){
-            firstChange=true 
-            getImportAliases(v,FileInfo.name)
-            //console.log(aliases)
-            //jscadKey = getJscadImportAliases(v)
-            //fetch("/api").then(r=>{
-            //    r.json().then(v=>{
-            //        jscadCompletionsOption = v['modeling'] as any[]
-            //    })
-            //})
-            return
-        }
-        //console.log("change")
-        //if (timeout!==0){
-            StopTimeOut() ;
+    onchange = {(v)=>{  
+        StopTimeOut() ;
         timeout = window.setTimeout(() => {
             if (FileInfo.name)
             getImportAliases(v,FileInfo.name)

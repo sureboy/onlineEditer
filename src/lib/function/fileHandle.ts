@@ -44,8 +44,10 @@ export type FileInfoType  = {
     path:string,
     channel?:BroadcastChannel,
     //cm_view?: EditorView
-    //FileHandle?:FileSystemFileHandle,
-    DirHandle?:DirHandleType
+    //FileHandle?:  myFileHandleType,
+    DirHandle?:DirHandleType,
+    initEditorView:()=>any,
+    value?:string,
 } 
 export const getDirHandle =(name:string,create?:ListDirectoryOptions)=>{
   const root = createStorage()

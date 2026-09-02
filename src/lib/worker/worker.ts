@@ -15,12 +15,7 @@ const includeImport:{[key:string]:string} = {
 //import type {EntryInfo} from "$lib/storage-adapter/types"
 //const {handleCurrentMsg} = await import('$lib/function/ImportParser')
  import {type DirHandleType,getDirHandle} from "$lib/function/fileHandle"
- /*
-type DirHandleType = {
-  getFileHandle:(name:string)=>Promise<string | ArrayBuffer | Buffer<ArrayBufferLike>>,
-  name:string,
-  files:EntryInfo[]
-}*/
+
 const globalOption:{
   indexCurrent?:currentObj,
  
@@ -28,13 +23,21 @@ const globalOption:{
 } = { 
  
 }
- 
+let  channel:BroadcastChannel|undefined = undefined// = new BroadcastChannel(solidControlConfig.title); 
+const initBroadcastChannel = (name:string)=>{
+  if (channel)return
+  channel = new BroadcastChannel(name); 
+  channel.onmessage = (event) => { 
+    console.log("worker broadcase",event.data) 
+  }; 
+}
 const postMessage = async (e:any)=>{
  
 
   
   if (e.path){  
     try{ 
+
       const handle =globalOption.DirHandle?.getFileHandle(
         encodeURIComponent(e.path),
       ) 
@@ -100,6 +103,7 @@ const runCode =async (cur:currentObj,basename:string )=>{
 self.onmessage =async (event: MessageEvent) => { 
   //console.log("get msg",event.data)
   if ( event.data.path){
+    initBroadcastChannel(event.data.path)
     if (!globalOption.DirHandle || globalOption.DirHandle.name!==event.data.path ){
       try{
         //if (!globalOption.root)globalOption.root=await navigator.storage.getDirectory();

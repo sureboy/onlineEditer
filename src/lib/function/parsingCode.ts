@@ -57,7 +57,7 @@ export const wordHover = hoverTooltip((view, pos, side) => {
     }
   }
 })
-let cadImport:{[k:string]:Completion[]} = {}
+const cadImport:{[k:string]:Completion[]} = {}
 let VariableList:any[] = []
 const ImportVarList:{[k:string]:{doc:string,tree:TreeCursor,list:any[]}}  = {}
 export function jscadModelingCompletionSource (context:CompletionContext): CompletionResult | null  {
@@ -118,8 +118,8 @@ export function jscadModelingCompletionSource (context:CompletionContext): Compl
 };
 //const baseExtensions = 
 
-export function getImportAliases(doc: string,name:string) { 
-
+export function getImportAliases(doc: string,name?:string) { 
+    if (!name)return;
     const tree = javascriptLanguage.parser.parse(doc); 
     let iter = tree.cursor();
     let val = ImportVarList[name]

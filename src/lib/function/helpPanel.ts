@@ -2,26 +2,12 @@
 import { StateEffect, StateField } from "@codemirror/state";
 import { showPanel, EditorView, keymap } from "@codemirror/view";
 import type {   Panel } from "@codemirror/view";
+import type {FileInfoType} from "$lib/function/fileHandle"
+import { getImport } from "$lib/function/parsingCode"
 // 1. 定义用于切换面板状态的效果 (Effect)
-const toggleHelpEffect = StateEffect.define<boolean>();
-//let select:HTMLSelectElement|undefined = undefined
-//let content:HTMLSpanElement|undefined=undefined
+const toggleHelpEffect = StateEffect.define<boolean>(); 
 let dom:HTMLDivElement|undefined = undefined
-/*
-export const updateSelect =(path:string,name:string,files:string[])=>{
-    if (!select)return
-    select.innerHTML = ''
-    files.forEach((text) => {
-        let opt = document.createElement("option");
-        opt.textContent = text; 
-        opt.defaultSelected=text===name 
-        select?.appendChild(opt);
-    });
-    select.onchange=(e)=>{
-        window.location.hash = encodeURIComponent(JSON.stringify({name:select?.value||"",path})) 
-        window.location.reload()
-    }
-}*/
+ 
 export const appendChildToDom = (...childrenNode:HTMLElement[])=>{
     if (!dom)return
     dom.innerHTML=""
@@ -115,3 +101,150 @@ const helpTheme = EditorView.baseTheme({
 export function helpPanel() {
     return [helpPanelStateField, helpKeymap, helpTheme];
 }
+export function createButton(id:string,name?:string,onclick?:(e?:PointerEvent)=>void){
+    const but = document.createElement("button")
+    but.id=id
+    but.textContent=name||id
+    but.onclick=(e)=>{
+        onclick?.(e)
+    }
+    but.style.marginRight = '6px';
+    return but
+}
+
+
+const createInputElement = ( FileInfo: FileInfoType)=>{
+    const input = document.createElement("input")
+    input.type = "text"
+    input.placeholder="./index.js"
+    input.autofocus
+    input.onkeydown = (e)=>{
+        if (e.key === 'Enter' && input.value){
+            if (!FileInfo.path){
+                FileInfo.path = input.value
+                FileInfo.create = true
+                //window.location.hash = encodeURIComponent(
+                //    JSON.stringify({path:input.value,create:true  }))  
+            }else{
+                let name = input.value
+                if (!name.startsWith("./")){
+                    name = "./"+name
+                }
+                if (!name.endsWith(".js")){
+                    name += ".js"
+                } 
+                //FileInfo.path = path
+                FileInfo.name = name
+                //window.location.hash = encodeURIComponent(
+                //    JSON.stringify({name ,path  })) 
+            }
+            //getDirHandle(FileInfo.path)
+            //window.location.reload() 
+            FileInfo.initEditorView()//.then(()=>{
+              //  initPanel(FileInfo) 
+           // })
+        }
+    }
+    return input
+}
+
+export const createSelect = ( FileInfo: FileInfoType)=>{
+ //const files:string[] = []
+    const select = document.createElement("select")
+    const firstOpt = document.createElement("option");
+    firstOpt.textContent="--New file--"
+    const content = document.createElement("span");
+    content.style.marginRight = '6px';
+    //select.on
+    select.appendChild(firstOpt); 
+    selectClickHandle(select,FileInfo).then(()=>{
+        for (const child of select.childNodes.values()){
+            const opt = (child as HTMLOptionElement)
+            if (opt.value === (FileInfo.name ||'./index.js')){
+                opt.defaultSelected = true
+                break
+            }
+        }
+    })
+    
+    select.onchange=(e)=>{
+        if (!select.value)return;
+        switch (select.value) {
+        case firstOpt.textContent:
+            console.log("new file") 
+            content.append(createInputElement(FileInfo))
+            
+            //input.focus()
+            //appendChildToDom(input)
+            return
+        default:
+            FileInfo.name = select.value;
+            FileInfo.initEditorView(
+                //cm_view,
+                )
+            //window.location.hash = encodeURIComponent(
+            //JSON.stringify({name:select.value ,path:FileInfo.path})) 
+            //window.location.reload()
+        }
+    }
+    return [select,content]
+}
+
+const selectClickHandle =async (
+    select: HTMLSelectElement,FileInfo: FileInfoType)=>{
+    if (!FileInfo.DirHandle){ 
+        return
+    };
+    const oldItem:string[] =[] 
+    for (let i = 1; i<select.childNodes.length;i++){
+        oldItem.push((select.childNodes.item(i) as HTMLOptionElement).value)
+    }
+    const files = await FileInfo.DirHandle?.files() ||[]
+    if ( !oldItem.includes(FileInfo.name)){
+        let opt = document.createElement("option");
+        opt.textContent = FileInfo.name; 
+        opt.value = FileInfo.name
+        opt.defaultSelected=true
+        oldItem.push(FileInfo.name)
+        select.appendChild(opt);
+        //return
+    }
+    //console.log("select click",files,FileInfo)
+    for  (const f of  files){ 
+        //console.log("l1",f)
+        if (f.isDirectory){
+            continue;
+        }
+        const k = decodeURIComponent(f.name)
+        if (oldItem.includes(k)){
+            continue
+        }
+        let opt = document.createElement("option");
+        opt.textContent = k; 
+        opt.value = k
+        //opt.defaultSelected=k===(FileInfo.name ) 
+        const handle = FileInfo.DirHandle?.getFileHandle(f.name) 
+        handle?.read().then(doc=>{
+            getImport(doc,k) 
+        }) 
+        select.appendChild(opt);
+    }
+}
+
+export const createPackage = (FileInfo: FileInfoType)=>{
+    const input = createInputElement(FileInfo)
+    if (FileInfo.path){
+        input.value = FileInfo.path 
+    }else{
+        input.placeholder="create a project"
+    }
+    appendChildToDom(input,createButton("create","create",(e)=>{
+        if (input.value){
+
+            window.location.hash = encodeURIComponent(
+            JSON.stringify({path:input.value,create:true  }))  
+            window.location.reload() 
+        }                
+    }))
+}
+

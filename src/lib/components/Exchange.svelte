@@ -113,7 +113,7 @@ export const QRCodeHandle = (path:string)=>{
         })
         const {ydoc} =initDoc(data.name,fileCHannel,(text)=>{
           const postdb = {name:data.name,db:text} 
-          console.log(channel,postdb)
+          //console.log(channel,postdb)
           channel?.postMessage(postdb)
           previewModule(postdb) 
         } )!
