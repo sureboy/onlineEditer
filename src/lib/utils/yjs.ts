@@ -1,7 +1,13 @@
 
 import * as Y from 'yjs'
 import diff from 'fast-diff'; 
-const channelYdoc = new Map<string,{ydoc:Y.Doc,DataChannels:RTCDataChannel[]}>()
+const channelYdoc = new Map<string,{
+    ydoc:Y.Doc,
+    DataChannels:{
+        onmessage:any,
+        send:any,
+        label:string,
+        readyState:string}[]}>()
 
 export const diffUpdate=(text:string,ydoc:Y.Doc,origin?:string)=>{
     const ytext = ydoc.getText('content');

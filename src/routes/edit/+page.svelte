@@ -31,9 +31,13 @@ const FileInfo:FileInfoType =$state( {
 } as FileInfoType  )
 
 const saveFile =async (v:string,FileInfo:FileInfoType)=>{
-
+    //console.log("save")
     const handle = getFileHandle(FileInfo)  
     await handle?.write(v) 
+    //console.log("save end",FileInfo)
+    FileInfo.channeldb?.postMessage({basename:"main"})
+    return;
+    /*
     const msg = {Modal:true,path:FileInfo.path,name:FileInfo.name}
     try{ 
         FileInfo.channel?.postMessage(msg);
@@ -48,6 +52,7 @@ const saveFile =async (v:string,FileInfo:FileInfoType)=>{
  
         diffUpdate(v,ydoc)
     }
+        */
      
 } 
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
@@ -112,21 +117,6 @@ const ready =async ( )=>{
     }
     //setTimeout(()=>initPanel(FileInfo))
      
-    if (FileInfo.path){ 
-        FileInfo.channel = new BroadcastChannel(FileInfo.path ); 
-        FileInfo.channel.onmessage=(event:any)=>{
-            //console.log(event.data,FileInfo)
-            if (event.data.name && event.data.db ){
-                const ydoc = initDoc(event.data.name)
-                if (ydoc){
-                    diffUpdate(event.data.db,ydoc.ydoc)
-                }
-                if(event.data.name===FileInfo.name ){
-                    FileInfo.value = event.data.db
-                }
-            }
-        }
-    } 
 } 
 </script> 
 <Edit {ready} {saveFile}  {FileInfo}></Edit>   

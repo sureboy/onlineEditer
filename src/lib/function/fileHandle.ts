@@ -56,17 +56,19 @@ export const getDirHandle =(name:string,create?:ListDirectoryOptions)=>{
   const root = createStorage() 
   const getFileHandle = (file:string ) => {
     const p = `${name}/${file}` 
-    return {
-        createWriteStream:()=>{
-            return root.createWriteStream(p)
+    
+    return { 
+        write: function (db:string ){
+            const handle = initDoc(file)
+            if (handle){
+                diffUpdate(db,handle.ydoc)
+            }
+            return   root.writeFile(p,db)
         },
-        write:async (db:string )=>{
-            return await root.writeFile(p,db)
-        },
-        read:async ()=>{ 
+        read:async function (){ 
             return await root.readFile(p,'utf8') as string 
         },
-        del:()=>{
+        del:function(){
             return root.deleteFile(p)
         }
     } as myFileHandleType
@@ -102,7 +104,7 @@ export const initFileHandle = (FileInfo:FileInfoType) =>{
             
             return {
                 write: (db:string)=>{
-                    console.log("write chhanneldb")
+                    //console.log("write chhanneldb")
                     return new Promise((resolve,reject)=>{
                         function w(e:MessageEvent<{type:string,key:string}>){
                             if (e.data.type ==="write" && e.data.key ===key){
@@ -111,7 +113,7 @@ export const initFileHandle = (FileInfo:FileInfoType) =>{
                             }                            
                         }
                         FileInfo.channeldb?.addEventListener("message",w)
-                        FileInfo.channeldb?.postMessage({name,db,type:"write"}) 
+                        FileInfo.channeldb?.postMessage({name,key,db,type:"write"}) 
                     })
                     //}catch(err){
                     //    return oldHandle(name).write(db)
@@ -126,7 +128,7 @@ export const initFileHandle = (FileInfo:FileInfoType) =>{
                             }                            
                         }
                         FileInfo.channeldb?.addEventListener("message",h)
-                        FileInfo.channeldb?.postMessage({name,type:"read"}) 
+                        FileInfo.channeldb?.postMessage({name,key,type:"read"}) 
                     })
                     //return ""
                 },
@@ -139,7 +141,7 @@ export const initFileHandle = (FileInfo:FileInfoType) =>{
                             }                            
                         }
                         FileInfo.channeldb?.addEventListener("message",h)
-                        FileInfo.channeldb?.postMessage({name,type:"del"}) 
+                        FileInfo.channeldb?.postMessage({name,key,type:"del"}) 
                     })
                 }
             }

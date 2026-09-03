@@ -27,21 +27,29 @@ let  channel:BroadcastChannel|undefined = undefined// = new BroadcastChannel(sol
 const initBroadcastChannel = (name:string)=>{
   if (channel)return
   channel = new BroadcastChannel(name+"_db"); 
-  
-  channel.onmessage =async (event:MessageEvent<{key?:string,type?:string,name?:string,db?:string}>) => { 
-    //console.log("worker broadcase",event.data) 
+  channel.postMessage({type:"init"})
+  channel.onmessage =async (event:MessageEvent<{basename:string,key?:string,type?:string,name?:string,db?:string}>) => { 
+    console.log("worker broadcase",event.data) 
+    if (globalOption.indexCurrent && event.data.basename){
+       console.log("worker show",globalOption.indexCurrent)
+      runCode(globalOption.indexCurrent,event.data.basename)
+      //return
+    } 
     if (!event.data.name || !event.data.type){
       channel?.postMessage(event.data)
       return 
     } 
+
     switch (event.data.type){
       case "read":
         const db = await globalOption.DirHandle?.getFileHandle(event.data.name).read() 
         channel?.postMessage(Object.assign(event.data,{db}))
         return;
       case "write":
-        await globalOption.DirHandle?.getFileHandle(event.data.name).write(event.data.db!)
-        channel?.postMessage(event.data)
+        await globalOption.DirHandle?.getFileHandle(event.data.name).write(event.data.db!) 
+        globalOption.indexCurrent = getIndex(handleCurrentMsg({db:event.data.db,name:event.data.name } )!)
+        channel?.postMessage({type:event.data.type,key:event.data.key})
+        
         return;
       case "del":
         await globalOption.DirHandle?.getFileHandle(event.data.name).del()
@@ -161,6 +169,7 @@ self.onmessage =async (event: MessageEvent) => {
     if (cur){ 
       if (event.data.basename){
         await runCode( cur,event.data.basename);
+        return
       }
     }  
   }catch(err){
