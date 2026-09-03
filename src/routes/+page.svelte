@@ -1,14 +1,11 @@
 <script lang="ts">
  
 import NavMenu from '$lib/components/NavMenu.svelte'; 
-import List from '$lib/website/List.svelte';
-import type {itemType} from '$lib/website/List.svelte'
- 
-import { extractTarStreamToOPFS } from '$lib/function/tar'; 
-import { onMount } from 'svelte';
+import List ,{type itemType} from '$lib/website/List.svelte'; 
+import { extractTarStreamToOPFS } from '$lib/function/tar';  
 import {createStorage} from '$lib/storage-adapter/factory' 
-import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte'; 
-import {jsonToForm,collectFormData,ShowSubmit} from '$lib/utils/jsonToForm'    
+import Dialog,{openModal} from '$lib/components/Dialog.svelte'; 
+import {ShowSubmit} from '$lib/utils/jsonToForm'    
 let DialogDiv:HTMLDivElement
 let title = ""
 const getConnHostJsonStr = ()=>{
@@ -24,11 +21,7 @@ const getConnHostJsonStr = ()=>{
         host:"https://www.zaddone.com/rtc"
     }  
 } 
-onMount(() => {
 
-    
-    
-});
 const webRTCP2P = ()=>{
     openModal()
     ShowSubmit(DialogDiv,getConnHostJsonStr(),(db)=>{  
@@ -45,8 +38,7 @@ const webRTCP2P = ()=>{
         editPage.href = "/edit#"+encodeURIComponent(JSON.stringify(db))
         editPage.textContent = db.path
         DialogDiv.appendChild(editPage)
-        editPage.click()
-
+        editPage.click() 
     })
     
 }

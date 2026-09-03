@@ -14,7 +14,7 @@ const includeImport:{[key:string]:string} = {
 //import {createStorage} from '$lib/storage-adapter/factory'  
 //import type {EntryInfo} from "$lib/storage-adapter/types"
 //const {handleCurrentMsg} = await import('$lib/function/ImportParser')
- import {type DirHandleType,getDirHandle} from "$lib/function/fileHandle"
+import {type DirHandleType,getDirHandle} from "$lib/function/fileHandle"
 
 const globalOption:{
   indexCurrent?:currentObj,
@@ -26,11 +26,36 @@ const globalOption:{
 let  channel:BroadcastChannel|undefined = undefined// = new BroadcastChannel(solidControlConfig.title); 
 const initBroadcastChannel = (name:string)=>{
   if (channel)return
-  channel = new BroadcastChannel(name); 
-  channel.onmessage = (event) => { 
-    console.log("worker broadcase",event.data) 
+  channel = new BroadcastChannel(name+"_db"); 
+  
+  channel.onmessage =async (event:MessageEvent<{key?:string,type?:string,name?:string,db?:string}>) => { 
+    //console.log("worker broadcase",event.data) 
+    if (!event.data.name || !event.data.type){
+      channel?.postMessage(event.data)
+      return 
+    } 
+    switch (event.data.type){
+      case "read":
+        const db = await globalOption.DirHandle?.getFileHandle(event.data.name).read() 
+        channel?.postMessage(Object.assign(event.data,{db}))
+        return;
+      case "write":
+        await globalOption.DirHandle?.getFileHandle(event.data.name).write(event.data.db!)
+        channel?.postMessage(event.data)
+        return;
+      case "del":
+        await globalOption.DirHandle?.getFileHandle(event.data.name).del()
+        channel?.postMessage(event.data)
+        return;
+      default:
+        channel?.postMessage(event.data)
+        return 
+    } 
   }; 
 }
+
+
+
 const postMessage = async (e:any)=>{
  
 
@@ -129,15 +154,6 @@ self.onmessage =async (event: MessageEvent) => {
         return
       }
     }else{ 
-      /*
-      let d = DocMap.get(name)
-      if (!d){
-        d = new Y.Doc()
-        DocMap.set(name,d)
-        //d.getText(db)
-      }
-      Y.applyUpdate(d,db,"remote")
-*/
       await handle?.write(db) 
     } 
     const cur =    handleCurrentMsg({db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)

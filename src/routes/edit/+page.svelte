@@ -1,30 +1,27 @@
 <script lang="ts"> 
-import {type FileInfoType,getDirHandle,newPackageCode} from "$lib/function/fileHandle"
+import {type FileInfoType,getDirHandle,newPackageCode,initFileHandle} from "$lib/function/fileHandle"
 import Edit from "$lib/components/Edit.svelte";  
 import {initDoc,diffUpdate} from '$lib/utils/yjs' 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
-import {getImportAliases} from "$lib/function/parsingCode"
-
-const initFileHandle = (FileInfo:FileInfoType) =>{ 
-    try{
-        if (!FileInfo.DirHandle || FileInfo.create){ 
-            FileInfo.DirHandle = getDirHandle(
-                FileInfo.path,{create:FileInfo.create})
-        }
-        return FileInfo.DirHandle.getFileHandle(
-            encodeURIComponent(FileInfo.name)
-        )
-    }catch(err){
-        throw err
+import {getImportAliases} from "$lib/function/parsingCode" 
+ 
+const getFileHandle = (FileInfo:FileInfoType) =>{ 
+    
+    if (!FileInfo.DirHandle || FileInfo.create){ 
+        initFileHandle(FileInfo)
     }
+    return FileInfo.DirHandle?.getFileHandle(
+        encodeURIComponent(FileInfo.name)
+    )
+     
 }
 const FileInfo:FileInfoType =$state( {
     path:"",
     name:"./index.js" ,
     initEditorView:async function(){
-        const handle =  initFileHandle(this) 
+        const handle =  getFileHandle(this) 
         try{
-            this.value = await handle.read()
+            this.value = await handle?.read()
         }catch(err){
             //console.error(err)
             this.value = newPackageCode
@@ -35,8 +32,8 @@ const FileInfo:FileInfoType =$state( {
 
 const saveFile =async (v:string,FileInfo:FileInfoType)=>{
 
-    const handle = initFileHandle(FileInfo)  
-    await handle.write(v) 
+    const handle = getFileHandle(FileInfo)  
+    await handle?.write(v) 
     const msg = {Modal:true,path:FileInfo.path,name:FileInfo.name}
     try{ 
         FileInfo.channel?.postMessage(msg);
@@ -67,10 +64,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
                     FileInfo.channel?.postMessage(msg);
                     if (filename.includes("index")  ){
                         FileInfo.value =db
-                        getImportAliases(db,FileInfo.name) 
-                        //setTimeout(()=>initPanel(FileInfo))
-                        //setValue(db);
-                        //initEditorView(FileInfo)
+                        getImportAliases(db,FileInfo.name)  
                     }
                 })
             })
@@ -100,10 +94,11 @@ const ready =async ( )=>{
                 reqdb
             ) 
         } 
-        const fh = initFileHandle(FileInfo) 
+        const fh = getFileHandle(FileInfo) 
         try{
-            const v = await fh.read() 
+            const v = await fh?.read() || newPackageCode
             //setValue(v)
+
             FileInfo.value =v
             //if (FileInfo.name){
             getImportAliases(v,FileInfo.name) 

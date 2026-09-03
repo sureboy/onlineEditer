@@ -11,7 +11,7 @@
     }
     export function closeModal() {
         open = false;
-        console.log("close modal")
+        //console.log("close modal")
         if (dialogEl) dialogEl.close(); 
     } 
 </script>

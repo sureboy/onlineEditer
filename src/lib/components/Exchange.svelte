@@ -36,17 +36,17 @@ let showModal = false
 export const getDialogDiv = ()=>{
   return DialogDiv
 }
-export const previewHandle =async (data: any,onmessage?: (e: MessageEvent) => void)=>{
+export const previewHandle =async (data: { [k:string]:any},onmessage?: (e: MessageEvent) => void)=>{
   if (!data.basename){
     data.basename="main"
   }
   //console.log(data,onmessage)
-  const w = await getWorker(onmessage) 
+  const w = await getWorker( onmessage) 
   w?.postMessage( data) 
    
 }
 const previewModule = (data:{Modal?:boolean,
-  name: string; db: string; path?: string;} )=>{
+  name: string; db: string; path: string;} )=>{
   if (data.Modal&&showModal ) { 
       if (DialogDiv){
         DialogDiv.innerHTML=''
@@ -112,7 +112,7 @@ export const QRCodeHandle = (path:string)=>{
           console.log(data.name,"pc close")
         })
         const {ydoc} =initDoc(data.name,fileCHannel,(text)=>{
-          const postdb = {name:data.name,db:text} 
+          const postdb = {name:data.name,db:text,path} 
           //console.log(channel,postdb)
           channel?.postMessage(postdb)
           previewModule(postdb) 
