@@ -8,11 +8,22 @@ import { getWorker } from '$lib/worker/globalWorker';
 import QRCode from 'qrcode';
 import {getFileList,getFileData} from "$lib/function/tar"
 import {initDoc,diffUpdate} from "$lib/utils/yjs"
+import { getDirHandle, type DirInfoType } from '$lib/function/fileHandle';
 import * as Y from 'yjs'
+const FileBroadcastChannelMap = new Map<string,BroadcastChannel>()
+const getFileBroadcastChannel = (name:string)=>{
+  let b = FileBroadcastChannelMap.get(name)
+  if (!b){
+    b = new BroadcastChannel(name)
+    FileBroadcastChannelMap.set(name,b)
+  }
+  return  b
+}
+let dirInfo:DirInfoType
 
 type meshInfoType = {
     conn:connType, 
-    files:Map<string,{d:RTCDataChannel,y:Y.Doc}>
+    files:Map<string,{d:RTCDataChannel,y?:Y.Doc}>
 } 
 let channel:BroadcastChannel|undefined=$state(undefined)
 const meshList:(meshInfoType|null)[] =$state([])
@@ -102,37 +113,75 @@ const getConnHostJsonStr = ()=>{
 
  
 export const QRCodeHandle = (path:string)=>{ 
+  
   ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
     createWebrtcConnFromCenterUrl(db,async (conn)=>{
-      const mesh = {conn,files:new Map()}
-      getFileList(path,(data,w)=>{
-        //const k =  data.name
-        const fileCHannel = conn.pc.createDataChannel(`${data.name}_${conn.dc?.label}`)
-        fileCHannel.addEventListener("close",(e)=>{
-          console.log(data.name,"pc close")
+      const mesh = {conn,files:new Map<string,{d:RTCDataChannel }>()}
+      //const DirHandle = getDirHandle(path)
+      //dirInfo:DirInfoType
+      dirInfo.DirHandle?.files().then(fs=>{
+        fs.forEach(f=>{
+          const fileHandle = dirInfo.DirHandle?.getFileHandle(f.name)
+          fileHandle?.read().then(db=>{
+            const fileCHannel = conn.pc.createDataChannel(`${f.name}_${conn.dc?.label}`)
+            mesh.files.set(f.name,{d:fileCHannel}); 
+            fileCHannel.onopen=async ()=>{   
+              fileCHannel.send(db)
+              const broadcasthandle = (  ev: MessageEvent<{update:any,origin:string}>)=>{
+                if (ev.data.origin !== fileCHannel.label)
+                  fileCHannel.send(ev.data.update)
+              }
+              const b = getFileBroadcastChannel(f.name)
+              b.addEventListener('message', broadcasthandle )
+
+              fileCHannel.onclose = ()=>{
+                b.removeEventListener('message',broadcasthandle)
+              }
+              fileCHannel.onmessage=(ev)=>{
+                console.log(ev)
+                const data = {db:ev.data,origin:fileCHannel.label}
+                fileHandle?.write(data)
+                
+              }              
+            }
+          })
         })
+      })
+      /*
+      getFileList(path,(data,w)=>{ 
+        const fileCHannel = conn.pc.createDataChannel(`${data.name}_${conn.dc?.label}`)
+        mesh.files.set(data.name,{d:fileCHannel}); 
+        fileCHannel.onopen=async ()=>{  
+
+          fileCHannel.send(db)
+          const broadcasthandle = (  ev: MessageEvent<{update:any,origin:string}>)=>{
+            if (ev.data.origin !== fileCHannel.label)
+              fileCHannel.send(ev.data.update)
+          }
+          const b = getFileBroadcastChannel(data.name)
+          b.addEventListener('message', broadcasthandle )
+
+          fileCHannel.onclose = ()=>{
+            b.removeEventListener('message',broadcasthandle)
+          }
+          fileCHannel.onmessage=(ev)=>{
+
+          }
+        }
+        //const k =  data.name
+        //const fileCHannel = conn.pc.createDataChannel(`${data.name}_${conn.dc?.label}`)
+        
         const {ydoc} =initDoc(data.name,fileCHannel,(text)=>{
           const postdb = {name:data.name,db:text,path} 
           //console.log(channel,postdb)
           channel?.postMessage(postdb)
           previewModule(postdb) 
         } )!
-        
-        mesh.files.set(data.name,{d:fileCHannel,y:ydoc}); 
-        fileCHannel.onopen=async ()=>{   
-          //ydoc.getText("content").insert(0, data.db);
-          const ytext = ydoc?.getText("content")
-          if (ytext?.length===0){
-            ytext.insert(0,data.db)
-          }
-          //const tempDoc = new Y.Doc();
-          //tempDoc.getText('content').insert(0, data.db);
-          const update = Y.encodeStateAsUpdate(ydoc!);
-          fileCHannel.send(update as Uint8Array<ArrayBuffer>)
-          //Y.applyUpdate(ydoc, update,(conn.dc?.label||"preview")+'_edit');  
-        }
-      })
        
+        
+    
+      })
+        */
       addMesh(mesh)
       
 
@@ -143,9 +192,7 @@ export const QRCodeHandle = (path:string)=>{
       }
       ShowQRImg(db,path)
     })
-  }); 
-
-
+  });  
   openModal()
 }
 const ShowQRImg = (db:any,path:string)=>{
@@ -175,6 +222,8 @@ const ShowQRImg = (db:any,path:string)=>{
 import type {connType} from "$lib/utils/webRTCPool"
 import type {ConfigType} from "$lib/components/OrthoScene.svelte"
 import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte'; 
+   import { createDirInfo } from '$lib/function/fileHandle';
+//    import Dialog from '$lib/components/Dialog.svelte';
 //import {onMount} from 'svelte'
 const {
   solidControlConfig, 
@@ -186,6 +235,7 @@ $effect(() => {
   if (!solidControlConfig.title || channel){
     return;
   }
+  dirInfo =createDirInfo(solidControlConfig.title) 
   channel = new BroadcastChannel(solidControlConfig.title); 
   //console.log(title,channel)
   channel.onmessage = (event) => { 

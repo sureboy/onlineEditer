@@ -3,6 +3,7 @@ import * as Y from 'yjs'
 import diff from 'fast-diff'; 
 const channelYdoc = new Map<string,{
     ydoc:Y.Doc,
+    BroadcastCh?:BroadcastChannel,
     DataChannels:{
         onmessage:any,
         send:any,
@@ -28,7 +29,19 @@ export const diffUpdate=(text:string,ydoc:Y.Doc,origin?:string)=>{
         ytext.applyDelta(delta);
     },origin);
 }
-
+export const initDocEasy = (filename:string)=>{
+    let handle = channelYdoc.get(filename)
+    if (!handle ){
+        handle = {ydoc:new Y.Doc(),
+            BroadcastCh:new BroadcastChannel(filename)
+            ,DataChannels:[]}
+        //const channelBase = new BroadcastChannel(filename)
+        handle.ydoc.on("update",(update,origin)=>{ 
+            handle?.BroadcastCh?.postMessage({update,origin})
+        })
+    }
+    return handle
+}
 export const initDoc = (filename:string,fileCHannel?: RTCDataChannel,getdb?:(t:string)=>void  )=>{
     //console.log("initDoc",filename)
     let handle = channelYdoc.get(filename)
@@ -62,7 +75,7 @@ export const initDoc = (filename:string,fileCHannel?: RTCDataChannel,getdb?:(t:s
 
     return handle
 }
-const updateDoc = (data:any,ydoc:Y.Doc,_origin:string )=>{
+export const updateDoc = (data:any,ydoc:Y.Doc,_origin:string )=>{
 
     if (data == null) {
         console.warn('Received null/undefined data, ignoring');

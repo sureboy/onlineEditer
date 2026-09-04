@@ -1,5 +1,7 @@
 <script lang="ts">
 import { Canvas } from '@threlte/core'
+//    import { getDirHandle, type DirInfoType } from '$lib/function/fileHandle';
+
 import Menu,{SetEditingHashInfo} from '$lib/components/Menu.svelte'   
 import { csg2Geo } from "$lib/function/csg2Three"; 
 //import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
@@ -11,6 +13,7 @@ import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
 import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
 import Exchange,{getDialogDiv,QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte'; 
 let geometrys:{geometry:any,material:any}[] =$state([]) 
+
 const solidControlConfig:ConfigType = $state({
   //title:"welcome",
   //Fullscreen:false,

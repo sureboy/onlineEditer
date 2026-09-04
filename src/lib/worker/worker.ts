@@ -24,42 +24,54 @@ const globalOption:{
  
 }
 let  channel:BroadcastChannel|undefined = undefined// = new BroadcastChannel(solidControlConfig.title); 
-const initBroadcastChannel = (name:string)=>{
-  if (channel)return
-  channel = new BroadcastChannel(name+"_db"); 
-  channel.postMessage({type:"init"})
-  channel.onmessage =async (event:MessageEvent<{basename:string,key?:string,type?:string,name?:string,db?:string}>) => { 
-    console.log("worker broadcase",event.data) 
-    if (globalOption.indexCurrent && event.data.basename){
+
+const messageChannelListen = async (event:MessageEvent<{
+    basename:string,
+    key?:string,type?:string,name?:string,data?:{db:string|ArrayBuffer,origin?:string}}>) => { 
+    
+
+    if (!event.data.name || !event.data.type){
+      channel?.postMessage(event.data)
+      //return 
+    } else{
+      switch (event.data.type){ 
+        case "read":
+          const db = await globalOption.DirHandle?.getFileHandle(event.data.name).read() 
+          channel?.postMessage(Object.assign(event.data,{db}))
+          break;
+        case "write":
+          await globalOption.DirHandle?.getFileHandle(event.data.name).write(event.data.data!) 
+          if (typeof event.data.data?.db ==="string")
+            globalOption.indexCurrent = getIndex(handleCurrentMsg({db:event.data.data?.db,name:event.data.name } )!)
+          //else
+          channel?.postMessage({type:event.data.type,key:event.data.key}) 
+          break;
+        case "del":
+          await globalOption.DirHandle?.getFileHandle(event.data.name).del()
+          channel?.postMessage(event.data)
+          break;
+        default:
+          channel?.postMessage(event.data)
+          break 
+      } 
+    } 
+    if (globalOption.indexCurrent 
+      //&& event.data.basename
+    ){
        console.log("worker show",globalOption.indexCurrent)
       runCode(globalOption.indexCurrent,event.data.basename)
       //return
     } 
-    if (!event.data.name || !event.data.type){
-      channel?.postMessage(event.data)
-      return 
-    } 
-
-    switch (event.data.type){
-      case "read":
-        const db = await globalOption.DirHandle?.getFileHandle(event.data.name).read() 
-        channel?.postMessage(Object.assign(event.data,{db}))
-        return;
-      case "write":
-        await globalOption.DirHandle?.getFileHandle(event.data.name).write(event.data.db!) 
-        globalOption.indexCurrent = getIndex(handleCurrentMsg({db:event.data.db,name:event.data.name } )!)
-        channel?.postMessage({type:event.data.type,key:event.data.key})
-        
-        return;
-      case "del":
-        await globalOption.DirHandle?.getFileHandle(event.data.name).del()
-        channel?.postMessage(event.data)
-        return;
-      default:
-        channel?.postMessage(event.data)
-        return 
-    } 
   }; 
+
+const initBroadcastChannel = (name:string)=>{
+  if (channel)return
+  channel = new BroadcastChannel(name+"_db"); 
+  channel.postMessage({type:"init"})
+  channel.onmessage =(e)=>{
+    console.log("worker broadcase",e.data) 
+    messageChannelListen(e)
+  }
 }
 
 
@@ -138,33 +150,47 @@ self.onmessage =async (event: MessageEvent) => {
   if ( event.data.path){
     initBroadcastChannel(event.data.path)
     if (!globalOption.DirHandle || globalOption.DirHandle.name!==event.data.path ){
-      try{
+      //try{
         //if (!globalOption.root)globalOption.root=await navigator.storage.getDirectory();
-        globalOption.DirHandle = getDirHandle(event.data.path);
-      }catch(err){
-        console.error(err)
-      }
+      globalOption.DirHandle = getDirHandle(event.data.path);
+      //}catch(err){
+      //  console.error(err)
+      //}
+      
     }
     if (event.data.files){
       self.postMessage({path:event.data.path,files:(await globalOption.DirHandle?.files())})
     }
   }
+
+  const name = event.data.name||"./index.js"
+  const db = event.data.db || await globalOption.DirHandle?.getFileHandle(encodeURIComponent(name)).read()
+  const cur =    handleCurrentMsg({ db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
+  if (cur  ){ 
+    globalOption.indexCurrent = getIndex(cur)
+    //await runCode( cur,event.data.basename);
+  }
+  messageChannelListen(event)
+  return
+  /*
   //if ( globalOption.DirHandle){
   const name = event.data.name || "./index.js"
   const fileName= encodeURIComponent(name)
-  let db = event.data.db
+  //let db = event.data.db
   const handle = globalOption.DirHandle?.getFileHandle(fileName)  
   try{  
-    if (!db){     
-      db = await  handle?.read()  
+    //const data = {}
+    if (!event.data.db){     
+      event.data.db = await  handle?.read()  
       if (event.data.src){
-        self.postMessage({db,name,fileName})
+        self.postMessage({db:event.data.db,name,fileName})
         return
       }
     }else{ 
+      
       await handle?.write(db) 
     } 
-    const cur =    handleCurrentMsg({db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
+    const cur =    handleCurrentMsg({event.data.db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
    
     if (cur){ 
       if (event.data.basename){
@@ -178,7 +204,7 @@ self.onmessage =async (event: MessageEvent) => {
   } 
   if (globalOption.indexCurrent && event.data.basename){
     runCode(globalOption.indexCurrent,event.data.basename)
-  } 
+  } */
 };
 //console.log("run")
 //self.postMessage({start:true})

@@ -1,7 +1,7 @@
 <script lang="ts"> 
 import {type FileInfoType,getDirHandle,newPackageCode,initFileHandle} from "$lib/function/fileHandle"
 import Edit from "$lib/components/Edit.svelte";  
-import {initDoc,diffUpdate} from '$lib/utils/yjs' 
+//import {initDoc,diffUpdate} from '$lib/utils/yjs' 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
 import {getImportAliases} from "$lib/function/parsingCode" 
  
@@ -33,9 +33,9 @@ const FileInfo:FileInfoType =$state( {
 const saveFile =async (v:string,FileInfo:FileInfoType)=>{
     //console.log("save")
     const handle = getFileHandle(FileInfo)  
-    await handle?.write(v) 
+    await handle?.write({db:v}) 
     //console.log("save end",FileInfo)
-    FileInfo.channeldb?.postMessage({basename:"main"})
+    //FileInfo.channeldb?.postMessage({basename:"main"})
     return;
     /*
     const msg = {Modal:true,path:FileInfo.path,name:FileInfo.name}
@@ -60,8 +60,22 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
         console.log(conn)
         conn.pc.ondatachannel = async (e)=>{
             const filename = e.channel.label.slice(0,e.channel.label.lastIndexOf("_"))
+            const broadcastCh = new BroadcastChannel(filename)
+            broadcastCh.onmessage = (  ev: MessageEvent<{update:any,origin:string}>)=>{
+                if (ev.data.origin !== e.channel.label)
+                    e.channel.send(ev.data.update)
+            }
             const fh =  FileInfo.DirHandle?.getFileHandle(
                 encodeURIComponent(filename) ); 
+            e.channel.onmessage=(ev)=>{
+                const data = {db:ev.data,origin:e.channel.label}
+                fh?.write(data)
+                if (filename.includes("index")  && typeof data.db ==="string"){
+                    FileInfo.value =data.db
+                    getImportAliases(data.db,FileInfo.name)  
+                }
+            }
+            /*
             initDoc(filename,e.channel,(db)=>{
                 console.log("write",filename)
                 fh?.write(db).then(()=>{
@@ -72,7 +86,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
                         getImportAliases(db,FileInfo.name)  
                     }
                 })
-            })
+            })*/
         }            
     }) 
     if (ok){
