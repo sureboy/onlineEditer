@@ -1,6 +1,6 @@
-<script lang="ts"> 
-import {type FileInfoType,getDirHandle,newPackageCode,initFileHandle} from "$lib/function/fileHandle"
-import Edit from "$lib/components/Edit.svelte";  
+<script lang="ts">  
+import {getDirHandle,newPackageCode,initFileHandle} from "$lib/function/fileHandle"
+import Edit,{type FileInfoType} from "$lib/components/Edit.svelte";  
 //import {initDoc,diffUpdate} from '$lib/utils/yjs' 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
 import {getImportAliases} from "$lib/function/parsingCode" 
@@ -15,65 +15,73 @@ const getFileHandle = (FileInfo:FileInfoType) =>{
     )
      
 }
+ 
 const FileInfo:FileInfoType =$state( {
+    getFileBroadcastChannel:function(name:string){
+        this.name =decodeURIComponent(name )
+        let broadcastCh = this.fileBroadcastChannelMap.get(name)
+        if (!broadcastCh){
+            broadcastCh = new BroadcastChannel(name)
+            this.fileBroadcastChannelMap.set(name,broadcastCh)
+            broadcastCh.onmessage = (  ev: MessageEvent<{db:string,update:any,origin:string}>)=>{ 
+                console.log("bh",name,ev.data.origin,ev.data,this)
+                if (ev.data.origin && ev.data.origin.includes(name)){
+                    //getFileHandle(this)?.read().then(db=>{
+                        //console.log("read",ev.data.db)
+                        this.value =ev.data.db
+                        //getImportAliases(ev.data.db,this.name)  
+                  //  })
+                } 
+            } 
+        }
+        return broadcastCh
+    },
+    fileBroadcastChannelMap:new Map(),
     path:"",
     name:"./index.js" ,
+    value:"",
     initEditorView:async function(){
         const handle =  getFileHandle(this) 
         try{
-            this.value = await handle?.read()
-        }catch(err){
-            //console.error(err)
+            this.value = await handle?.read()! || newPackageCode
+            getImportAliases(this.value,this.name) 
+            this.getFileBroadcastChannel(encodeURIComponent(this.name))
+        }catch(err){ 
             this.value = newPackageCode
-        }
+        } 
         
+         
     }
-} as FileInfoType  )
+}   )
 
-const saveFile =async (v:string,FileInfo:FileInfoType)=>{
-    //console.log("save")
+const saveFile =async (v:string,FileInfo:FileInfoType)=>{ 
     const handle = getFileHandle(FileInfo)  
-    await handle?.write({db:v}) 
-    //console.log("save end",FileInfo)
-    //FileInfo.channeldb?.postMessage({basename:"main"})
-    return;
-    /*
-    const msg = {Modal:true,path:FileInfo.path,name:FileInfo.name}
-    try{ 
-        FileInfo.channel?.postMessage(msg);
-        //sendCodeToPreview(msg) 
-    }catch(err){
-        console.log(err)
-    }  
-
-    const yhandle = initDoc(msg.name)
-    if (yhandle){
-        const {ydoc} = yhandle
- 
-        diffUpdate(v,ydoc)
-    }
-        */
-     
+    await handle?.write({db:v})  
 } 
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     const ok  = await createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
         console.log(conn)
         conn.pc.ondatachannel = async (e)=>{
             const filename = e.channel.label.slice(0,e.channel.label.lastIndexOf("_"))
-            const broadcastCh = new BroadcastChannel(filename)
-            broadcastCh.onmessage = (  ev: MessageEvent<{update:any,origin:string}>)=>{
-                if (ev.data.origin !== e.channel.label)
+            //console.log(filename)
+            const broadcastCh = FileInfo.getFileBroadcastChannel(filename)
+            const fh =  FileInfo.DirHandle?.getFileHandle(filename) ; 
+            const bhandle =  (  ev: MessageEvent<{update:any,origin:string}>)=>{
+                if (ev.data.origin !== e.channel.label){
                     e.channel.send(ev.data.update)
+                }
             }
-            const fh =  FileInfo.DirHandle?.getFileHandle(
-                encodeURIComponent(filename) ); 
+            broadcastCh.addEventListener("message",bhandle)
+            e.channel.onclose = ()=>{
+                broadcastCh.removeEventListener("message",bhandle)
+            }
             e.channel.onmessage=(ev)=>{
                 const data = {db:ev.data,origin:e.channel.label}
                 fh?.write(data)
-                if (filename.includes("index")  && typeof data.db ==="string"){
-                    FileInfo.value =data.db
-                    getImportAliases(data.db,FileInfo.name)  
-                }
+                //if (filename.includes("index")  && typeof data.db ==="string"){
+                //    FileInfo.value =data.db
+                //    getImportAliases(data.db,FileInfo.name)  
+                //}
             }
             /*
             initDoc(filename,e.channel,(db)=>{
@@ -98,7 +106,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
 }
 
 
-const ready =async ( )=>{
+const ready =async ()=>{
     const hashPath = window.location.hash.slice(1);
     if (hashPath){
         const reqdb = JSON.parse(decodeURIComponent(hashPath)) 
@@ -113,19 +121,8 @@ const ready =async ( )=>{
                 reqdb
             ) 
         } 
-        const fh = getFileHandle(FileInfo) 
-        try{
-            const v = await fh?.read() || newPackageCode
-            //setValue(v)
-
-            FileInfo.value =v
-            //if (FileInfo.name){
-            getImportAliases(v,FileInfo.name) 
-            //} 
-        }catch(err){
-            FileInfo.value = newPackageCode
-            console.error(err)
-        }
+        await FileInfo.initEditorView()
+         
     }else{
         FileInfo.value = newPackageCode
     }

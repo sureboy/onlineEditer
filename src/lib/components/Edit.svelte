@@ -1,3 +1,12 @@
+<script lang="ts" module>
+export type FileInfoType  = { 
+    name:string, 
+    initEditorView:()=>any,
+    value?:string,
+    fileBroadcastChannelMap:Map<string,BroadcastChannel>,
+    getFileBroadcastChannel:(name:string)=>BroadcastChannel
+} & DirInfoType
+</script>
 <script lang="ts" > 
 import FullscreenWakeLockManager from '$lib/utils/FullscreenWakeLockManager';
 import CodeMirror from "$lib/components/CodeMirror.svelte";
@@ -6,16 +15,17 @@ import { EditorView } from '@codemirror/view';
 import { helpPanel } from "$lib/function/helpPanel";  
 import {jscadModelingCompletionSource,getImportAliases,wordHover} from "$lib/function/parsingCode"
 import { autocompletion } from '@codemirror/autocomplete';    
-import {type FileInfoType} from "$lib/function/fileHandle"
+import {type DirInfoType} from "$lib/function/fileHandle"
 import { appendChildToDom,createButton,createPackage,createSelect } from "$lib/function/helpPanel";  
-let manager: FullscreenWakeLockManager | undefined; 
+let manager: FullscreenWakeLockManager | undefined;  
 const {ready,
     saveFile,
     FileInfo
 }:{
-        saveFile:(v:string,FileInfo:FileInfoType)=>void,
-        FileInfo:FileInfoType,
-        ready:()=>any} = $props() 
+    saveFile:(v:string,FileInfo:FileInfoType)=>void,
+    FileInfo:FileInfoType,
+    ready:()=>any
+} = $props() 
 let timeout: number;
 const initPanel =async (  )=>{
     if (!FileInfo.DirHandle){

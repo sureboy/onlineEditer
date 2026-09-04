@@ -37,7 +37,11 @@ export const initDocEasy = (filename:string)=>{
             ,DataChannels:[]}
         //const channelBase = new BroadcastChannel(filename)
         handle.ydoc.on("update",(update,origin)=>{ 
-            handle?.BroadcastCh?.postMessage({update,origin})
+            handle?.BroadcastCh?.postMessage({
+                update,
+                origin,
+                db:handle.ydoc.getText("content").toString()
+            })
         })
     }
     return handle

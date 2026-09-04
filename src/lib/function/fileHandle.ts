@@ -45,18 +45,7 @@ export type DirInfoType = {
     channeldb?:BroadcastChannel,
     DirHandle?:DirHandleType,
 }
-export type FileInfoType  = {
-    //create?:boolean,
-    name:string,//index.js
-    //path:string,
-    //channel?:BroadcastChannel,
-    //channeldb?:BroadcastChannel,
-    //cm_view?: EditorView
-    //FileHandle?:  myFileHandleType,
-    //DirHandle?:DirHandleType,
-    initEditorView:()=>any,
-    value?:string,
-} & DirInfoType
+
  
 export const getDirHandle =(name:string,create?:ListDirectoryOptions)=>{
   const root = createStorage() 

@@ -2,7 +2,7 @@
 import { StateEffect, StateField } from "@codemirror/state";
 import { showPanel, EditorView, keymap } from "@codemirror/view";
 import type {   Panel } from "@codemirror/view";
-import type {FileInfoType} from "$lib/function/fileHandle"
+import type {FileInfoType} from "$lib/components/Edit.svelte"
 import { getImport } from "$lib/function/parsingCode"
 // 1. 定义用于切换面板状态的效果 (Effect)
 const toggleHelpEffect = StateEffect.define<boolean>(); 
@@ -169,15 +169,14 @@ export const createSelect = ( FileInfo: FileInfoType)=>{
     
     select.onchange=(e)=>{
         if (!select.value)return;
-        switch (select.value) {
-        case firstOpt.textContent:
+        if (select.value ===firstOpt.textContent) { 
             console.log("new file") 
             content.append(createInputElement(FileInfo))
             
             //input.focus()
             //appendChildToDom(input)
             return
-        default:
+        }else{
             FileInfo.name = select.value;
             FileInfo.initEditorView(
                 //cm_view,
