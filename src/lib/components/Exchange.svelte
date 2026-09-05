@@ -12,6 +12,7 @@ import { getDirHandle, type DirInfoType } from '$lib/function/fileHandle';
 import * as Y from 'yjs'
 const FileBroadcastChannelMap = new Map<string,BroadcastChannel>()
 const getFileBroadcastChannel = (name:string)=>{
+  name = decodeURIComponent(name)
   let b = FileBroadcastChannelMap.get(name)
   if (!b){
     b = new BroadcastChannel(name)

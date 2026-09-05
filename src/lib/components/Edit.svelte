@@ -1,10 +1,11 @@
 <script lang="ts" module>
 export type FileInfoType  = { 
     name:string, 
+    CurrentBroadcastChannel?:BroadcastChannel,
     initEditorView:()=>any,
     value?:string,
     fileBroadcastChannelMap:Map<string,BroadcastChannel>,
-    getFileBroadcastChannel:(name:string)=>BroadcastChannel
+    getFileBroadcastChannel:(name?:string)=>BroadcastChannel
 } & DirInfoType
 </script>
 <script lang="ts" > 
