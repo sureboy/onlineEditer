@@ -14,65 +14,74 @@ const includeImport:{[key:string]:string} = {
 //import {createStorage} from '$lib/storage-adapter/factory'  
 //import type {EntryInfo} from "$lib/storage-adapter/types"
 //const {handleCurrentMsg} = await import('$lib/function/ImportParser')
-import {type DirHandleType,getDirHandle} from "$lib/function/fileHandle"
+import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
 
 const globalOption:{
   indexCurrent?:currentObj,
  
-  DirHandle?:DirHandleType
+  DirHandle?:DirInfoType
 } = { 
  
 }
-let  channel:BroadcastChannel|undefined = undefined// = new BroadcastChannel(solidControlConfig.title); 
+//let  channel:BroadcastChannel|undefined = undefined// = new BroadcastChannel(solidControlConfig.title); 
 
 const messageChannelListen = async (event:MessageEvent<{
-    basename:string,
+    basename?:string,
     key?:string,type?:string,name?:string,data?:{db:string|ArrayBuffer,origin?:string}}>) => { 
     
-
+    const  channel = globalOption.DirHandle?.channeldb
     if (!event.data.name || !event.data.type){
       channel?.postMessage(event.data)
       //return 
     } else{
       switch (event.data.type){ 
         case "read":
-          const db = await globalOption.DirHandle?.getFileHandle(event.data.name).read() 
+          const db = await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).read() 
           channel?.postMessage(Object.assign(event.data,{db}))
           break;
         case "write":
-          await globalOption.DirHandle?.getFileHandle(event.data.name).write(event.data.data!) 
-          if (typeof event.data.data?.db ==="string")
-            globalOption.indexCurrent = getIndex(handleCurrentMsg({db:event.data.data?.db,name:event.data.name } )!)
+          await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).write(event.data.data!) 
+          if (typeof event.data.data?.db ==="string"){
+            //globalOption.indexCurrent = getIndex(handleCurrentMsg({db:event.data.data?.db,name:event.data.name } )!)
+            const cur = handleCurrentMsg({db:event.data.data?.db,name:event.data.name } )
+            if (cur)
+              runCode(cur,event.data.basename)
+          }
           //else
           channel?.postMessage({type:event.data.type,key:event.data.key}) 
           break;
         case "del":
-          await globalOption.DirHandle?.getFileHandle(event.data.name).del()
+          await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).del()
           channel?.postMessage(event.data)
           break;
         default:
-          channel?.postMessage(event.data)
+          //channel?.postMessage(event.data)
           break 
       } 
     } 
+    /*
     if (globalOption.indexCurrent 
       //&& event.data.basename
     ){
-       console.log("worker show",globalOption.indexCurrent)
+      // console.log("worker show",globalOption.indexCurrent)
       runCode(globalOption.indexCurrent,event.data.basename)
       //return
-    } 
+    } */
   }; 
 
+  /*
 const initBroadcastChannel = (name:string)=>{
   if (channel)return
   channel = new BroadcastChannel(name+"_db"); 
   channel.postMessage({type:"init"})
   channel.onmessage =(e)=>{
+    if (e.data.type ==="init"){
+
+    }
     console.log("worker broadcase",e.data) 
     messageChannelListen(e)
   }
-}
+}*/
 
 
 
@@ -83,7 +92,7 @@ const postMessage = async (e:any)=>{
   if (e.path){  
     try{ 
 
-      const handle =globalOption.DirHandle?.getFileHandle(
+      const handle =globalOption.DirHandle?.DirHandle?.getFileHandle(
         encodeURIComponent(e.path),
       ) 
       if (handle){
@@ -114,16 +123,16 @@ const getIndex = (c:currentObj )=>{
     return c
   } 
 }
-const runCode =async (cur:currentObj,basename:string )=>{
- try{
+const runCode =async (cur:currentObj,basename?:string )=>{
+  try{
     globalOption.indexCurrent = getIndex(cur)
     const u = await globalOption.indexCurrent.getUri() 
-    const src=await  import(/* @vite-ignore */u) 
+    const src = await  import(/* @vite-ignore */u) 
     const list = Object.keys(src)
     if (!list.length){
       return
     }
-    const module = {list,basename:(list.includes(basename))?basename:list[0]} 
+    const module = {list,basename:basename||list[0]} 
     self.postMessage({module}) 
     const tmpDB = src[module.basename]()
     getCsgObjArray(tmpDB,(msg)=>{ 
@@ -145,66 +154,38 @@ const runCode =async (cur:currentObj,basename:string )=>{
     throw err 
   } 
 }  
+
 self.onmessage =async (event: MessageEvent) => { 
   //console.log("get msg",event.data)
   if ( event.data.path){
-    initBroadcastChannel(event.data.path)
-    if (!globalOption.DirHandle || globalOption.DirHandle.name!==event.data.path ){
+    
+    if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){
       //try{
         //if (!globalOption.root)globalOption.root=await navigator.storage.getDirectory();
-      globalOption.DirHandle = getDirHandle(event.data.path);
+      globalOption.DirHandle = createDirInfo(event.data.path,messageChannelListen);
+      //globalOption.DirHandle.channeldb!.onmessage! = messageChannelListen
+      //initBroadcastChannel(event.data.path)
       //}catch(err){
       //  console.error(err)
       //}
       
     }
-    if (event.data.files){
-      self.postMessage({path:event.data.path,files:(await globalOption.DirHandle?.files())})
+    //if (event.data.files){
+    //  self.postMessage({path:event.data.path,files:(await globalOption.DirHandle?.files())})
+    //}
+    const name = event.data.name||"./index.js"
+    const db = event.data.db || await globalOption.DirHandle.DirHandle?.getFileHandle(encodeURIComponent(name)).read()
+    const cur =    handleCurrentMsg({ db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
+    if (cur  ){ 
+      //globalOption.indexCurrent = getIndex(cur)
+      await runCode( cur,event.data.basename);
     }
   }
 
-  const name = event.data.name||"./index.js"
-  const db = event.data.db || await globalOption.DirHandle?.getFileHandle(encodeURIComponent(name)).read()
-  const cur =    handleCurrentMsg({ db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
-  if (cur  ){ 
-    globalOption.indexCurrent = getIndex(cur)
-    //await runCode( cur,event.data.basename);
-  }
-  messageChannelListen(event)
-  return
-  /*
-  //if ( globalOption.DirHandle){
-  const name = event.data.name || "./index.js"
-  const fileName= encodeURIComponent(name)
-  //let db = event.data.db
-  const handle = globalOption.DirHandle?.getFileHandle(fileName)  
-  try{  
-    //const data = {}
-    if (!event.data.db){     
-      event.data.db = await  handle?.read()  
-      if (event.data.src){
-        self.postMessage({db:event.data.db,name,fileName})
-        return
-      }
-    }else{ 
-      
-      await handle?.write(db) 
-    } 
-    const cur =    handleCurrentMsg({event.data.db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
+
+  //messageChannelListen(event)
+  //return
    
-    if (cur){ 
-      if (event.data.basename){
-        await runCode( cur,event.data.basename);
-        return
-      }
-    }  
-  }catch(err){
-    //self.postMessage({err})
-    console.error(err)
-  } 
-  if (globalOption.indexCurrent && event.data.basename){
-    runCode(globalOption.indexCurrent,event.data.basename)
-  } */
 };
 //console.log("run")
 //self.postMessage({start:true})

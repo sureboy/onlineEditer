@@ -1,18 +1,18 @@
 <script lang="ts">  
-import {createDirInfo,newPackageCode,initFileHandle} from "$lib/function/fileHandle"
+import {newPackageCode,initFileHandleClient} from "$lib/function/fileHandle"
 import Edit,{type FileInfoType} from "$lib/components/Edit.svelte";  
 //import {initDoc,diffUpdate} from '$lib/utils/yjs' 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
 import {getImportAliases} from "$lib/function/parsingCode"  
 const getFileHandle = (FileInfo:FileInfoType) =>{  
     if (!FileInfo.DirHandle || FileInfo.create){ 
-        initFileHandle(FileInfo)
+        initFileHandleClient(FileInfo)
     }
     return FileInfo.DirHandle?.getFileHandle(
         encodeURIComponent(FileInfo.name)
     ) 
 }
-
+const Originkey =  Date.now().toString(32).slice(4);
 const FileInfo:FileInfoType =$state( {
     getFileBroadcastChannel:function(_name?:string){ 
         let name = _name;
@@ -34,7 +34,8 @@ const FileInfo:FileInfoType =$state( {
             if (!broadcastCh.onmessage){ 
                 broadcastCh.onmessage = (  ev: MessageEvent<{db:string,update:any,origin:string}>)=>{ 
                     //console.log(ev.data)
-                    if (ev.data.origin && ev.data.origin.includes(name)){ 
+                    if (ev.data.origin && ev.data.origin!==Originkey){ 
+                        console.log("update edit",ev.data.origin)
                         this.value = ev.data.db 
                     } 
                 }
@@ -63,7 +64,8 @@ const FileInfo:FileInfoType =$state( {
 
 const saveFile =async (v:string,FileInfo:FileInfoType)=>{ 
     //const handle = getFileHandle(FileInfo)  
-    await getFileHandle(FileInfo)?.write({db:v})  
+    console.log("save edit")
+    await getFileHandle(FileInfo)?.write({db:v,origin:Originkey})  
 } 
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     const ok  = await createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
@@ -108,7 +110,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     }) 
     if (ok){
         FileInfo.path = reqdb.path +"_"+reqdb.id 
-        initFileHandle(FileInfo)
+        initFileHandleClient(FileInfo)
         //FileInfo.DirHandle = createDirInfo(FileInfo.path) 
     }
     return ok

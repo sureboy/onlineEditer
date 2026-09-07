@@ -84,42 +84,25 @@ export const getDirHandle =(name:string,create?:ListDirectoryOptions)=>{
   return {files:()=>root.listFilesInDirectory(name,create),name,getFileHandle} as DirHandleType
 }
  
-export const createDirInfo = (path:string)=>{
+export const createDirInfo = (path:string,messageHandle?:(e:any)=>void)=>{
     const f:DirInfoType = {path}
-    initFileHandle(f)
+    initFileHandleClient(f,messageHandle)
     return f
 }
  
-export const initFileHandle = (FileInfo:DirInfoType) =>{ 
+export const initFileHandleClient = (FileInfo:DirInfoType,messageHandle?:(e:any)=>void) =>{ 
     if (!FileInfo.path)return; 
     const key =  Date.now().toString(32).slice(4);
     FileInfo.DirHandle = getDirHandle(
-        FileInfo.path,{create:FileInfo.create})
-    /*
-    FileInfo.channel = new BroadcastChannel(FileInfo.path ); 
-    FileInfo.channel.onmessage=(event:any)=>{
-        //console.log(event.data,FileInfo)
-        if (event.data.name && event.data.db ){
-            const ydoc = initDoc(event.data.name)
-            if (ydoc){
-                diffUpdate(event.data.db,ydoc.ydoc)
-            }
-            if(event.data.name===FileInfo.name ){
-                FileInfo.value = event.data.db
-            }
-        }
-    }*/
+        FileInfo.path,{create:FileInfo.create}) 
     FileInfo.channeldb = new BroadcastChannel(FileInfo.path+"_db" ); 
 
-    FileInfo.channeldb.onmessage=(event:any)=>{
-        //console.log("get",event.data,FileInfo)
-        //if (event)
+    FileInfo.channeldb.onmessage =messageHandle || ((ev:MessageEvent)=>{ 
+        //FileInfo.channeldb?.postMessage(Object.assign(event.data,{key})) 
         const oldHandle = FileInfo.DirHandle!.getFileHandle
-        FileInfo.DirHandle!.getFileHandle =(name:string)=>{
-            
+        FileInfo.DirHandle!.getFileHandle =(name:string)=>{ 
             return Object.assign(oldHandle(name), {
-                write: (data:{db:string|ArrayBuffer,origin?:string})=>{
-                    console.log("write chhanneldb")
+                write: (data:{db:string|ArrayBuffer,origin?:string})=>{ 
                     return new Promise<void>((resolve,reject)=>{
                         function w(e:MessageEvent<{type:string,key:string}>){
                             if (e.data.type ==="write" && e.data.key ===key){
@@ -129,10 +112,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                         }
                         FileInfo.channeldb?.addEventListener("message",w)
                         FileInfo.channeldb?.postMessage({name,key,data,type:"write"}) 
-                    })
-                    //}catch(err){
-                    //    return oldHandle(name).write(db)
-                    //}                    
+                    })                   
                 },
  
                 del:()=>{
@@ -149,6 +129,6 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 }
             });
         }
-    }
+    })
     FileInfo.channeldb.postMessage({key}) 
 }

@@ -6,8 +6,8 @@ import {
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
 import { getWorker } from '$lib/worker/globalWorker';
 import QRCode from 'qrcode';
-import {getFileList,getFileData} from "$lib/function/tar"
-import {initDoc,diffUpdate} from "$lib/utils/yjs"
+//import {getFileList,getFileData} from "$lib/function/tar"
+//import {initDoc,diffUpdate} from "$lib/utils/yjs"
 import {  type DirInfoType } from '$lib/function/fileHandle';
 import * as Y from 'yjs'
 const FileBroadcastChannelMap = new Map<string,BroadcastChannel>()
@@ -52,9 +52,9 @@ export const previewHandle =async (data: { [k:string]:any},onmessage?: (e: Messa
   if (!data.basename){
     data.basename="main"
   }
-  //console.log(data,onmessage)
-  const w = await getWorker( onmessage) 
-  w?.postMessage( data) 
+  console.log(data);
+  (await getWorker( onmessage)).postMessage(data)
+  //w?.postMessage( data) 
    
 }
 const previewModule = (data:{Modal?:boolean,
@@ -148,41 +148,7 @@ export const QRCodeHandle = (path:string)=>{
           })
         })
       })
-      /*
-      getFileList(path,(data,w)=>{ 
-        const fileCHannel = conn.pc.createDataChannel(`${data.name}_${conn.dc?.label}`)
-        mesh.files.set(data.name,{d:fileCHannel}); 
-        fileCHannel.onopen=async ()=>{  
-
-          fileCHannel.send(db)
-          const broadcasthandle = (  ev: MessageEvent<{update:any,origin:string}>)=>{
-            if (ev.data.origin !== fileCHannel.label)
-              fileCHannel.send(ev.data.update)
-          }
-          const b = getFileBroadcastChannel(data.name)
-          b.addEventListener('message', broadcasthandle )
-
-          fileCHannel.onclose = ()=>{
-            b.removeEventListener('message',broadcasthandle)
-          }
-          fileCHannel.onmessage=(ev)=>{
-
-          }
-        }
-        //const k =  data.name
-        //const fileCHannel = conn.pc.createDataChannel(`${data.name}_${conn.dc?.label}`)
-        
-        const {ydoc} =initDoc(data.name,fileCHannel,(text)=>{
-          const postdb = {name:data.name,db:text,path} 
-          //console.log(channel,postdb)
-          channel?.postMessage(postdb)
-          previewModule(postdb) 
-        } )!
        
-        
-    
-      })
-        */
       addMesh(mesh)
       
 
@@ -223,9 +189,8 @@ const ShowQRImg = (db:any,path:string)=>{
 import type {connType} from "$lib/utils/webRTCPool"
 import type {ConfigType} from "$lib/components/OrthoScene.svelte"
 import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte'; 
-   import { createDirInfo } from '$lib/function/fileHandle';
-//    import Dialog from '$lib/components/Dialog.svelte';
-//import {onMount} from 'svelte'
+import { createDirInfo } from '$lib/function/fileHandle'; 
+
 const {
   solidControlConfig, 
 }:{ 
@@ -237,6 +202,7 @@ $effect(() => {
     return;
   }
   dirInfo =createDirInfo(solidControlConfig.title) 
+  /*
   channel = new BroadcastChannel(solidControlConfig.title); 
   //console.log(title,channel)
   channel.onmessage = (event) => { 
@@ -248,7 +214,7 @@ $effect(() => {
         diffUpdate(db.db,handle.ydoc) 
       })
     }
-  }; 
+  }; */
 })
 
 
