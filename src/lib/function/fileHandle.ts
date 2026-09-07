@@ -44,6 +44,7 @@ export type DirInfoType = {
     path:string,
     channeldb?:BroadcastChannel,
     DirHandle?:DirHandleType,
+    islocal?:boolean
 }
 
  
@@ -97,11 +98,13 @@ export const initFileHandleClient = (FileInfo:DirInfoType,messageHandle?:(e:any)
         FileInfo.path,{create:FileInfo.create}) 
     FileInfo.channeldb = new BroadcastChannel(FileInfo.path+"_db" ); 
 
-    FileInfo.channeldb.onmessage =messageHandle || ((ev:MessageEvent)=>{ 
+    FileInfo.channeldb.onmessage = messageHandle || ((ev:MessageEvent<{key:string}>)=>{ 
         //FileInfo.channeldb?.postMessage(Object.assign(event.data,{key})) 
+        if (FileInfo.islocal)return
+        FileInfo.islocal = true
         const oldHandle = FileInfo.DirHandle!.getFileHandle
-        FileInfo.DirHandle!.getFileHandle =(name:string)=>{ 
-            return Object.assign(oldHandle(name), {
+        FileInfo.DirHandle!.getFileHandle =function(name:string){ 
+            return Object.assign(oldHandle.call(this,name), {
                 write: (data:{db:string|ArrayBuffer,origin?:string})=>{ 
                     return new Promise<void>((resolve,reject)=>{
                         function w(e:MessageEvent<{type:string,key:string}>){
@@ -112,9 +115,8 @@ export const initFileHandleClient = (FileInfo:DirInfoType,messageHandle?:(e:any)
                         }
                         FileInfo.channeldb?.addEventListener("message",w)
                         FileInfo.channeldb?.postMessage({name,key,data,type:"write"}) 
-                    })                   
-                },
- 
+                    })
+                }, 
                 del:()=>{
                     return new Promise<void>((resolve,reject)=>{
                         function h(e:MessageEvent<{type:string,key:string}>){

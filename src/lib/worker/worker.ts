@@ -17,11 +17,9 @@ const includeImport:{[key:string]:string} = {
 import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
 
 const globalOption:{
-  indexCurrent?:currentObj,
- 
+  indexCurrent?:currentObj, 
   DirHandle?:DirInfoType
-} = { 
- 
+} = {
 }
 //let  channel:BroadcastChannel|undefined = undefined// = new BroadcastChannel(solidControlConfig.title); 
 
@@ -85,10 +83,7 @@ const initBroadcastChannel = (name:string)=>{
 
 
 
-const postMessage = async (e:any)=>{
- 
-
-  
+const postMessage = async (e:any)=>{ 
   if (e.path){  
     try{ 
 
@@ -168,6 +163,34 @@ self.onmessage =async (event: MessageEvent) => {
       //}catch(err){
       //  console.error(err)
       //}
+      const channel = globalOption.DirHandle.channeldb
+      if (channel){
+        channel.addEventListener("message",(e:MessageEvent<{type:string}>)=>{
+          switch(e.data.type){
+            case "init":
+              channel.postMessage({type:"close"});
+              return;
+            case "close":
+              channel.onmessage =  (e)=>{
+                if (e.data.type==="write" && event.data.name){
+                  setTimeout(()=>{
+                    const name = event.data.name
+                    globalOption.DirHandle?.DirHandle?.getFileHandle(name).read().then(db=>{
+                      const cur = handleCurrentMsg({db,name } )
+                      if (cur){
+                        runCode(cur,event.data.basename)
+                      }
+                    })
+                  },100)
+                }
+              }
+          }
+          if (e.data.type==="init"){
+            channel.postMessage({type:"close"})
+          }
+        })
+      }
+
       
     }
     //if (event.data.files){

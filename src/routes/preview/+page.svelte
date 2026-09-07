@@ -98,11 +98,37 @@ const onmessageListen =async (e:MessageEvent)=>{
   }
 }  
 onMount(() => { 
+  
   try{
     const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))
     //let path =
     getDialogDiv().innerHTML=''
     if (path){
+      /*
+      const broadPage = new BroadcastChannel(path+"_page")
+      broadPage.onmessage = (ev:MessageEvent< string>)=>{
+        console.log(ev.data)
+        switch(ev.data){
+          case "focus":
+            window.focus();
+            broadPage.postMessage("close");
+            return;
+          case "close":
+            try {
+                window.close();
+            } catch(e) {
+              console.log(e)
+            } 
+            broadPage.close()
+            setTimeout(function() {
+                //location.href = 'about:blank';
+                console.log("blank")
+            }, 100);
+            return
+        }
+      }
+      broadPage.postMessage("focus")
+      */
       solidControlConfig.title = path
       SetEditingHashInfo({path})
       previewHandle({path },onmessageListen)
