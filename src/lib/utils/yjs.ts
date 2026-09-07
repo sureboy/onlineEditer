@@ -33,7 +33,7 @@ export const initDocEasy = (filename:string)=>{
     let handle = channelYdoc.get(filename)
     if (!handle ){
         handle = {ydoc:new Y.Doc(),
-            BroadcastCh:new BroadcastChannel(decodeURIComponent(filename))
+            BroadcastCh:new BroadcastChannel(filename)
             ,DataChannels:[]}
         //const channelBase = new BroadcastChannel(filename)
         handle.ydoc.on("update",(update,origin)=>{ 

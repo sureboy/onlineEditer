@@ -83,12 +83,13 @@ export const getDirHandle =(name:string,create?:ListDirectoryOptions)=>{
   }
   return {files:()=>root.listFilesInDirectory(name,create),name,getFileHandle} as DirHandleType
 }
+ 
 export const createDirInfo = (path:string)=>{
-    const f = {path}
+    const f:DirInfoType = {path}
     initFileHandle(f)
     return f
 }
-
+ 
 export const initFileHandle = (FileInfo:DirInfoType) =>{ 
     if (!FileInfo.path)return; 
     const key =  Date.now().toString(32).slice(4);
@@ -118,7 +119,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
             
             return Object.assign(oldHandle(name), {
                 write: (data:{db:string|ArrayBuffer,origin?:string})=>{
-                    //console.log("write chhanneldb")
+                    console.log("write chhanneldb")
                     return new Promise<void>((resolve,reject)=>{
                         function w(e:MessageEvent<{type:string,key:string}>){
                             if (e.data.type ==="write" && e.data.key ===key){

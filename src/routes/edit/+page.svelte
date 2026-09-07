@@ -1,5 +1,5 @@
 <script lang="ts">  
-import {getDirHandle,newPackageCode,initFileHandle} from "$lib/function/fileHandle"
+import {createDirInfo,newPackageCode,initFileHandle} from "$lib/function/fileHandle"
 import Edit,{type FileInfoType} from "$lib/components/Edit.svelte";  
 //import {initDoc,diffUpdate} from '$lib/utils/yjs' 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
@@ -14,8 +14,9 @@ const getFileHandle = (FileInfo:FileInfoType) =>{
 }
 
 const FileInfo:FileInfoType =$state( {
-    getFileBroadcastChannel:function(name?:string){ 
-        if (!name)name = this.name
+    getFileBroadcastChannel:function(_name?:string){ 
+        let name = _name;
+        if (!name)name =encodeURIComponent( this.name)
         console.log(name)
         let broadcastCh = this.fileBroadcastChannelMap.get(name)
         if (!broadcastCh){
@@ -23,7 +24,7 @@ const FileInfo:FileInfoType =$state( {
             broadcastCh.onmessage=null
             this.fileBroadcastChannelMap.set(name,broadcastCh) 
         } 
-        if (name===this.name){
+        if (!_name ){
             if (this.CurrentBroadcastChannel){
                 if(this.CurrentBroadcastChannel.name !== name ){
                     this.CurrentBroadcastChannel.onmessage=null 
@@ -32,8 +33,8 @@ const FileInfo:FileInfoType =$state( {
             this.CurrentBroadcastChannel = broadcastCh 
             if (!broadcastCh.onmessage){ 
                 broadcastCh.onmessage = (  ev: MessageEvent<{db:string,update:any,origin:string}>)=>{ 
-                    console.log(ev.data)
-                    if (ev.data.origin && decodeURIComponent(ev.data.origin).includes(name)){ 
+                    //console.log(ev.data)
+                    if (ev.data.origin && ev.data.origin.includes(name)){ 
                         this.value = ev.data.db 
                     } 
                 }
@@ -49,9 +50,9 @@ const FileInfo:FileInfoType =$state( {
     //CurrentBroadcastChannel:undefined,
     initEditorView:async function(){ 
         this.getFileBroadcastChannel() 
-        const handle =  getFileHandle(this) 
+        //const handle =  getFileHandle(this) 
         try{
-            this.value = await handle?.read()! || newPackageCode
+            this.value = await getFileHandle(this)?.read()! || newPackageCode
             getImportAliases(this.value,this.name) 
             
         }catch(err){ 
@@ -61,8 +62,8 @@ const FileInfo:FileInfoType =$state( {
 } as FileInfoType)
 
 const saveFile =async (v:string,FileInfo:FileInfoType)=>{ 
-    const handle = getFileHandle(FileInfo)  
-    await handle?.write({db:v})  
+    //const handle = getFileHandle(FileInfo)  
+    await getFileHandle(FileInfo)?.write({db:v})  
 } 
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     const ok  = await createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
@@ -70,8 +71,8 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
         conn.pc.ondatachannel = async (e)=>{
             const filename = e.channel.label.slice(0,e.channel.label.lastIndexOf("_"))
             //console.log(filename)
-            const broadcastCh = FileInfo.getFileBroadcastChannel(decodeURIComponent(filename))
-            const fh =  FileInfo.DirHandle?.getFileHandle(filename) ; 
+            const broadcastCh = FileInfo.getFileBroadcastChannel(filename)
+            //const fh =  FileInfo.DirHandle?.getFileHandle(filename) ; 
             const bhandle =  (  ev: MessageEvent<{update:any,origin:string}>)=>{
                 if (ev.data.origin !== e.channel.label){
                     e.channel.send(ev.data.update)
@@ -84,7 +85,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
             e.channel.onmessage=(ev)=>{
                 const data = {db:ev.data,origin:e.channel.label}
                 //console.log(data)
-                fh?.write(data)
+                FileInfo.DirHandle?.getFileHandle(filename)?.write(data)
                 //console.log("end",data)
                 //if (filename.includes("index")  && typeof data.db ==="string"){
                 //    FileInfo.value =data.db
@@ -107,7 +108,8 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     }) 
     if (ok){
         FileInfo.path = reqdb.path +"_"+reqdb.id 
-        FileInfo.DirHandle = getDirHandle(FileInfo.path) 
+        initFileHandle(FileInfo)
+        //FileInfo.DirHandle = createDirInfo(FileInfo.path) 
     }
     return ok
     
