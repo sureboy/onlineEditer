@@ -1,14 +1,13 @@
 <script lang="ts">
+//import {Dialog} from '$lib/components/Dialog.svelte'
 import { Canvas } from '@threlte/core'
-//    import { getDirHandle, type DirInfoType } from '$lib/function/fileHandle';
-
 import Menu,{SetEditingHashInfo} from '$lib/components/Menu.svelte'   
 import { csg2Geo } from "$lib/function/csg2Three"; 
-//import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
 import { onMount } from 'svelte'; 
 import {  Vector3,WebGLRenderer } from 'three';
 import OrthoScene,{refreshCamera,refreshCameraInit,type ConfigType}  from '$lib/components/OrthoScene.svelte'; 
 import DownMenu from "$lib/components/DownMenu.svelte";
+//import {parseError} from "$lib/utils/parseError"
 import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
 import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
 import Exchange,{getDialogDiv,QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte'; 
@@ -45,10 +44,41 @@ const Clickhandle=(k:string|{[key:string]:any}|null)=>{
       (solidControlConfig as {[key:string]:any})[k.id] = k.checked
   }
 }
-const onmessageListen =async (e:MessageEvent)=>{
-  //if (e.data.err){
-  //  console.log(e.data)
-  //}
+let errHtml:HTMLElement
+const onmessageListen =async (e:MessageEvent  )=>{
+  if (e.data.err ){
+    console.log("get err",e.data, typeof e.data.err)
+    Object.keys(e.data.err).forEach((k:string)=>{
+      const p = document.createElement("p")
+      errHtml.appendChild(p)
+      const db = e.data.err[k]
+      if (typeof db==="string"){
+        p.textContent = db
+      }else if (Array.isArray(db)){
+        db.forEach(v=>{
+          const a = document.createElement("a")
+          a.textContent=JSON.stringify(Object.assign(v,{path:solidControlConfig.title}))
+          a.href=`/edit#${encodeURIComponent(a.textContent)}`
+          a.target="editPopup"
+          a.onclick=(e)=>{
+            const width =window.screen.width/2;
+            const height =window.screen.height ;
+            const left = width ;
+            const top =0;
+            window.open('',
+            "editPopup",
+            `width=${width},height=${height},left=${left},top=${top}`)
+          }
+          p.appendChild(a)
+        })
+        //p.textContent = JSON.stringify(db)
+      }
+    })
+ 
+    //errHtml.innerHTML=e.data.err
+  }else{
+    errHtml.innerHTML=""
+  }
   if (e.data.module){
     //console.log(e.data.module)
     moduleInit(Object.assign({
@@ -171,8 +201,7 @@ const getContext = (Context: ThrelteContext<WebGLRenderer>)=>{
 <div   class="preview">
 <Canvas   >
  <OrthoScene  {solidControlConfig} {geometrys} {getContext} ></OrthoScene>
-</Canvas> 
-
+</Canvas>  
  <Menu    >
 <MainMenu  show={solidControlConfig.show}   ></MainMenu>
 <Camera {Clickhandle} ></Camera>
@@ -200,8 +229,8 @@ const getContext = (Context: ThrelteContext<WebGLRenderer>)=>{
   }}
   style="color:white;cursor: pointer;height:48px;text-align: left;line-height: 48px;"  
    href="/edit#{encodeURIComponent(JSON.stringify({path:solidControlConfig.title}))}" > {solidControlConfig.title?'Edit':'New'} </a>
-   </div>
- 
+  </div>
+ <div style="color:white;text-align: left;" bind:this={errHtml}></div>
 </Menu>
 
 

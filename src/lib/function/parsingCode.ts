@@ -1,4 +1,6 @@
-import { autocompletion,CompletionContext } from '@codemirror/autocomplete'; 
+import { 
+    //autocompletion,
+    CompletionContext } from '@codemirror/autocomplete'; 
 //import jscadCompletions from '$lib/assets/jscadCompletions.json';
 import { snippets } from '@codemirror/lang-javascript';
 import type {CompletionResult,Completion} from '@codemirror/autocomplete'
@@ -39,6 +41,7 @@ export const wordHover = hoverTooltip((view, pos, side) => {
     above: true,
     create(view) {
         let dom = document.createElement("div") 
+        //dom.style.width="100%"
         opt.forEach(async item => { 
             //if (!item.info)return
             if (  typeof item.info ===  'string'){
@@ -47,8 +50,14 @@ export const wordHover = hoverTooltip((view, pos, side) => {
                 dom.appendChild(p) 
             }else{
                  const objdom = await item.info?.(item)
-                 if (objdom &&  'dom' in objdom)
-                dom.appendChild(objdom.dom)
+                 if (objdom &&  'dom' in objdom){
+                    //(objdom.dom as HTMLElement).style.width="500px"
+                    const textareaDom = objdom.dom as HTMLTextAreaElement
+                    textareaDom.style.width = `${window.innerWidth/2}px`;
+                    textareaDom.style.minWidth="300px"
+                    dom.appendChild(textareaDom)
+                 }
+                
             }
             
             
@@ -198,6 +207,9 @@ const handleTreeCursorImport  = (iter:TreeCursor,doc: string)=>{
                     dom.value = info
                     dom.readOnly=true
                     dom.rows = 10 
+                    dom.style.background="transparent"
+                    dom.style.outline ="none"
+                    dom.style.border = "none"
                     return {dom}
                 }
                 return l

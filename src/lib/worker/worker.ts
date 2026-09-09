@@ -1,5 +1,5 @@
-import {handleCurrentMsg} from '$lib/function/ImportParser'
-import type {currentObj} from '$lib/function/ImportParser'
+import {handleCurrentMsg,objUrlMap,type currentObj} from '$lib/function/ImportParser'
+//import type {currentObj} from '$lib/function/ImportParser'
 //import { javascript } from '@codemirror/lang-javascript';
 import {getCsgObjArray} from '$lib/function/csgChange'
 //import * as Y from 'yjs'
@@ -11,9 +11,7 @@ const includeImport:{[key:string]:string} = {
   //"csgChange": "./lib/csgChange.js",
   "manifold-3d":"./lib/manifold/manifold.js"
 }
-//import {createStorage} from '$lib/storage-adapter/factory'  
-//import type {EntryInfo} from "$lib/storage-adapter/types"
-//const {handleCurrentMsg} = await import('$lib/function/ImportParser')
+import {parseError} from '$lib/utils/parseError';
 import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
 
 const globalOption:{
@@ -146,23 +144,17 @@ const runCode =async (cur:currentObj,basename?:string )=>{
       }      
     })
   }catch(err){
+
+    self.postMessage({err:parseError(err as Error,objUrlMap)})
     throw err 
   } 
 }  
 
 self.onmessage =async (event: MessageEvent) => { 
-  //console.log("get msg",event.data)
-  if ( event.data.path){
-    
-    if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){
-      //try{
-        //if (!globalOption.root)globalOption.root=await navigator.storage.getDirectory();
-      globalOption.DirHandle = createDirInfo(event.data.path,messageChannelListen);
-      //globalOption.DirHandle.channeldb!.onmessage! = messageChannelListen
-      //initBroadcastChannel(event.data.path)
-      //}catch(err){
-      //  console.error(err)
-      //}
+  if ( event.data.path){ 
+    if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){  
+      globalOption.DirHandle = createDirInfo(event.data.path,messageChannelListen); 
+
       const channel = globalOption.DirHandle.channeldb
       if (channel){
         channel.addEventListener("message",(e:MessageEvent<{type:string}>)=>{

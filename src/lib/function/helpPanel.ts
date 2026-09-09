@@ -170,7 +170,7 @@ export const createSelect = ( FileInfo: FileInfoType)=>{
     select.onchange=(e)=>{
         if (!select.value)return;
         if (select.value ===firstOpt.textContent) { 
-            console.log("new file") 
+            //console.log("new file") 
             content.append(createInputElement(FileInfo))
             
             //input.focus()
@@ -201,7 +201,7 @@ const selectClickHandle =async (
     const files = await FileInfo.DirHandle?.files() ||[]
     if ( !oldItem.includes(FileInfo.name)){
         let opt = document.createElement("option");
-        opt.textContent = FileInfo.name; 
+        opt.textContent =FileInfo.name; 
         opt.value = FileInfo.name
         opt.defaultSelected=true
         oldItem.push(FileInfo.name)
@@ -224,6 +224,7 @@ const selectClickHandle =async (
         //opt.defaultSelected=k===(FileInfo.name ) 
         const handle = FileInfo.DirHandle?.getFileHandle(f.name) 
         handle?.read().then(doc=>{
+            console.log("select add new file",f.name)
             getImport(doc,k) 
         }) 
         select.appendChild(opt);

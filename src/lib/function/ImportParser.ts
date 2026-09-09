@@ -15,13 +15,13 @@ export type currentObj = {
 const currentMap = new Map<string,currentObj>();
 const waitGetMap = new Map<string,(c:currentObj)=>void>();
 const decoder = new TextDecoder();
-
+export const objUrlMap = new Map<string,string>();
 const updateCurrent = (c:currentObj)=>{
     //console.log("update",c.name);
     if (!c.url){
         return;
     }
-    //objUrlMap.delete(c.url);
+    objUrlMap.delete(c.url);
     URL.revokeObjectURL(c.url);
     c.url = '';
     
@@ -131,7 +131,7 @@ const toStringCurrent = async (c:currentObj)=>{
     
     c.url = URL.createObjectURL(new Blob([code],{type:'application/javascript'}));
     //console.log(code);
-    //objUrlMap.set(c.url,c.name) 
+    objUrlMap.set(c.url,c.name) 
     return c.url;  
 };
 
