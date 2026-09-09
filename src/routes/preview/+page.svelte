@@ -45,37 +45,39 @@ const Clickhandle=(k:string|{[key:string]:any}|null)=>{
   }
 }
 let errHtml:HTMLElement
+const openEditPage = ()=>{
+  const width =window.screen.width/2;
+  const height =window.screen.height ;
+  const left = width ;
+  const top =0;
+  window.open('',
+  "editPopup",
+  `width=${width},height=${height},left=${left},top=${top}`)
+}
 const onmessageListen =async (e:MessageEvent  )=>{
   if (e.data.err ){
-    console.log("get err",e.data, typeof e.data.err)
-    Object.keys(e.data.err).forEach((k:string)=>{
+    console.log("get err",e.data )
+    if (e.data.err.message){
       const p = document.createElement("p")
+      p.textContent = e.data.err.message
+      p.style.color="red"
       errHtml.appendChild(p)
-      const db = e.data.err[k]
-      if (typeof db==="string"){
-        p.textContent = db
-      }else if (Array.isArray(db)){
-        db.forEach(v=>{
-          const a = document.createElement("a")
-          a.textContent=JSON.stringify(Object.assign(v,{path:solidControlConfig.title}))
-          a.href=`/edit#${encodeURIComponent(a.textContent)}`
-          a.target="editPopup"
-          a.onclick=(e)=>{
-            const width =window.screen.width/2;
-            const height =window.screen.height ;
-            const left = width ;
-            const top =0;
-            window.open('',
-            "editPopup",
-            `width=${width},height=${height},left=${left},top=${top}`)
-          }
+    }
+    if (e.data.err.parsedStack){
+      const p = document.createElement("p")
+      
+      errHtml.appendChild(p);
+      (e.data.err.parsedStack as any[]).forEach(v=>{
+          const a =editBtn.cloneNode() as HTMLAnchorElement
+          // document.createElement("a")
+          a.style.color="red"
+          const textContent=JSON.stringify(Object.assign(v,{path:solidControlConfig.title}))
+          a.href=`/edit#${encodeURIComponent(textContent)}`
+          a.textContent=`edit ${v.name} {${v.lineNumber}:${v.columnNumber}}${v.functionName}`
+          a.onclick = openEditPage
           p.appendChild(a)
-        })
-        //p.textContent = JSON.stringify(db)
-      }
-    })
- 
-    //errHtml.innerHTML=e.data.err
+      })
+    } 
   }else{
     errHtml.innerHTML=""
   }
@@ -197,6 +199,7 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
 const getContext = (Context: ThrelteContext<WebGLRenderer>)=>{
   solidControlConfig.Context = Context
 }
+let editBtn:HTMLAnchorElement
 </script>
 <div   class="preview">
 <Canvas   >
@@ -218,14 +221,8 @@ const getContext = (Context: ThrelteContext<WebGLRenderer>)=>{
 <Exchange {solidControlConfig}  > 
 </Exchange>
   <div style="color:white;text-align: left;">
-  <a target="editPopup"  onclick={(e)=>{
-    const width =window.screen.width/2;
-    const height =window.screen.height ;
-    const left = width ;
-    const top =0;
-    window.open('',
-    "editPopup",
-    `width=${width},height=${height},left=${left},top=${top}`)
+  <a target="editPopup" bind:this={editBtn}  onclick={(e)=>{
+    openEditPage()
   }}
   style="color:white;cursor: pointer;height:48px;text-align: left;line-height: 48px;"  
    href="/edit#{encodeURIComponent(JSON.stringify({path:solidControlConfig.title}))}" > {solidControlConfig.title?'Edit':'New'} </a>

@@ -39,7 +39,10 @@ const messageChannelListen = async (event:MessageEvent<{
           await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).write(event.data.data!) 
           if (typeof event.data.data?.db ==="string"){
             //globalOption.indexCurrent = getIndex(handleCurrentMsg({db:event.data.data?.db,name:event.data.name } )!)
-            const cur = handleCurrentMsg({db:event.data.data?.db,name:event.data.name } )
+            const cur = handleCurrentMsg({
+              db:event.data.data?.db,
+              name:decodeURIComponent(event.data.name) 
+            })
             if (cur)
               runCode(cur,event.data.basename)
           }
@@ -84,7 +87,7 @@ const initBroadcastChannel = (name:string)=>{
 const postMessage = async (e:any)=>{ 
   if (e.path){  
     try{ 
-
+      //const name = 
       const handle =globalOption.DirHandle?.DirHandle?.getFileHandle(
         encodeURIComponent(e.path),
       ) 
@@ -166,8 +169,10 @@ self.onmessage =async (event: MessageEvent) => {
               channel.onmessage =  (e)=>{
                 if (e.data.type==="write" && event.data.name){
                   setTimeout(()=>{
-                    const name = event.data.name
-                    globalOption.DirHandle?.DirHandle?.getFileHandle(name).read().then(db=>{
+                    const name =decodeURIComponent(event.data.name)
+                    globalOption.DirHandle?.DirHandle?.getFileHandle(
+                      encodeURIComponent(event.data.name)
+                    ).read().then(db=>{
                       const cur = handleCurrentMsg({db,name } )
                       if (cur){
                         runCode(cur,event.data.basename)
