@@ -43,11 +43,11 @@ materials.instance = materials.mesh ;// todo support instances for lines
  
 export function csg2Geo(obj:csgObj,{ smooth = false }){
     const { vertices, indices, normals, color, colors, isTransparent = false, opacity } = obj;
-    const objType = obj.type || 'mesh';
+    const type = obj.type || 'mesh';
 
-    const materialDef = materials[objType];
+    const materialDef = materials[type];
     if (!materialDef) {
-      console.error(`material not found for type ${objType}`, obj);
+      console.error(`material not found for type ${type}`, obj);
       return;
     }
     let material = materialDef.def;
@@ -85,7 +85,7 @@ export function csg2Geo(obj:csgObj,{ smooth = false }){
     if(smooth) {geometry = toCreasedNormals( geometry, Math.PI / 10);}
     if (colors) {geometry.setAttribute('color', new BufferAttribute(colors, isTransparent ? 4 : 3));}
     
-    return {geometry,material}
+    return {geometry,material,type}
 }
  
 export function CSG2Three(obj:csgObj , { smooth = false }) {

@@ -152,7 +152,7 @@ export const refreshCamera = (direction:string,isOrthographic:boolean,MaxSize:Ve
     solidControlConfig}:{ 
       getContext:any
     solidControlConfig:ConfigType, 
-    geometrys:{geometry:any,material:any}[] 
+    geometrys:{geometry:any,material:any,type:string}[] 
 } = $props() 
 const Context= useThrelte() 
 onMount(()=>{
@@ -207,12 +207,19 @@ onMount(()=>{
   <T.AxesHelper args={[solidControlConfig.GridSize/2+1]} />
   {/if}
   {#if geometrys} 
-  {#each geometrys as {geometry,material}} 
-  
+  {#each geometrys as {geometry,material,type}} 
+    {#if type==="mesh"}
+      
+    
     <T.Mesh {geometry} {material}  > 
         {#if !solidControlConfig.Light}
       <T.MeshNormalMaterial flatShading ></T.MeshNormalMaterial>
         {/if}
-    </T.Mesh> 
+    </T.Mesh>
+    {:else if type ==="lines"}
+    <T.Line {geometry} {material}></T.Line> 
+    {:else if type ==="line"}
+    <T.Line {geometry} {material}></T.Line> 
+    {/if}
   {/each}  
 {/if}

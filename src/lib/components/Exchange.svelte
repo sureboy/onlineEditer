@@ -52,7 +52,7 @@ export const previewHandle =async (data: { [k:string]:any},onmessage?: (e: Messa
   if (!data.basename){
     data.basename="main"
   }
-  console.log(data);
+  //console.log(data);
   (await getWorker( onmessage)).postMessage(data)
   //w?.postMessage( data) 
    

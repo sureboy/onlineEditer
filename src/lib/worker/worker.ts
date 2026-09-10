@@ -16,8 +16,10 @@ import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
 
 const globalOption:{
   indexCurrent?:currentObj, 
+  basename?:string
   DirHandle?:DirInfoType
 } = {
+  //baseName:"main"
 }
 //let  channel:BroadcastChannel|undefined = undefined// = new BroadcastChannel(solidControlConfig.title); 
 
@@ -128,7 +130,13 @@ const runCode =async (cur:currentObj,basename?:string )=>{
     if (!list.length){
       return
     }
-    const module = {list,basename:basename||list[0]} 
+    if (basename){
+      globalOption.basename = basename 
+    }
+    if (!globalOption.basename || !list.includes(globalOption.basename)){
+      globalOption.basename = list[0] 
+    }
+    const module = {list,basename:globalOption.basename} 
     self.postMessage({module}) 
     const tmpDB = src[module.basename]()
     getCsgObjArray(tmpDB,(msg)=>{ 
@@ -200,6 +208,8 @@ self.onmessage =async (event: MessageEvent) => {
       //globalOption.indexCurrent = getIndex(cur)
       await runCode( cur,event.data.basename);
     }
+  }else if (event.data.basename && globalOption.indexCurrent){
+    await runCode( globalOption.indexCurrent,event.data.basename);
   }
 
 

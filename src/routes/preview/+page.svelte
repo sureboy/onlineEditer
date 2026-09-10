@@ -11,7 +11,7 @@ import DownMenu from "$lib/components/DownMenu.svelte";
 import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
 import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
 import Exchange,{getDialogDiv,QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte'; 
-let geometrys:{geometry:any,material:any}[] =$state([]) 
+let geometrys:{geometry:any,material:any,type:string}[] =$state([]) 
 
 const solidControlConfig:ConfigType = $state({
   //title:"welcome",
@@ -56,7 +56,7 @@ const openEditPage = ()=>{
 }
 const onmessageListen =async (e:MessageEvent  )=>{
   if (e.data.err ){
-    console.log("get err",e.data )
+    
     if (e.data.err.message){
       const p = document.createElement("p")
       p.textContent = e.data.err.message
@@ -78,9 +78,11 @@ const onmessageListen =async (e:MessageEvent  )=>{
           p.appendChild(a)
       })
     } 
+    return;
   }else{
     errHtml.innerHTML=""
   }
+  //console.log("get worker data",e.data )
   if (e.data.module){
     //console.log(e.data.module)
     moduleInit(Object.assign({
@@ -106,6 +108,7 @@ const onmessageListen =async (e:MessageEvent  )=>{
     //console.log(e.data)
     const geo = csg2Geo(e.data,{} )
     if (geo){
+      //console.log("geo",geo)
       geometrys.push(geo)
       geo.geometry.computeBoundingBox();
       const box = geo.geometry.boundingBox;
