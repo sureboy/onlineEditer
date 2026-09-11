@@ -31,13 +31,11 @@ const updateCurrent = (c:currentObj)=>{
 };
 const reloadCurrent =async (c:currentObj,msg:messageObj,postMessage?:(e:any)=>void)=>{
     updateCurrent(c);
-
-    //this.code = ;
-    //this.src = [];
-    c.srcList = [];
+ 
     if (!msg.db){
         return;
     }
+    c.srcList = [];
     let src = "";
     if (typeof msg.db ==="string"){
         src = msg.db;
@@ -66,7 +64,7 @@ const reloadCurrent =async (c:currentObj,msg:messageObj,postMessage?:(e:any)=>vo
     });*/
     c.srcList.push( src.slice(tmpEndPos) ); 
 };
-const getCurrent = (name:string,reqMessage?:(e:{type:"req",path:string})=>void )=>{
+export const getCurrent = (name:string,reqMessage?:(e:{type:"req",path:string})=>void )=>{
     return new Promise<currentObj>((resolve, reject)=>{
         if (currentMap.has(name)){
             resolve(currentMap.get(name)!);

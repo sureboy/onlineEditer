@@ -7,23 +7,21 @@ import {
     PerspectiveCamera, 
      WebGLRenderer
 } from 'three';
-  import {type ThrelteContext } from '@threlte/core'
- export type ConfigType = {
-    title?:string,
-    //Fullscreen:boolean,
-    Light:boolean,
-    Axes:boolean,
-    Grid:boolean,
-    isOrthographic:boolean,
-    show:boolean,
-    MaxSize:Vector3,
-    GridSize:number,
-    main:any[],
-    Context?:ThrelteContext<WebGLRenderer>
-    getAspect:()=>number
-    //[k:string]:any,
-
-  }
+import {type ThrelteContext } from '@threlte/core'
+export type ConfigType = {
+  geometrys:{geometry:any,material:any,type:string}[],
+  title?:string,
+  Light:boolean,
+  Axes:boolean,
+  Grid:boolean,
+  isOrthographic:boolean,
+  show:boolean,
+  MaxSize:Vector3,
+  GridSize:number,
+  main:any[],
+  Context?:ThrelteContext<WebGLRenderer>
+  getAspect:()=>number 
+}
 let camera:OrthographicCamera|PerspectiveCamera|undefined = $state(undefined)
 let Controls :Orb|undefined = $state(undefined) ;
 //const useT= useThrelte()
@@ -147,15 +145,16 @@ export const refreshCamera = (direction:string,isOrthographic:boolean,MaxSize:Ve
  
 
   const { 
-    geometrys, 
+   // geometrys, 
     getContext,
     solidControlConfig}:{ 
       getContext:any
     solidControlConfig:ConfigType, 
-    geometrys:{geometry:any,material:any,type:string}[] 
+   // geometrys:{geometry:any,material:any,type:string}[] 
 } = $props() 
-const Context= useThrelte() 
+
 onMount(()=>{
+  const Context= useThrelte() 
   getContext(Context)
  
  
@@ -188,26 +187,23 @@ onMount(()=>{
     bind:ref={(camera as PerspectiveCamera | undefined)}> 
     <OrbitControls bind:ref={Controls}  target={[0,0,0]} />
   </T.PerspectiveCamera>
- {/if}
- {#if solidControlConfig.Light}
+  {/if}
+  {#if solidControlConfig.Light}
   <T.DirectionalLight args={[0xffffff,1]} position={[0, 0, solidControlConfig.GridSize/2]}   />
   <T.DirectionalLight args={[0xffffff, 0.8]} position={[0,solidControlConfig.GridSize/2, 0]}   />
   <T.DirectionalLight args={[0xffffff, 0.6]} position={[solidControlConfig.GridSize/2, 0, 0]}   />
   <T.DirectionalLight args={[0xffffff, 0.3]} position={[0, 0, -solidControlConfig.GridSize/2]}   />
   <T.DirectionalLight args={[0xffffff, 0.5]} position={[0, -solidControlConfig.GridSize/2, 0]}   />
   <T.DirectionalLight args={[0xffffff, 0.7]} position={[-solidControlConfig.GridSize/2, 0, 0]}   />
- {/if}
-{#if solidControlConfig.Grid}
- 
-
-
+  {/if}
+  {#if solidControlConfig.Grid} 
   <T.GridHelper args={[solidControlConfig.GridSize,solidControlConfig.GridSize]} /> 
   {/if}
   {#if solidControlConfig.Axes}
   <T.AxesHelper args={[solidControlConfig.GridSize/2+1]} />
   {/if}
-  {#if geometrys} 
-  {#each geometrys as {geometry,material,type}} 
+ 
+  {#each solidControlConfig.geometrys as {geometry,material,type}} 
     {#if type==="mesh"}
       
     
@@ -222,4 +218,4 @@ onMount(()=>{
     <T.Line {geometry} {material}></T.Line> 
     {/if}
   {/each}  
-{/if}
+ 

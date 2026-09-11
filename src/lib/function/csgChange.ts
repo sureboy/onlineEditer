@@ -194,6 +194,58 @@ export const getCsgObj = (v:  Geo, back?: BackCallback): ConvertResult | undefin
 /**
  * 将 geom3 转换为 MeshData（顶点、法线、索引）
  */
+const CSG2Vertices = (csg: Geom3): MeshData => {
+  // 预计算顶点和索引数量
+  let vertexCount = 0;
+  let indexCount = 0;
+  for (const poly of csg.polygons) {
+    vertexCount += poly.vertices.length;
+    indexCount += 3 * (poly.vertices.length - 2);
+  }
+
+  const vertices = new Float32Array(vertexCount * 3);
+  const normals = new Float32Array(vertexCount * 3);
+  const indices = vertexCount > 65535 
+    ? new Uint32Array(indexCount) 
+    : new Uint16Array(indexCount);
+
+  let vertOffset = 0;   // 顶点分量偏移（每顶点 +3）
+  let vertexIndex = 0;  // 当前多边形的第一个顶点的全局索引
+  let indOffset = 0;
+
+  for (const poly of csg.polygons) {
+    const arr = poly.vertices;
+    const normal = calculateNormal(arr);
+    const len = arr.length;
+    const first = vertexIndex;
+
+    // 写入顶点和法线
+    for (let i = 0; i < len; i++) {
+      vertices.set(arr[i], vertOffset);
+      normals.set(normal, vertOffset);
+      vertOffset += 3;
+      vertexIndex += 1;
+    }
+
+    // 扇形三角化
+    for (let i = 2; i < len; i++) {
+      indices[indOffset++] = first;
+      indices[indOffset++] = first + i - 1;
+      indices[indOffset++] = first + i;
+    }
+  }
+
+  return {
+    type: "mesh",
+    vertices,
+    indices,
+    normals,
+    color: csg.color,
+    transforms: csg.transforms,
+  };
+};
+
+
 const CSG2Vertices_ = (csg: Geom3): MeshData => {
   let vLen = 0;
   let iLen = 0;
@@ -204,62 +256,8 @@ const CSG2Vertices_ = (csg: Geom3): MeshData => {
   }
 
   const vertices = new Float32Array(vLen);
-  const normals = new Float32Array(vLen);
-  const indices = vLen > 65535 ? new Uint32Array(iLen) : new Uint16Array(iLen);
-  const color = csg.color;
-
-  let vertOffset = 0;
-  let indOffset = 0;
-  let posOffset = 0;
-  let first = 0;
-
-  for (const poly of csg.polygons) {
-    const arr = poly.vertices;
-    const normal = calculateNormal(arr);
-    const len = arr.length;
-
-    first = posOffset;
-    vertices.set(arr[0], vertOffset);
-    normals.set(normal, vertOffset);
-    vertOffset += 3;
-
-    vertices.set(arr[1], vertOffset);
-    normals.set(normal, vertOffset);
-    vertOffset += 3;
-    posOffset += 2;
-
-    for (let i = 2; i < len; i++) {
-      vertices.set(arr[i], vertOffset);
-      normals.set(normal, vertOffset);
-      indices[indOffset++] = first;
-      indices[indOffset++] = first + i - 1;
-      indices[indOffset++] = first + i;
-      vertOffset += 3;
-      posOffset += 1;
-    }
-  }
-
-  return {
-    type: "mesh",
-    vertices,
-    indices,
-    normals,
-    color,
-    transforms: csg.transforms,
-  };
-};
-const CSG2Vertices = (csg: Geom3): MeshData => {
-  let vLen = 0;
-  let iLen = 0;
-  for (const poly of csg.polygons) {
-    const len = poly.vertices.length;
-    vLen += len * 3;
-    iLen += 3 * (len - 2);
-  }
-
-  const vertices = new Float32Array(vLen);
   // 不生成法线数组（或生成但留空，后续由 Three.js 计算）
-  const indices =new Uint32Array(iLen)// vLen > 65535 ? new Uint32Array(iLen) : new Uint16Array(iLen);
+  const indices =  vLen > 65535 ? new Uint32Array(iLen) : new Uint16Array(iLen);
   const color = csg.color;
 
   let vertOffset = 0;
@@ -305,23 +303,14 @@ const CSG2Vertices = (csg: Geom3): MeshData => {
  * 计算多边形法线（假设为三角形扇的第一个三角形）
  */
 const calculateNormal = (vertices: number[][]): number[] => {
-  const v0 = vertices[0];
-  const v1 = vertices[1];
-  const v2 = vertices[2];
-
-  const Ax = v1[0] - v0[0];
-  const Ay = v1[1] - v0[1];
-  const Az = v1[2] - v0[2];
-  const Bx = v2[0] - v0[0];
-  const By = v2[1] - v0[1];
-  const Bz = v2[2] - v0[2];
-
-  const Nx = Ay * Bz - Az * By;
-  const Ny = Az * Bx - Ax * Bz;
-  const Nz = Ax * By - Ay * Bx;
-
-  const len = Math.hypot(Nx, Ny, Nz);
-  return [Nx / len, Ny / len, Nz / len];
+  const [v0, v1, v2] = vertices;
+  const u = [v1[0]-v0[0], v1[1]-v0[1], v1[2]-v0[2]];
+  const v = [v2[0]-v0[0], v2[1]-v0[1], v2[2]-v0[2]];
+  const nx = u[1]*v[2] - u[2]*v[1];
+  const ny = u[2]*v[0] - u[0]*v[2];
+  const nz = u[0]*v[1] - u[1]*v[0];
+  const len = Math.sqrt(nx*nx + ny*ny + nz*nz) || 1;
+  return [nx/len, ny/len, nz/len];
 };
 
 /**

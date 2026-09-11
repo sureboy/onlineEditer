@@ -1,4 +1,4 @@
-import {handleCurrentMsg,objUrlMap,type currentObj} from '$lib/function/ImportParser'
+import {handleCurrentMsg,getCurrent,objUrlMap,type currentObj} from '$lib/function/ImportParser'
 //import type {currentObj} from '$lib/function/ImportParser'
 //import { javascript } from '@codemirror/lang-javascript';
 import {getCsgObjArray} from '$lib/function/csgChange'
@@ -15,7 +15,7 @@ import {parseError} from '$lib/utils/parseError';
 import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
 
 const globalOption:{
-  indexCurrent?:currentObj, 
+  //indexCurrent?:currentObj, 
   basename?:string
   DirHandle?:DirInfoType
 } = {
@@ -123,8 +123,8 @@ const getIndex = (c:currentObj )=>{
 }
 const runCode =async (cur:currentObj,basename?:string )=>{
   try{
-    globalOption.indexCurrent = getIndex(cur)
-    const u = await globalOption.indexCurrent.getUri() 
+    const indexCurrent = getIndex(cur)
+    const u = await indexCurrent.getUri() 
     const src = await  import(/* @vite-ignore */u) 
     const list = Object.keys(src)
     if (!list.length){
@@ -155,19 +155,22 @@ const runCode =async (cur:currentObj,basename?:string )=>{
       }      
     })
   }catch(err){
-
+    //globalOption.indexCurrent=undefined
     self.postMessage({err:parseError(err as Error,objUrlMap)})
     throw err 
   } 
 }  
 
 self.onmessage =async (event: MessageEvent) => { 
+  console.log(event.data)
   if ( event.data.path){ 
-    if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){  
+    if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){ 
+      
       globalOption.DirHandle = createDirInfo(event.data.path,messageChannelListen); 
-
+ 
       const channel = globalOption.DirHandle.channeldb
       if (channel){
+        console.log("work init")
         channel.addEventListener("message",(e:MessageEvent<{type:string}>)=>{
           switch(e.data.type){
             case "init":
@@ -208,8 +211,8 @@ self.onmessage =async (event: MessageEvent) => {
       //globalOption.indexCurrent = getIndex(cur)
       await runCode( cur,event.data.basename);
     }
-  }else if (event.data.basename && globalOption.indexCurrent){
-    await runCode( globalOption.indexCurrent,event.data.basename);
+  }else if (event.data.basename ){ 
+    await runCode( await getCurrent("./index.js"),event.data.basename);
   }
 
 

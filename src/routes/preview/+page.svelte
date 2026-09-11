@@ -11,11 +11,12 @@ import DownMenu from "$lib/components/DownMenu.svelte";
 import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
 import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
 import Exchange,{getDialogDiv,QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte'; 
-let geometrys:{geometry:any,material:any,type:string}[] =$state([]) 
+//let geometrys:{geometry:any,material:any,type:string}[] =$state([]) 
 
 const solidControlConfig:ConfigType = $state({
   //title:"welcome",
   //Fullscreen:false,
+  geometrys: [],
   Light:true,
   Axes:true,Grid:true,main:[],
   isOrthographic:false,
@@ -80,36 +81,41 @@ const onmessageListen =async (e:MessageEvent  )=>{
     } 
     return;
   }else{
+    if (errHtml)
     errHtml.innerHTML=""
   }
-  //console.log("get worker data",e.data )
+  console.log("get worker data",e.data )
   if (e.data.module){
     //console.log(e.data.module)
     moduleInit(Object.assign({
       Clickhandle:ClickhandleWithMainMenu
     }, e.data.module))
+    solidControlConfig.geometrys = []
+    solidControlConfig.GridSize=10
+    solidControlConfig.MaxSize.set(10,10,10)
     return
   }
   if (e.data.start){
-    geometrys = []
-    solidControlConfig.GridSize=10
-    solidControlConfig.MaxSize.set(10,10,10)
+    
+
     return
     //meshRef?.clear()
     //console.log("start")
   }
   if (e.data.end){ 
+    
     refreshCameraInit(solidControlConfig  )
     solidControlConfig.show = true
+    //console.log("end",solidControlConfig)
     return
  
   }
-  if ('index' in e.data){
-    //console.log(e.data)
+  if ('index' in e.data){ 
     const geo = csg2Geo(e.data,{} )
-    if (geo){
-      //console.log("geo",geo)
-      geometrys.push(geo)
+    if (geo){ 
+      
+      solidControlConfig.geometrys.push(geo)
+      console.log('index',e.data.index,solidControlConfig.geometrys.length)
       geo.geometry.computeBoundingBox();
       const box = geo.geometry.boundingBox;
       const size = new Vector3(); 
@@ -206,7 +212,7 @@ let editBtn:HTMLAnchorElement
 </script>
 <div   class="preview">
 <Canvas   >
- <OrthoScene  {solidControlConfig} {geometrys} {getContext} ></OrthoScene>
+ <OrthoScene  {solidControlConfig}  {getContext} ></OrthoScene>
 </Canvas>  
  <Menu    >
 <MainMenu  show={solidControlConfig.show}   ></MainMenu>

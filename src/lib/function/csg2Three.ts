@@ -44,7 +44,7 @@ materials.instance = materials.mesh ;// todo support instances for lines
 export function csg2Geo(obj:csgObj,{ smooth = false }){
     const { vertices, indices, normals, color, colors, isTransparent = false, opacity } = obj;
     const type = obj.type || 'mesh';
-
+    //console.log(obj)
     const materialDef = materials[type];
     if (!materialDef) {
       console.error(`material not found for type ${type}`, obj);
@@ -73,18 +73,19 @@ export function csg2Geo(obj:csgObj,{ smooth = false }){
        new BufferAttribute(vertices instanceof ArrayBuffer ?new Float32Array(vertices):vertices, 3)
       );
     if (indices) {geometry.setIndex(
-      //new BufferAttribute(indices instanceof ArrayBuffer ?((indices as ArrayBuffer).byteLength>65535 ?new Uint32Array(indices) : new Uint16Array(indices)):indices, 1)
-      new BufferAttribute(indices instanceof ArrayBuffer ?new Uint32Array(indices):indices,1)
+      new BufferAttribute(indices instanceof ArrayBuffer ?((indices as ArrayBuffer).byteLength>65535 ?new Uint32Array(indices) : new Uint16Array(indices)):indices, 1)
+      //new BufferAttribute(indices instanceof ArrayBuffer ?new Uint32Array(indices):indices,1)
     )
     }
     if (normals) {geometry.setAttribute('normal', 
       new BufferAttribute(normals instanceof ArrayBuffer?new Float32Array(normals) :normals, 3)
-    );}else{
+    );
+    }else{
       geometry.computeVertexNormals();
     }
     if(smooth) {geometry = toCreasedNormals( geometry, Math.PI / 10);}
     if (colors) {geometry.setAttribute('color', new BufferAttribute(colors, isTransparent ? 4 : 3));}
-    
+    //geometry.computeVertexNormals();
     return {geometry,material,type}
 }
  
