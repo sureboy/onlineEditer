@@ -48,7 +48,7 @@ const getItemImg =async (item:itemType)=>{
     
    
     <figcaption> 
-        <h3> <a href="{item.url?.startsWith("/")?item.url:`/#${item.url}`}"   >{ item.title||item.url}</a></h3>
+        <h3> <a data-sveltekit-reload href="{item.url?.startsWith("/")?item.url:`/#${item.url}`}"   >{ item.title||item.url}</a></h3>
         {#if item.email}<p> {item.email}</p>{/if}
         {#if item.update}<p>begin:{new Date(item.update).toLocaleDateString()}</p>{/if}
         {#if item.expiration}<p>end:{new Date(Number(item.expiration)*1000).toLocaleDateString()}</p>{/if} 

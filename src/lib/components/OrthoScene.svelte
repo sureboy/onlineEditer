@@ -154,9 +154,11 @@ export const refreshCamera = (direction:string,isOrthographic:boolean,MaxSize:Ve
 } = $props() 
 
 onMount(()=>{
+  //console.log("onMount init")
   const Context= useThrelte() 
+  
   getContext(Context)
- 
+  Context.invalidate()
  
 })
 
