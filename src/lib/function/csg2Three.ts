@@ -40,8 +40,9 @@ const materials:Record<string,any> = {
 };
 materials.lines = materials.line;
 materials.instance = materials.mesh ;// todo support instances for lines
+
+export function csg2Geo(obj:csgObj ,{ smooth = false }){
  
-export function csg2Geo(obj:csgObj,{ smooth = false }){
     const { vertices, indices, normals, color, colors, isTransparent = false, opacity } = obj;
     const type = obj.type || 'mesh';
     //console.log(obj)
@@ -72,10 +73,16 @@ export function csg2Geo(obj:csgObj,{ smooth = false }){
       //vertices
        new BufferAttribute(vertices instanceof ArrayBuffer ?new Float32Array(vertices):vertices, 3)
       );
-    if (indices) {geometry.setIndex(
-      new BufferAttribute(indices instanceof ArrayBuffer ?((indices as ArrayBuffer).byteLength>65535 ?new Uint32Array(indices) : new Uint16Array(indices)):indices, 1)
-      //new BufferAttribute(indices instanceof ArrayBuffer ?new Uint32Array(indices):indices,1)
-    )
+    if (indices) {
+      if (obj.type){
+        geometry.setIndex(
+          new BufferAttribute(indices instanceof ArrayBuffer ?((indices as ArrayBuffer).byteLength>65535 ?new Uint32Array(indices) : new Uint16Array(indices)):indices, 1)
+        )
+      }else{
+        geometry.setIndex(new BufferAttribute(indices instanceof ArrayBuffer ?new Uint32Array(indices):indices,1))
+      }
+       //new BufferAttribute(indices instanceof ArrayBuffer ?new Uint32Array(indices):indices,1)
+  
     }
     if (normals) {geometry.setAttribute('normal', 
       new BufferAttribute(normals instanceof ArrayBuffer?new Float32Array(normals) :normals, 3)

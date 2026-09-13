@@ -3,7 +3,7 @@
 // ============================================================================
 // 几何对象类型定义（基于运行时检查的特征）
 // ============================================================================
-type Geo = Geom3|Geom2|Path2|RawGeometry
+type Geo = Geom3|Geom2|Path2|RawGeometry |Promise<RawGeometry>
 interface Geom3 {
   polygons: Array<{ vertices: number[][] }>;
   transforms: unknown;
@@ -125,22 +125,23 @@ const geometries = {
 /**
  * 递归遍历 db（支持嵌套数组），对每个非数组元素调用 getCsgObj 并通过 back 回调
  */
-export const getCsgObjArray = (db:  Geo[]|Geo, back: BackCallback): void => {
-  const arrayReturn = (v: Geo[]|Geo, fn: (item: Geo) => void): void => {
+export const getCsgObjArray =async (db:  Geo[]|Geo, back: BackCallback) => {
+  const arrayReturn =async (v: Geo[]|Geo, fn: (item: Geo) =>Promise<void>)=> {
     if (Array.isArray(v)) {
-      v.forEach((_v) => {
-        arrayReturn(_v, fn);
-      });
+      for (let _v of v){
+        await arrayReturn(_v, fn);
+      }
+      
     } else {
-      fn(v);
+      await fn(v);
     }
   };
 
   try {
     back({ start: true });
     let index = 0;
-    arrayReturn(db, (v) => {
-      const result = getCsgObj(v, back);
+    await arrayReturn(db,async (v) => {
+      const result =await getCsgObj(v,index, back);
       if (result){
         back(Object.assign({index},result) );
         index++;
@@ -158,7 +159,7 @@ export const getCsgObjArray = (db:  Geo[]|Geo, back: BackCallback): void => {
  * @param back 可选回调，用于报告无法识别的对象或错误
  * @returns 转换后的数据，若出错则返回 undefined
  */
-export const getCsgObj = (v:  Geo, back?: BackCallback): ConvertResult | undefined => {
+export const getCsgObj =async (v:  Geo,index:number, back?: BackCallback):Promise<ConvertResult | undefined> => {
   try {
     if (geometries.geom3.isA(v)) {
       return CSG2Vertices(v);
@@ -173,16 +174,19 @@ export const getCsgObj = (v:  Geo, back?: BackCallback): ConvertResult | undefin
       "indices" in v
     ) {
       return v as RawGeometry;
+    } else if (v && (v as Promise<RawGeometry>).then){
+      return (await v)
+       
     } else {
-      if (back) {
-        back({ options: v });
-      }
+    
+        back?.({ options: v });
+    
       return undefined;
     }
   } catch (e) {
-    if (back) {
-      back({ errMsg: e?.toString() ?? "unknown error", end: true });
-    }
+   
+      back?.({ errMsg: e?.toString() ?? "unknown error", end: true });
+    
     return undefined;
   }
 };

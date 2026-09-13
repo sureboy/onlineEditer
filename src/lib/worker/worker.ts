@@ -138,7 +138,11 @@ const runCode =async (cur:currentObj,basename?:string )=>{
     }
     const module = {list,basename:globalOption.basename} 
     self.postMessage({module}) 
-    const tmpDB = src[module.basename]()
+    let tmpDB = src[module.basename]()
+    if (tmpDB.then){
+      tmpDB = await tmpDB
+    }
+    console.log(tmpDB)
     getCsgObjArray(tmpDB,(msg)=>{ 
       if ('index' in msg ){
         const buf:Transferable[] = [];

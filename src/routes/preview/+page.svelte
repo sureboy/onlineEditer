@@ -111,31 +111,36 @@ const onmessageListen =async (e:MessageEvent  )=>{
  
   }
   if ('index' in e.data){ 
-    const geo = csg2Geo(e.data,{} )
-    if (geo){ 
-      
-      solidControlConfig.geometrys.push(geo)
-      console.log('index',e.data.index,solidControlConfig.geometrys.length)
-      geo.geometry.computeBoundingBox();
-      const box = geo.geometry.boundingBox;
-      const size = new Vector3(); 
-      box?.getSize(size)
-      //MaxSize.max()
-      if (size.x>solidControlConfig.MaxSize.x) solidControlConfig.MaxSize.setX(size.x)
-      if (size.y>solidControlConfig.MaxSize.y) solidControlConfig.MaxSize.setY(size.y)
-      if (size.z>solidControlConfig.MaxSize.z) solidControlConfig.MaxSize.setZ(size.z)
+    try{
+      const geo = csg2Geo(e.data,{} )
+      if (geo){ 
+        
+        solidControlConfig.geometrys.push(geo)
+        console.log('index',e.data.index,solidControlConfig.geometrys.length)
+        geo.geometry.computeBoundingBox();
+        const box = geo.geometry.boundingBox;
+        const size = new Vector3(); 
+        box?.getSize(size)
+        //MaxSize.max()
+        if (size.x>solidControlConfig.MaxSize.x) solidControlConfig.MaxSize.setX(size.x)
+        if (size.y>solidControlConfig.MaxSize.y) solidControlConfig.MaxSize.setY(size.y)
+        if (size.z>solidControlConfig.MaxSize.z) solidControlConfig.MaxSize.setZ(size.z)
 
-      let helpSize = size.x>size.z?size.x:size.z;
-      if (size.y>helpSize){
-        helpSize =size.y
-      }
-      if (helpSize>solidControlConfig.GridSize ){
-        solidControlConfig.GridSize  = Math.ceil(helpSize )+1
-        //GridSize[0] =GridSize[1]
-      }
-      //console.log(box,size ,GridSize)
-      
-    } 
+        let helpSize = size.x>size.z?size.x:size.z;
+        if (size.y>helpSize){
+          helpSize =size.y
+        }
+        if (helpSize>solidControlConfig.GridSize ){
+          solidControlConfig.GridSize  = Math.ceil(helpSize )+1
+          //GridSize[0] =GridSize[1]
+        }
+        //console.log(box,size ,GridSize)
+        
+      } 
+    }catch(err){
+      console.error(err)
+    }
+    
   }
 }  
 onMount(() => { 
