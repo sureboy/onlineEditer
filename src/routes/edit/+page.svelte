@@ -65,8 +65,9 @@ const saveFile =async (v:string,FileInfo:FileInfoType)=>{
     const handle = getFileHandle(FileInfo)  
     //console.log("save edit")
     if (!handle)return
-    const data = {db:v,origin:Originkey}
-    await handle.writeAndBroad?.(data)||handle.write(data)  
+    //const data = {db:v,origin:Originkey}
+    //const w = handle.writeAndBroad ||handle.write
+    await (handle.writeAndBroad ||handle.write)({db:v,origin:Originkey})  
 } 
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     const ok  = await createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
@@ -85,10 +86,13 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
             e.channel.onclose = ()=>{
                 broadcastCh.removeEventListener("message",bhandle)
             }
-            e.channel.onmessage=(ev)=>{
+            e.channel.onmessage=async (ev)=>{
                 const data = {db:ev.data,origin:e.channel.label}
                 //console.log(data)
-                FileInfo.DirHandle?.getFileHandle(filename)?.write(data)
+                const handle = FileInfo.DirHandle?.getFileHandle(filename)
+                if (handle)
+                    await (handle.writeAndBroad ||handle.write)(data)  
+                    //handle.write(data)
                 //console.log("end",data)
                 //if (filename.includes("index")  && typeof data.db ==="string"){
                 //    FileInfo.value =data.db
