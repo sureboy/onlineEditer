@@ -24,68 +24,44 @@ const globalOption:{
 //let  channel:BroadcastChannel|undefined = undefined// = new BroadcastChannel(solidControlConfig.title); 
 
 const messageChannelListen = async (event:MessageEvent<{
-    basename?:string,
-    key?:string,type?:string,name?:string,data?:{db:string|ArrayBuffer,origin?:string}}>) => { 
-    
-    const  channel = globalOption.DirHandle?.channeldb
-    if (!event.data.name || !event.data.type){
-      channel?.postMessage(event.data)
-      //return 
-    } else{
-      switch (event.data.type){ 
-        case "read":
-          const db = await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).read() 
-          channel?.postMessage(Object.assign(event.data,{db}))
-          break;
-        case "write":
-          await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).write(event.data.data!) 
-          if (typeof event.data.data?.db ==="string"){
-            //globalOption.indexCurrent = getIndex(handleCurrentMsg({db:event.data.data?.db,name:event.data.name } )!)
-            const cur = handleCurrentMsg({
-              db:event.data.data?.db,
-              name:decodeURIComponent(event.data.name) 
-            })
-            if (cur)
-              runCode(cur,event.data.basename)
-          }
-          //else
-          channel?.postMessage({type:event.data.type,key:event.data.key}) 
-          break;
-        case "del":
-          await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).del()
-          channel?.postMessage(event.data)
-          break;
-        default:
-          //channel?.postMessage(event.data)
-          break 
-      } 
+  basename?:string,
+  key?:string,type?:string,name?:string,data?:{db:string|ArrayBuffer,origin?:string}}>) => { 
+  
+  const  channel = globalOption.DirHandle?.channeldb
+  if (!event.data.name || !event.data.type){
+    channel?.postMessage(event.data)
+    //return 
+  } else{
+    switch (event.data.type){ 
+      case "read":
+        const db = await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).read() 
+        channel?.postMessage(Object.assign(event.data,{db}))
+        break;
+      case "write":
+        await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).write(event.data.data!) 
+        if (typeof event.data.data?.db ==="string"){
+          //globalOption.indexCurrent = getIndex(handleCurrentMsg({db:event.data.data?.db,name:event.data.name } )!)
+          const cur = handleCurrentMsg({
+            db:event.data.data?.db,
+            name:decodeURIComponent(event.data.name) 
+          })
+          if (cur)
+            runCode(cur,event.data.basename)
+        }
+        //else
+        channel?.postMessage({type:event.data.type,key:event.data.key}) 
+        break;
+      case "del":
+        await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).del()
+        channel?.postMessage(event.data)
+        break;
+      default:
+        //channel?.postMessage(event.data)
+        break 
     } 
-    /*
-    if (globalOption.indexCurrent 
-      //&& event.data.basename
-    ){
-      // console.log("worker show",globalOption.indexCurrent)
-      runCode(globalOption.indexCurrent,event.data.basename)
-      //return
-    } */
-  }; 
+  } 
 
-  /*
-const initBroadcastChannel = (name:string)=>{
-  if (channel)return
-  channel = new BroadcastChannel(name+"_db"); 
-  channel.postMessage({type:"init"})
-  channel.onmessage =(e)=>{
-    if (e.data.type ==="init"){
-
-    }
-    console.log("worker broadcase",e.data) 
-    messageChannelListen(e)
-  }
-}*/
-
-
-
+};  
 const postMessage = async (e:any)=>{ 
   if (e.path){  
     try{ 
@@ -166,16 +142,31 @@ const runCode =async (cur:currentObj,basename?:string )=>{
 }  
 
 self.onmessage =async (event: MessageEvent) => { 
-  console.log(event.data)
+  //console.log(event.data)
   if ( event.data.path){ 
-    if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){ 
-      
-      globalOption.DirHandle = createDirInfo(event.data.path,messageChannelListen); 
- 
+    if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){  
+      globalOption.DirHandle = createDirInfo(event.data.path);  
       const channel = globalOption.DirHandle.channeldb
       if (channel){
-        console.log("work init")
-        channel.addEventListener("message",(e:MessageEvent<{type:string}>)=>{
+        //console.log("work init")
+        //let timeEvent:any
+        channel.addEventListener("message",
+          (e:MessageEvent<{type:string,name:string}>)=>{
+            console.log("web worker",e.data)
+          if (e.data.type==="writeRes" && e.data.name){ 
+            //clearTimeout(timeEvent)
+            //timeEvent = setTimeout(async ()=>{
+              globalOption.DirHandle?.DirHandle?.getFileHandle(e.data.name).read().then(db=>{ 
+                const cur = handleCurrentMsg({
+                  db ,
+                  name:decodeURIComponent(event.data.name) 
+                })
+                if (cur)
+                  runCode(cur,event.data.basename)
+              })
+            //},500) 
+          }
+          /*
           switch(e.data.type){
             case "init":
               channel.postMessage({type:"close"});
@@ -196,10 +187,7 @@ self.onmessage =async (event: MessageEvent) => {
                   },100)
                 }
               }
-          }
-          if (e.data.type==="init"){
-            channel.postMessage({type:"close"})
-          }
+          }*/
         })
       }
 

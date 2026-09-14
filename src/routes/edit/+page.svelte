@@ -1,12 +1,12 @@
 <script lang="ts">  
-import {newPackageCode,initFileHandleClient} from "$lib/function/fileHandle"
+import {newPackageCode,initFileHandle} from "$lib/function/fileHandle"
 import Edit,{type FileInfoType} from "$lib/components/Edit.svelte";  
 //import {initDoc,diffUpdate} from '$lib/utils/yjs' 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
 import {getImportAliases} from "$lib/function/parsingCode"  
 const getFileHandle = (FileInfo:FileInfoType) =>{  
     if (!FileInfo.DirHandle || FileInfo.create){ 
-        initFileHandleClient(FileInfo)
+        initFileHandle(FileInfo)
     }
     return FileInfo.DirHandle?.getFileHandle(
         encodeURIComponent(FileInfo.name)
@@ -40,7 +40,6 @@ const FileInfo:FileInfoType =$state( {
                     } 
                 }
             }
-
         }
         return broadcastCh
     },
@@ -110,7 +109,7 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     }) 
     if (ok){
         FileInfo.path = reqdb.path +"_"+reqdb.id 
-        initFileHandleClient(FileInfo)
+        initFileHandle(FileInfo)
         //FileInfo.DirHandle = createDirInfo(FileInfo.path) 
     }
     return ok

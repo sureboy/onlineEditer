@@ -11,8 +11,9 @@ import DownMenu from "$lib/components/DownMenu.svelte";
 import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
 import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
 import Exchange,{getDialogDiv,QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte'; 
+import { createDirInfo,type DirInfoType } from '$lib/function/fileHandle'; 
 //let geometrys:{geometry:any,material:any,type:string}[] =$state([]) 
-
+let dirInfo:DirInfoType// =createDirInfo(solidControlConfig.title) 
 const solidControlConfig:ConfigType = $state({
   //title:"welcome",
   //Fullscreen:false,
@@ -114,9 +115,8 @@ const onmessageListen =async (e:MessageEvent  )=>{
     try{
       const geo = csg2Geo(e.data,{} )
       if (geo){ 
-        
         solidControlConfig.geometrys.push(geo)
-        console.log('index',e.data.index,solidControlConfig.geometrys.length)
+        //console.log('index',e.data.index,solidControlConfig.geometrys.length)
         geo.geometry.computeBoundingBox();
         const box = geo.geometry.boundingBox;
         const size = new Vector3(); 
@@ -131,11 +131,8 @@ const onmessageListen =async (e:MessageEvent  )=>{
           helpSize =size.y
         }
         if (helpSize>solidControlConfig.GridSize ){
-          solidControlConfig.GridSize  = Math.ceil(helpSize )+1
-          //GridSize[0] =GridSize[1]
-        }
-        //console.log(box,size ,GridSize)
-        
+          solidControlConfig.GridSize  = Math.ceil(helpSize )+1 
+        } 
       } 
     }catch(err){
       console.error(err)
@@ -150,6 +147,7 @@ onMount(() => {
     //let path =
     getDialogDiv().innerHTML=''
     if (path){
+      dirInfo = createDirInfo(path)
       /*
       const broadPage = new BroadcastChannel(path+"_page")
       broadPage.onmessage = (ev:MessageEvent< string>)=>{
@@ -176,6 +174,7 @@ onMount(() => {
       broadPage.postMessage("focus")
       */
       solidControlConfig.title = path
+      dirInfo  =createDirInfo(path) 
       SetEditingHashInfo({path})
       previewHandle({path },onmessageListen)
       
@@ -228,7 +227,8 @@ let editBtn:HTMLAnchorElement
   <button 
   style="height:48:px;line-height:48px;cursor: pointer;" 
   onclick={(e)=>{
-     QRCodeHandle(solidControlConfig.title||"")
+    if (solidControlConfig.title)
+     QRCodeHandle(solidControlConfig.title ,dirInfo)
   }} >webRTC P2P</button>     
 </DownMenu>
  

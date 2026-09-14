@@ -7,9 +7,9 @@ import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
 import { getWorker } from '$lib/worker/globalWorker';
 import QRCode from 'qrcode';
 //import {getFileList,getFileData} from "$lib/function/tar"
-//import {initDoc,diffUpdate} from "$lib/utils/yjs"
-import {  type DirInfoType } from '$lib/function/fileHandle';
-import * as Y from 'yjs'
+//import {initDoc,diffUpdate} from "$lib/utils/yjs" 
+import { createDirInfo,type DirInfoType  } from '$lib/function/fileHandle'; 
+//import * as Y from 'yjs'
 const FileBroadcastChannelMap = new Map<string,BroadcastChannel>()
 const getFileBroadcastChannel = (name:string)=>{
   //name = decodeURIComponent(name)
@@ -20,13 +20,13 @@ const getFileBroadcastChannel = (name:string)=>{
   }
   return  b
 }
-let dirInfo:DirInfoType
+//let dirInfo:DirInfoType
 
 type meshInfoType = {
     conn:connType, 
-    files:Map<string,{d:RTCDataChannel,y?:Y.Doc}>
+    files:Map<string,{d:RTCDataChannel }>
 } 
-let channel:BroadcastChannel|undefined=$state(undefined)
+//let channel:BroadcastChannel|undefined=$state(undefined)
 const meshList:(meshInfoType|null)[] =$state([])
 const addMesh = (m:meshInfoType)=>{ 
   for (let i=0;i<meshList.length;i++){
@@ -44,7 +44,7 @@ const addMesh = (m:meshInfoType)=>{
   meshList.push(m)
 }
 let DialogDiv:HTMLDivElement
-let showModal = false
+//let showModal = false
 export const getDialogDiv = ()=>{
   return DialogDiv
 }
@@ -57,6 +57,7 @@ export const previewHandle =async (data: { [k:string]:any},onmessage?: (e: Messa
   //w?.postMessage( data) 
    
 }
+/*
 const previewModule = (data:{Modal?:boolean,
   name: string; db: string; path: string;} )=>{
   if (data.Modal&&showModal ) { 
@@ -99,7 +100,7 @@ const previewModule = (data:{Modal?:boolean,
       //}) 
     }
 }
- 
+ */
 const getConnHostJsonStr = ()=>{
     return  {
         _comment:"跨网信令交换服务",
@@ -113,13 +114,13 @@ const getConnHostJsonStr = ()=>{
 } 
 
  
-export const QRCodeHandle = (path:string)=>{ 
-  
+export const QRCodeHandle = (path:string,dirInfo:DirInfoType)=>{  
   ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
     createWebrtcConnFromCenterUrl(db,async (conn)=>{
       const mesh = {conn,files:new Map<string,{d:RTCDataChannel }>()}
       //const DirHandle = getDirHandle(path)
       //dirInfo:DirInfoType
+      //const dirInfo = createDirInfo(path) 
       dirInfo.DirHandle?.files().then(fs=>{
         fs.forEach(f=>{
           const fileHandle = dirInfo.DirHandle?.getFileHandle(f.name)
@@ -189,34 +190,22 @@ const ShowQRImg = (db:any,path:string)=>{
 import type {connType} from "$lib/utils/webRTCPool"
 import type {ConfigType} from "$lib/components/OrthoScene.svelte"
 import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte'; 
-import { createDirInfo } from '$lib/function/fileHandle'; 
+//import { createDirInfo } from '$lib/function/fileHandle'; 
 
 const {
   solidControlConfig, 
 }:{ 
   solidControlConfig:ConfigType     
 } = $props() 
-
+/*
 $effect(() => {
   if (!solidControlConfig.title || channel){
     return;
   }
   dirInfo =createDirInfo(solidControlConfig.title) 
-  /*
-  channel = new BroadcastChannel(solidControlConfig.title); 
-  //console.log(title,channel)
-  channel.onmessage = (event) => { 
-    //console.log(event.data)
-    previewModule(event.data) 
-    const handle = initDoc(event.data.name)
-    if (handle){
-      getFileData(event.data.name).then(db=>{ 
-        diffUpdate(db.db,handle.ydoc) 
-      })
-    }
-  }; */
+ 
 })
-
+*/
 
 </script>
 <Dialog title = {solidControlConfig.title||""}  >
