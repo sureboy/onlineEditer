@@ -62,9 +62,11 @@ const FileInfo:FileInfoType =$state( {
 } as FileInfoType)
 
 const saveFile =async (v:string,FileInfo:FileInfoType)=>{ 
-    //const handle = getFileHandle(FileInfo)  
-    console.log("save edit")
-    await getFileHandle(FileInfo)?.write({db:v,origin:Originkey})  
+    const handle = getFileHandle(FileInfo)  
+    //console.log("save edit")
+    if (!handle)return
+    const data = {db:v,origin:Originkey}
+    await handle.writeAndBroad?.(data)||handle.write(data)  
 } 
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     const ok  = await createWebrtcConnFromCenterUrl(reqdb,(conn)=>{

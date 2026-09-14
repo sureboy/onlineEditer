@@ -85,7 +85,7 @@ const onmessageListen =async (e:MessageEvent  )=>{
     if (errHtml)
     errHtml.innerHTML=""
   }
-  console.log("get worker data",e.data )
+  //console.log("get worker data",e.data )
   if (e.data.module){
     //console.log(e.data.module)
     moduleInit(Object.assign({

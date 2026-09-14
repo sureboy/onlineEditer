@@ -95,7 +95,7 @@ export const createDirInfo = (path:string )=>{
 const messageChannelListenClient = (FileInfo:DirInfoType )=>{
     const oldHandle = FileInfo.DirHandle!.getFileHandle
     FileInfo.DirHandle!.getFileHandle =function(name:string){ 
-        return Object.assign(oldHandle.call(this,name), {
+        return Object.assign({},oldHandle.call(this,name), {
             write: (data:{db:string|ArrayBuffer,origin?:string})=>{ 
                 return new Promise<void>((resolve,reject)=>{ 
                     function w(e:MessageEvent<{type:string,key:string}>){
@@ -136,11 +136,11 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         FileInfo.path,{create:FileInfo.create},) 
     if (FileInfo.channeldb)FileInfo.channeldb.close();
     FileInfo.channeldb = new BroadcastChannel(FileInfo.path+"_db" ); 
-    /*
+    
     const oldHandle = FileInfo.DirHandle!.getFileHandle
     FileInfo.DirHandle!.getFileHandle=function(name:string){ 
         const old = oldHandle.call(this,name)
-        return Object.assign({},old, {
+        return Object.assign({}, old, {
             writeAndBroad: async (data:{db:string|ArrayBuffer,origin?:string})=>{ 
                 await old.write(data);
                 FileInfo.channeldb?.postMessage({
@@ -150,13 +150,13 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 })  
             }
         })
-    }*/
-    console.log("init ",FileInfo)
+    }
+    //console.log("init ",FileInfo)
     const initHandle =async (ev:MessageEvent)=>{ 
-        console.log("server",ev.data)
+        //console.log("server",ev.data)
         if (ev.data.type==="write"){
             if(ev.data.data && ev.data.name){ 
-                await FileInfo.DirHandle?.getFileHandle(ev.data.name).writeAndBroad?.(ev.data.data)  
+                await FileInfo.DirHandle?.getFileHandle(ev.data.name).write?.(ev.data.data)  
                  
                 FileInfo.channeldb?.postMessage({
                     type:"writeRes",
@@ -165,8 +165,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 })  
             }
         } else if (ev.data.type==="init" ){
-            if (ev.data.key === FileInfo.key){
-                console.log("init client",ev.data,FileInfo)
+            if (ev.data.key === FileInfo.key){ 
                 messageChannelListenClient(FileInfo)
                 FileInfo.channeldb?.removeEventListener("message",initHandle)
             }else{
@@ -177,41 +176,6 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         
     }
     FileInfo.channeldb.addEventListener("message",initHandle)
-    /*
-    FileInfo.channeldb.onmessage = messageHandle || ((ev:MessageEvent<{key:string}>)=>{ 
-        //FileInfo.channeldb?.postMessage(Object.assign(event.data,{key})) 
-        if (!ev.data.key || ev.data.key!==FileInfo.key){
-            return
-        }
-        //messageChannelListenClient(FileInfo,ev)
-        const oldHandle = FileInfo.DirHandle!.getFileHandle
-        FileInfo.DirHandle!.getFileHandle =function(name:string){ 
-            return Object.assign(oldHandle.call(this,name), {
-                write: (data:{db:string|ArrayBuffer,origin?:string})=>{ 
-                    return new Promise<void>((resolve,reject)=>{
-                        
-                        function w(e:MessageEvent<{type:string,key:string}>){
-                            if (e.data.type ==="write" && e.data.key ===FileInfo.key){
-                                clearTimeout(timeOut)
-                                resolve()
-                                FileInfo.channeldb?.removeEventListener("message",w)
-                            }                            
-                        }
-                        const timeOut = setTimeout(()=>{
-                            //reject("TimeOut")
-                            
-                            resolve(oldHandle(name).write(data))
-                            FileInfo.channeldb?.removeEventListener("message",w)
-                        },500)
-                        FileInfo.channeldb?.addEventListener("message",w)
-                        FileInfo.channeldb?.postMessage({name,key:FileInfo.key,data,type:"write"}) 
-                    })
-                }, 
-            
-            });
-        }
-    })
-    //}
-    */
+    
     FileInfo.channeldb.postMessage({type:"init",key:FileInfo.key}) 
 }

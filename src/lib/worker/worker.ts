@@ -118,8 +118,8 @@ const runCode =async (cur:currentObj,basename?:string )=>{
     if (tmpDB.then){
       tmpDB = await tmpDB
     }
-    console.log(tmpDB)
-    getCsgObjArray(tmpDB,(msg)=>{ 
+    //console.log(tmpDB)
+    await getCsgObjArray(tmpDB,(msg)=>{ 
       if ('index' in msg ){
         const buf:Transferable[] = [];
         const keys = Object.keys(msg); 
@@ -134,62 +134,38 @@ const runCode =async (cur:currentObj,basename?:string )=>{
         self.postMessage(msg )
       }      
     })
+    globalOption.DirHandle?.channeldb?.addEventListener("message",runHandle)
   }catch(err){
     //globalOption.indexCurrent=undefined
     self.postMessage({err:parseError(err as Error,objUrlMap)})
     throw err 
   } 
 }  
-
+const run = (name:string,basename?:string)=>{
+  globalOption.DirHandle?.DirHandle?.getFileHandle( name).read().then(db=>{ 
+    //console.log(db)
+    const cur = handleCurrentMsg({
+      db ,
+      name:decodeURIComponent( name) 
+    })
+    if (cur)
+      runCode(cur, basename)
+  })
+}
+const runHandle =(e:MessageEvent<{type:string,name:string}>)=>{
+    if (e.data.type==="writeRes"){
+      run(e.data.name,globalOption.basename)
+      globalOption.DirHandle?.channeldb?.removeEventListener("message",runHandle)
+    }
+}
 self.onmessage =async (event: MessageEvent) => { 
   //console.log(event.data)
   if ( event.data.path){ 
     if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){  
       globalOption.DirHandle = createDirInfo(event.data.path);  
-      const channel = globalOption.DirHandle.channeldb
-      if (channel){
-        //console.log("work init")
-        //let timeEvent:any
-        channel.addEventListener("message",
-          (e:MessageEvent<{type:string,name:string}>)=>{
-            console.log("web worker",e.data)
-          if (e.data.type==="writeRes" && e.data.name){ 
-            //clearTimeout(timeEvent)
-            //timeEvent = setTimeout(async ()=>{
-              globalOption.DirHandle?.DirHandle?.getFileHandle(e.data.name).read().then(db=>{ 
-                const cur = handleCurrentMsg({
-                  db ,
-                  name:decodeURIComponent(event.data.name) 
-                })
-                if (cur)
-                  runCode(cur,event.data.basename)
-              })
-            //},500) 
-          }
-          /*
-          switch(e.data.type){
-            case "init":
-              channel.postMessage({type:"close"});
-              return;
-            case "close":
-              channel.onmessage =  (e)=>{
-                if (e.data.type==="write" && event.data.name){
-                  setTimeout(()=>{
-                    const name =decodeURIComponent(event.data.name)
-                    globalOption.DirHandle?.DirHandle?.getFileHandle(
-                      encodeURIComponent(event.data.name)
-                    ).read().then(db=>{
-                      const cur = handleCurrentMsg({db,name } )
-                      if (cur){
-                        runCode(cur,event.data.basename)
-                      }
-                    })
-                  },100)
-                }
-              }
-          }*/
-        })
-      }
+      
+      //globalOption.DirHandle.channeldb?.addEventListener("message",runHandle)
+    
 
       
     }
