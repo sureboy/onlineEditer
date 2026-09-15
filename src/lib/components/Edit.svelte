@@ -5,8 +5,9 @@ export type FileInfoType  = {
     name:string, 
     cmView: EditorView,
     CurrentBroadcastChannel?:BroadcastChannel,
+    setView:(cmView: EditorView)=>void,
     initEditorView:()=>any,
-    value?:string,
+    //value?:string,
     fileBroadcastChannelMap:Map<string,BroadcastChannel>,
     getFileBroadcastChannel:(name?:string)=>BroadcastChannel
 } & DirInfoType
@@ -33,8 +34,10 @@ import { appendChildToDom,createButton,createPackage,createSelect } from "$lib/f
 let manager: FullscreenWakeLockManager | undefined;  
 const {ready,
     saveFile,
-    FileInfo
+    FileInfo,
+    value,
 }:{
+    value:string,
     saveFile:(v:string,FileInfo:FileInfoType)=>void,
     FileInfo:FileInfoType,
     ready:()=>any
@@ -98,7 +101,7 @@ const StopTimeOut = ()=>{
 //$derived()
 $effect(()=>{
     //console.log(value)
-    if (FileInfo.value)
+    if (value)
     initPanel() 
 })
 const saveKeymap = {
@@ -159,7 +162,7 @@ provide: (f) => EditorView.decorations.from(f),
 <CodeMirror  
 lineWrapping={true}
 theme={isDark ? oneDark : lightTheme}
-    value={FileInfo.value}
+    {value} 
     extensions={[
         highlightField,
         //themeCompartment.of([]),
@@ -177,7 +180,7 @@ theme={isDark ? oneDark : lightTheme}
     }} 
     
     onready = {(cm_view)=>{   
-        FileInfo.cmView = cm_view
+        FileInfo.setView(cm_view)
         manager = new FullscreenWakeLockManager();
         ready()
         //.then(()=>{
