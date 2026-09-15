@@ -15,53 +15,13 @@ import {parseError} from '$lib/utils/parseError';
 import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
 
 const globalOption:{
-  //indexCurrent?:currentObj, 
+ 
   basename?:string
   DirHandle?:DirInfoType
 } = {
-  //baseName:"main"
+ 
 }
-//let  channel:BroadcastChannel|undefined = undefined// = new BroadcastChannel(solidControlConfig.title); 
-
-const messageChannelListen = async (event:MessageEvent<{
-  basename?:string,
-  key?:string,type?:string,name?:string,data?:{db:string|ArrayBuffer,origin?:string}}>) => { 
   
-  const  channel = globalOption.DirHandle?.channeldb
-  if (!event.data.name || !event.data.type){
-    channel?.postMessage(event.data)
-    //return 
-  } else{
-    switch (event.data.type){ 
-      case "read":
-        const db = await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).read() 
-        channel?.postMessage(Object.assign(event.data,{db}))
-        break;
-      case "write":
-        await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).write(event.data.data!) 
-        if (typeof event.data.data?.db ==="string"){
-          //globalOption.indexCurrent = getIndex(handleCurrentMsg({db:event.data.data?.db,name:event.data.name } )!)
-          const cur = handleCurrentMsg({
-            db:event.data.data?.db,
-            name:decodeURIComponent(event.data.name) 
-          })
-          if (cur)
-            runCode(cur,event.data.basename)
-        }
-        //else
-        channel?.postMessage({type:event.data.type,key:event.data.key}) 
-        break;
-      case "del":
-        await globalOption.DirHandle?.DirHandle?.getFileHandle(event.data.name).del()
-        channel?.postMessage(event.data)
-        break;
-      default:
-        //channel?.postMessage(event.data)
-        break 
-    } 
-  } 
-
-};  
 const postMessage = async (e:any)=>{ 
   if (e.path){  
     try{ 
@@ -98,48 +58,49 @@ const getIndex = (c:currentObj )=>{
   } 
 }
 const runCode =async (cur:currentObj,basename?:string )=>{
-  try{
+  globalOption.DirHandle?.channeldb?.removeEventListener("message",runHandle)
+  try{ 
     const indexCurrent = getIndex(cur)
     const u = await indexCurrent.getUri() 
     const src = await  import(/* @vite-ignore */u) 
     const list = Object.keys(src)
-    if (!list.length){
-      return
+    if (list.length){ 
+      if (basename){
+        globalOption.basename = basename 
+      }
+      if (!globalOption.basename || !list.includes(globalOption.basename)){
+        globalOption.basename = list[0] 
+      }
+      const module = {list,basename:globalOption.basename} 
+      self.postMessage({module}) 
+      let tmpDB = src[module.basename]()
+      if (tmpDB.then){
+        tmpDB = await tmpDB
+      }
+      //console.log(tmpDB)
+      await getCsgObjArray(tmpDB,(msg)=>{ 
+        if ('index' in msg ){
+          const buf:Transferable[] = [];
+          const keys = Object.keys(msg); 
+          for (const k of keys){ 
+            if (msg[k] && msg[k].buffer){ 
+              msg[k] = msg[k].buffer
+              buf.push(msg[k])//  = await navigator.storage.getDirectory(); 
+            }
+          }; 
+          self.postMessage(msg,buf )
+        }else{
+          self.postMessage(msg )
+        }      
+      })
     }
-    if (basename){
-      globalOption.basename = basename 
-    }
-    if (!globalOption.basename || !list.includes(globalOption.basename)){
-      globalOption.basename = list[0] 
-    }
-    const module = {list,basename:globalOption.basename} 
-    self.postMessage({module}) 
-    let tmpDB = src[module.basename]()
-    if (tmpDB.then){
-      tmpDB = await tmpDB
-    }
-    //console.log(tmpDB)
-    await getCsgObjArray(tmpDB,(msg)=>{ 
-      if ('index' in msg ){
-        const buf:Transferable[] = [];
-        const keys = Object.keys(msg); 
-        for (const k of keys){ 
-          if (msg[k] && msg[k].buffer){ 
-            msg[k] = msg[k].buffer
-            buf.push(msg[k])//  = await navigator.storage.getDirectory(); 
-          }
-        }; 
-        self.postMessage(msg,buf )
-      }else{
-        self.postMessage(msg )
-      }      
-    })
-    globalOption.DirHandle?.channeldb?.addEventListener("message",runHandle)
+   
   }catch(err){
     //globalOption.indexCurrent=undefined
     self.postMessage({err:parseError(err as Error,objUrlMap)})
     throw err 
   } 
+  globalOption.DirHandle?.channeldb?.addEventListener("message",runHandle)
 }  
 const run = (name:string,basename?:string)=>{
   globalOption.DirHandle?.DirHandle?.getFileHandle( name).read().then(db=>{ 
@@ -154,41 +115,29 @@ const run = (name:string,basename?:string)=>{
 }
 const runHandle =(e:MessageEvent<{type:string,name:string}>)=>{
     if (e.data.type==="writeRes"){
-      run(e.data.name,globalOption.basename)
-      globalOption.DirHandle?.channeldb?.removeEventListener("message",runHandle)
+      run(e.data.name,globalOption.basename) 
     }
 }
-self.onmessage =async (event: MessageEvent) => { 
-  //console.log(event.data)
+const messageHandle =async (event: MessageEvent) => { 
+  console.log(event.data ,"message handle")
+  // self.onmessage  =null
+  //self.removeEventListener("message",messageHandle)
   if ( event.data.path){ 
     if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){  
       globalOption.DirHandle = createDirInfo(event.data.path);  
-      
-      //globalOption.DirHandle.channeldb?.addEventListener("message",runHandle)
-    
-
-      
     }
-    //if (event.data.files){
-    //  self.postMessage({path:event.data.path,files:(await globalOption.DirHandle?.files())})
-    //}
     const name = event.data.name||"./index.js"
     const db = event.data.db || await globalOption.DirHandle.DirHandle?.getFileHandle(encodeURIComponent(name)).read()
     const cur =    handleCurrentMsg({ db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
     if (cur  ){ 
-      //globalOption.indexCurrent = getIndex(cur)
       await runCode( cur,event.data.basename);
     }
   }else if (event.data.basename ){ 
     await runCode( await getCurrent("./index.js"),event.data.basename);
-  }
-
-
-  //messageChannelListen(event)
-  //return
-   
+  } 
+  //self.onmessage = messageHandle
+  //self.addEventListener("message", messageHandle)
 };
-//console.log("run")
-//self.postMessage({start:true})
-// 导出空对象以适配 TypeScript 模块要求
+self.addEventListener("message", messageHandle)
+
 export {};

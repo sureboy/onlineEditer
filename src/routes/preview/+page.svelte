@@ -10,10 +10,11 @@ import DownMenu from "$lib/components/DownMenu.svelte";
 //import {parseError} from "$lib/utils/parseError"
 import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
 import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
-import Exchange,{getDialogDiv,QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte'; 
+import Exchange,{QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte'; 
 import { createDirInfo,type DirInfoType } from '$lib/function/fileHandle';  
+import {type ThrelteContext } from '@threlte/core'
 
-let dirInfo:DirInfoType// =createDirInfo(solidControlConfig.title) 
+let DirInfo:DirInfoType 
 let geometrys:{geometry:any,material:any,type:string}[] = $state([])
 let show = $state(false)
 const solidControlConfig:ConfigType = $state({ 
@@ -45,9 +46,7 @@ const tickRunTime = ()=>{
   requestAnimationFrame(tickRunTime);
 }
 
-const ClickhandleWithMainMenu = (basename:string)=>{
-  previewHandle({basename},onmessageListen) 
-}
+ 
 const Clickhandle=(k:string|{[key:string]:any}|null)=>{
   if (!k)return;
   if (typeof k === 'string'){
@@ -102,15 +101,19 @@ const onmessageListen =async (e:MessageEvent  )=>{
     errHtml.innerHTML=""
   } 
   if (e.data.module){ 
-    moduleInit(Object.assign({
-      Clickhandle:ClickhandleWithMainMenu
-    }, e.data.module))
+  
     geometrys = []
     solidControlConfig.GridSize=10
     solidControlConfig.MaxSize.set(10,10,10)
     show=false
     beginTime=Date.now() 
     tickRunTime()
+
+    moduleInit(Object.assign({
+      Clickhandle:(basename:string)=>{ 
+        previewHandle({basename},onmessageListen) 
+      }
+    }, e.data.module))
     return
   }
   if (e.data.start){
@@ -165,9 +168,9 @@ onMount(() => {
   try{
     const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))  
     if (path){
-      dirInfo = createDirInfo(path) 
+      //dirInfo = createDirInfo(path) 
       solidControlConfig.title = path
-      dirInfo  =createDirInfo(path)  
+      DirInfo  =createDirInfo(path)  
       previewHandle({path },onmessageListen) 
     }  
   }catch(err){
@@ -194,7 +197,7 @@ const DownHandle = (fn:(e:any)=>Promise<void>|void)=>{
     solidControlConfig.Grid=Grid; 
   }) 
 }
-  import {type ThrelteContext } from '@threlte/core'
+  
 
 const getContext = (Context: ThrelteContext<WebGLRenderer>)=>{
   solidControlConfig.Context = Context
@@ -209,7 +212,7 @@ let editBtn:HTMLAnchorElement
 </Canvas>  
  
  <Menu    >
-<MainMenu   ></MainMenu>
+<MainMenu {show}  ></MainMenu>
 {#if show}
 <Camera {Clickhandle}   ></Camera>
   <DownMenu  
@@ -219,7 +222,7 @@ let editBtn:HTMLAnchorElement
   style="height:48:px;line-height:48px;cursor: pointer;" 
   onclick={(e)=>{
     if (solidControlConfig.title)
-     QRCodeHandle(solidControlConfig.title ,dirInfo)
+     QRCodeHandle(solidControlConfig.title ,DirInfo)
   }} >webRTC P2P</button>     
 </DownMenu>
 {:else}
