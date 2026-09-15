@@ -118,10 +118,7 @@ const runHandle =(e:MessageEvent<{type:string,name:string}>)=>{
       run(e.data.name,globalOption.basename) 
     }
 }
-const messageHandle =async (event: MessageEvent) => { 
-  console.log(event.data ,"message handle")
-  // self.onmessage  =null
-  //self.removeEventListener("message",messageHandle)
+self.onmessage   =async (event: MessageEvent) => {  
   if ( event.data.path){ 
     if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){  
       globalOption.DirHandle = createDirInfo(event.data.path);  
@@ -135,9 +132,8 @@ const messageHandle =async (event: MessageEvent) => {
   }else if (event.data.basename ){ 
     await runCode( await getCurrent("./index.js"),event.data.basename);
   } 
-  //self.onmessage = messageHandle
-  //self.addEventListener("message", messageHandle)
+ 
 };
-self.addEventListener("message", messageHandle)
+ 
 
 export {};
