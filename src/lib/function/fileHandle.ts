@@ -106,18 +106,10 @@ const messageChannelListenClient = (FileInfo:DirInfoType )=>{
                             FileInfo.channeldb?.removeEventListener("message",w)
                         }                            
                     }
-                    const timeOut = setTimeout(()=>{
-                        //reject("TimeOut")
-                        console.error("write time out",name)
-                        //resolve(oldHandle(name).write(data))
-                        //FileInfo.channeldb?.removeEventListener("message",w)
-                        //FileInfo.DirHandle!.getFileHandle = oldHandle
+                    const timeOut = setTimeout(()=>{ 
                         FileInfo.DirHandle?.getFileHandle(name).write(data)
-                        FileInfo.DirHandle = undefined;
-                        //FileInfo.channeldb?.close()
-                        initFileHandle(FileInfo)
-                        
-
+                        FileInfo.DirHandle = undefined; 
+                        initFileHandle(FileInfo) 
                     },500)
                     FileInfo.channeldb?.addEventListener("message",w)
                     FileInfo.channeldb?.postMessage({name,key:FileInfo.key,data,type:"write"}) 
@@ -151,29 +143,46 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 })  
             }
         })
-    }
-    //console.log("init ",FileInfo)
-    const initHandle =async (ev:MessageEvent)=>{ 
-        //console.log("server",ev.data)
-        if (ev.data.type==="write"){
-            if(ev.data.data && ev.data.name){ 
-                await FileInfo.DirHandle?.getFileHandle(ev.data.name).write?.(ev.data.data)  
-                 
-                FileInfo.channeldb?.postMessage({
-                    type:"writeRes",
-                    key:ev.data.key,
-                    name:ev.data.name
-                })  
-            }
-        } else if (ev.data.type==="init" ){
-            if (ev.data.key === FileInfo.key){ 
-                messageChannelListenClient(FileInfo)
-                FileInfo.channeldb?.removeEventListener("message",initHandle)
-            }else{
-                FileInfo.channeldb?.postMessage(ev.data)
-            } 
-        }
-       
+    } 
+    const workerSet = new Set<string>()
+    const initHandle =async (ev:MessageEvent)=>{  
+        switch (ev.data.type){
+            case "write":
+                if(ev.data.data && ev.data.name){ 
+                    await FileInfo.DirHandle?.getFileHandle(ev.data.name).write?.(ev.data.data)  
+                    
+                    FileInfo.channeldb?.postMessage({
+                        type:"writeRes",
+                        key:ev.data.key,
+                        name:ev.data.name
+                    })  
+                }
+                return;
+            case "worker":
+                if (!workerSet.has(ev.data.basename)){
+                    FileInfo.channeldb?.postMessage(ev.data)
+                    workerSet.add(ev.data.basename)
+                    console.log("worker server add" )
+                }   
+                console.log("worker server",ev.data,workerSet)
+                return;
+            case "workerData":
+                console.log("worker server workerData",ev.data)
+                if (ev.data.msg.end){
+                    workerSet.delete(ev.data.basename)
+                }
+                return
+            case "init":
+                if (ev.data.key === FileInfo.key){ 
+                    messageChannelListenClient(FileInfo)
+                    FileInfo.channeldb?.removeEventListener("message",initHandle)
+                }else{
+                    FileInfo.channeldb?.postMessage(ev.data)
+                } 
+                return
+           
+
+        }    
         
     }
     FileInfo.channeldb.addEventListener("message",initHandle)

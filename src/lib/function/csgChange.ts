@@ -3,7 +3,7 @@
 // ============================================================================
 // 几何对象类型定义（基于运行时检查的特征）
 // ============================================================================
-type Geo = Geom3|Geom2|Path2|RawGeometry |Promise<RawGeometry>
+type Geo = Geom3|Geom2|Path2|RawGeometry   |Promise<RawGeometry>
 interface Geom3 {
   polygons: Array<{ vertices: number[][] }>;
   transforms: unknown;
@@ -125,11 +125,16 @@ const geometries = {
 /**
  * 递归遍历 db（支持嵌套数组），对每个非数组元素调用 getCsgObj 并通过 back 回调
  */
-export const getCsgObjArray =async (db:  Geo[]|Geo, back: BackCallback) => {
-  const arrayReturn =async (v: Geo[]|Geo, fn: (item: Geo) =>Promise<void>)=> {
+export const getCsgObjArray =async (db:  (Geo|(()=>Geo))[]|Geo, back: BackCallback) => {
+  const arrayReturn =async (v:  (Geo|(()=>Geo))[]|Geo, fn: (item: Geo ) =>Promise<void>)=> {
     if (Array.isArray(v)) {
       for (let _v of v){
-        await arrayReturn(_v, fn);
+        if (typeof _v ==="function"){
+          arrayReturn(_v(), fn);
+        }else{
+          await arrayReturn(_v, fn);
+        }
+        
       }
       
     } else {

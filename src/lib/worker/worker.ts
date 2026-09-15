@@ -73,26 +73,53 @@ const runCode =async (cur:currentObj,basename?:string )=>{
       }
       const module = {list,basename:globalOption.basename} 
       self.postMessage({module}) 
-      let tmpDB = src[module.basename]()
-      if (tmpDB.then){
-        tmpDB = await tmpDB
-      }
-      //console.log(tmpDB)
-      await getCsgObjArray(tmpDB,(msg)=>{ 
-        if ('index' in msg ){
-          const buf:Transferable[] = [];
-          const keys = Object.keys(msg); 
-          for (const k of keys){ 
-            if (msg[k] && msg[k].buffer){ 
-              msg[k] = msg[k].buffer
-              buf.push(msg[k])//  = await navigator.storage.getDirectory(); 
+ 
+      const workerHandle =async (ev:MessageEvent<{type:string,basename:string,key:string,msg:any}>)=>{
+        switch (ev.data.type){
+          case "worker":
+            if (ev.data.key !== globalOption.DirHandle?.key || ev.data.basename !== basename){
+              return;
             }
-          }; 
-          self.postMessage(msg,buf )
-        }else{
-          self.postMessage(msg )
-        }      
-      })
+            let tmpDB = src[module.basename]()
+            if (tmpDB.then){
+              tmpDB = await tmpDB
+            }
+            //console.log(tmpDB)
+            await getCsgObjArray(tmpDB,(msg)=>{ 
+              globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",basename,msg})
+              
+              const buf:Transferable[] = [];
+              if ('index' in msg ){ 
+                const keys = Object.keys(msg); 
+                for (const k of keys){ 
+                  if (msg[k] && msg[k].buffer){ 
+                    msg[k] = msg[k].buffer
+                    buf.push(msg[k])//  = await navigator.storage.getDirectory(); 
+                  }
+                };  
+              }  
+              self.postMessage(msg,buf )
+              
+            })
+            break;
+          case "workerData":
+            console.log("get worker Data",ev.data)
+            if (ev.data.basename !== basename){
+              return;
+            }
+            self.postMessage(ev.data.msg )
+            if (ev.data.msg.end){
+              break
+            }else{
+              return;
+            } 
+        }
+        globalOption.DirHandle?.channeldb?.removeEventListener("message",workerHandle)
+        console.log("worker remove",ev.data)
+      }
+      globalOption.DirHandle?.channeldb?.addEventListener("message",workerHandle)
+      globalOption.DirHandle?.channeldb?.postMessage({type:"worker",basename,key:globalOption.DirHandle.key})
+
     }
    
   }catch(err){
