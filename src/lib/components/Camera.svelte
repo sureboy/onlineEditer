@@ -16,7 +16,12 @@ export function toggleCamera() {
 import FullscreenWakeLockManager from '$lib/utils/FullscreenWakeLockManager';
   //import { HelperGroupChange} from "./function/threeScene" 
 import {onMount} from "svelte"
-const {Clickhandle}:{Clickhandle:(name:string|{[k:string]:any}|null)=>void } = $props()
+const {
+  Clickhandle,
+  //show
+}:{
+  //show:boolean,
+  Clickhandle:(name:string|{[k:string]:any}|null)=>void } = $props()
 let manager: FullscreenWakeLockManager 
   //let inputCheckBoxStruct = HelperGroupChange(3)
 onMount(()=>{
@@ -46,7 +51,7 @@ onMount(()=>{
 	}
 </script>
 <svelte:window onkeydown={handleKeydown}  />
-<details >
+<details  >
   <summary style="cursor:pointer;height:48px;text-align:left;line-height: 48px;" >
     {view.join(" ")}
   </summary>

@@ -9,13 +9,13 @@ import {
 } from 'three';
 import {type ThrelteContext } from '@threlte/core'
 export type ConfigType = {
-  geometrys:{geometry:any,material:any,type:string}[],
+  //geometrys:{geometry:any,material:any,type:string}[],
   title?:string,
   Light:boolean,
   Axes:boolean,
   Grid:boolean,
   isOrthographic:boolean,
-  show:boolean,
+  //show:boolean,
   MaxSize:Vector3,
   GridSize:number,
   main:any[],
@@ -62,19 +62,10 @@ export const refreshCameraInit =(opt:{
   if (!camera){
       return
   }
-  const {MaxSize,isOrthographic,getAspect} = opt
-  //const {size} = useThrelte()
-  //size.subscribe
-  //const width = 200
-  //const height = 100
-  const groupSize = (MaxSize.length() || 10)
-
-  //const k =  width/ height;
-  const aspect = getAspect()
-  //  console.log(groupSize,aspect,Controls)
-  if (isOrthographic){
-    
-   
+  const {MaxSize,isOrthographic,getAspect} = opt 
+  const groupSize = (MaxSize.length() || 10) 
+  const aspect = getAspect() 
+  if (isOrthographic){ 
     const s = groupSize/2;
     const cam = (camera as OrthographicCamera )
     cam.left = -s *aspect;
@@ -84,32 +75,19 @@ export const refreshCameraInit =(opt:{
     cam.position.set(0,0,-s); 
     cam.up.set(0,1,0)
     QviewDistance = s;
-  }else{
-    //isOrthographic=false;
-			//if (camera){
-			//	camera.clear();
-			//}
-			//camera =new PerspectiveCamera(40, 1, 0.1, 2000);
-			//const  size = getSize(group);
-			//cameraFov = camera.fov;
+  }else{ 
     const cam = (camera as PerspectiveCamera )
     const fov =  (cam.fov )*(Math.PI /180); 	 
-    cam.position.setZ( groupSize /2/Math.tan(fov/2)); 	
-    //viewDistance =  camera.position.z;	
-    cam.aspect = aspect	;
-    //console.log("fov",fov,cam.position,cam.fov)
+    cam.position.setZ( groupSize /2/Math.tan(fov/2)); 	 
+    cam.aspect = aspect	; 
   }
-  //console.log("qv",QviewDistance)
+ 
   camera.updateProjectionMatrix();
-  
-  //setTimeout(()=>{
-    //console.log("show ")
+   
     camera?.lookAt(0,0,0) ;
     Controls?.target.set(0, 0, 0);
     Controls?.update();
-  //},100)
-
-  //switchView("front");
+ 
 
 }
 
@@ -145,20 +123,20 @@ export const refreshCamera = (direction:string,isOrthographic:boolean,MaxSize:Ve
  
 
   const { 
-   // geometrys, 
+    geometrys, 
     getContext,
     solidControlConfig}:{ 
       getContext:any
     solidControlConfig:ConfigType, 
-   // geometrys:{geometry:any,material:any,type:string}[] 
+    geometrys:{geometry:any,material:any,type:string}[] 
 } = $props() 
-
+  const Context= useThrelte() 
 onMount(()=>{
   //console.log("onMount init")
-  const Context= useThrelte() 
+
   
   getContext(Context)
-  Context.invalidate()
+  //Context.invalidate()
  
 })
 
@@ -205,7 +183,7 @@ onMount(()=>{
   <T.AxesHelper args={[solidControlConfig.GridSize/2+1]} />
   {/if}
  
-  {#each solidControlConfig.geometrys as {geometry,material,type}} 
+  {#each geometrys as {geometry,material,type}} 
     {#if type==="mesh"}
       
     

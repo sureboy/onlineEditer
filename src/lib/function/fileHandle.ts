@@ -4,9 +4,10 @@ import {initDoc,diffUpdate,updateDoc,initDocEasy} from '$lib/utils/yjs'
 export const newPackageCode:string = `/*
 import modeling from '@jscad/modeling';
 import  manifold from 'manifold-3d';
-const Manifold = await  manifold()
-Manifold.setup()
-export const manifold_main= (opt)=>{   
+
+export const manifold_main= async (opt)=>{   
+  const Manifold = await  manifold()
+  Manifold.setup()
   const option = Object.assign({size:2},opt);   
   const box = Manifold.Manifold.cube(option.size,true);    
   const sphere = Manifold.Manifold.sphere(1.2, 48);     

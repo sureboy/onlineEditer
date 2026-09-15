@@ -8,9 +8,13 @@ import {STLExporter} from "three/addons/exporters/STLExporter.js" ;
 import {downloadOpfsAsTarGz} from '$lib/function/tar'
 //let Details:HTMLDetailsElement
 
-const {title,DownHandle,show,children } :{  
+const {title,DownHandle,
+  //show,
+  children } :{  
   DownHandle:  (fn:(e:ThrelteContext<WebGLRenderer>)=>any)=>void, 
-  title:string,show:boolean,children?:any,
+  title:string,
+  //show:boolean,
+  children?:any,
 } = $props()
 const downSTLclick=()=>{
   DownHandle( ( e )=>{
@@ -66,7 +70,7 @@ const downPngClick=()=>{
   })
 } 
 </script>
-<details    style="display:{show?"inline":'none'};"   >
+<details       >
     <summary style="cursor:pointer;height:48px;text-align:left;line-height: 48px;" >
        Function
     </summary>
@@ -96,5 +100,6 @@ const downPngClick=()=>{
         </div> 
  
 </details>
+
 
  

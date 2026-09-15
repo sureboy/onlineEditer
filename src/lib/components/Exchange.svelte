@@ -43,64 +43,17 @@ const addMesh = (m:meshInfoType)=>{
   }
   meshList.push(m)
 }
-let DialogDiv:HTMLDivElement
-//let showModal = false
+let DialogDiv:HTMLDivElement 
 export const getDialogDiv = ()=>{
   return DialogDiv
 }
 export const previewHandle =async (data: { [k:string]:any},onmessage?: (e: MessageEvent) => void)=>{
   if (!data.basename){
     data.basename="main"
-  }
-  //console.log(data);
-  (await getWorker( onmessage)).postMessage(data)
-  //w?.postMessage( data) 
+  } 
+  (await getWorker( onmessage)).postMessage(data) 
    
-}
-/*
-const previewModule = (data:{Modal?:boolean,
-  name: string; db: string; path: string;} )=>{
-  if (data.Modal&&showModal ) { 
-      if (DialogDiv){
-        DialogDiv.innerHTML=''
-        const p = document.createElement("p")
-        p.textContent = `'${data.name}' has been changed.`
-        const p1 = document.createElement("p")
-        const check = document.createElement("input")
-        check.type="checkbox"
-        check.checked = false
-        check.onclick = (e)=>{
-          showModal = !check.checked
-        }
-        const label = document.createElement("label")
-        label.textContent = "Do not display"
-        p1.append(check,label)
-        const btn = document.createElement("button")
-        btn.textContent =  data.name ||"Preview"
-    //tmpList.push(window.localStorage.key(i))
-        btn.onclick = ()=>{
-            //previewHandle()
-          previewHandle(data) .then(()=>{ 
-            //w?.postMessage(msg) 
-            closeModal()
-          }) 
-        }
-
-        DialogDiv.append(p,p1,btn)
-        
-        //DialogDiv.append()
-        openModal() 
-      } 
-    }else{
-      closeModal();
-      previewHandle(data)
-      //getWorker(onmessageListen).then( w=>{ 
-      //  w?.postMessage( data) 
-      //  closeModal()
-      //}) 
-    }
-}
- */
+} 
 const getConnHostJsonStr = ()=>{
     return  {
         _comment:"跨网信令交换服务",
@@ -117,10 +70,7 @@ const getConnHostJsonStr = ()=>{
 export const QRCodeHandle = (path:string,dirInfo:DirInfoType)=>{  
   ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
     createWebrtcConnFromCenterUrl(db,async (conn)=>{
-      const mesh = {conn,files:new Map<string,{d:RTCDataChannel }>()}
-      //const DirHandle = getDirHandle(path)
-      //dirInfo:DirInfoType
-      //const dirInfo = createDirInfo(path) 
+      const mesh = {conn,files:new Map<string,{d:RTCDataChannel }>()} 
       dirInfo.DirHandle?.files().then(fs=>{
         fs.forEach(f=>{
           const fileHandle = dirInfo.DirHandle?.getFileHandle(f.name)
@@ -148,11 +98,8 @@ export const QRCodeHandle = (path:string,dirInfo:DirInfoType)=>{
             }
           })
         })
-      })
-       
-      addMesh(mesh)
-      
-
+      }) 
+      addMesh(mesh) 
       closeModal()
     }).then(ok=>{
       if (!ok){
@@ -189,24 +136,12 @@ const ShowQRImg = (db:any,path:string)=>{
 <script lang="ts">
 import type {connType} from "$lib/utils/webRTCPool"
 import type {ConfigType} from "$lib/components/OrthoScene.svelte"
-import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte'; 
-//import { createDirInfo } from '$lib/function/fileHandle'; 
-
+import Dialog,{openModal,closeModal} from '$lib/components/Dialog.svelte';  
 const {
   solidControlConfig, 
 }:{ 
   solidControlConfig:ConfigType     
-} = $props() 
-/*
-$effect(() => {
-  if (!solidControlConfig.title || channel){
-    return;
-  }
-  dirInfo =createDirInfo(solidControlConfig.title) 
- 
-})
-*/
-
+} = $props()  
 </script>
 <Dialog title = {solidControlConfig.title||""}  >
   

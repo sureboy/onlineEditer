@@ -1,7 +1,7 @@
 <script lang="ts">
 //import {Dialog} from '$lib/components/Dialog.svelte'
 import { Canvas } from '@threlte/core'
-import Menu,{SetEditingHashInfo} from '$lib/components/Menu.svelte'   
+import Menu from '$lib/components/Menu.svelte'   
 import { csg2Geo } from "$lib/function/csg2Three"; 
 import { onMount } from 'svelte'; 
 import {  Vector3,WebGLRenderer } from 'three';
@@ -11,29 +11,42 @@ import DownMenu from "$lib/components/DownMenu.svelte";
 import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
 import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
 import Exchange,{getDialogDiv,QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte'; 
-import { createDirInfo,type DirInfoType } from '$lib/function/fileHandle'; 
-//let geometrys:{geometry:any,material:any,type:string}[] =$state([]) 
+import { createDirInfo,type DirInfoType } from '$lib/function/fileHandle';  
+
 let dirInfo:DirInfoType// =createDirInfo(solidControlConfig.title) 
-const solidControlConfig:ConfigType = $state({
-  //title:"welcome",
-  //Fullscreen:false,
-  geometrys: [],
+let geometrys:{geometry:any,material:any,type:string}[] = $state([])
+let show = $state(false)
+const solidControlConfig:ConfigType = $state({ 
+  //geometrys: [],
   Light:true,
   Axes:true,Grid:true,main:[],
   isOrthographic:false,
   MaxSize :new Vector3(),
   GridSize:10,
-  show:false,
+  //show:false,
   getAspect:()=>{
-            if (!solidControlConfig.Context)return 1
-        const {size} = solidControlConfig.Context
-        return size.current.width/size.current.height
-      }
-  //getAspect:()=>{return aspect},
+    if (!solidControlConfig.Context)return 1
+    const {size} = solidControlConfig.Context
+    return size.current.width/size.current.height
+  } 
 })
-const ClickhandleWithMainMenu = (basename:string)=>{
-  previewHandle({basename},onmessageListen)
+let beginTime =  0
+let showRunTime = $state(0)
+const tickRunTime = ()=>{
+  let t = ( Date.now() - beginTime)/1000
+  if (show){
+    showRunTime=t
+    return;
+  }
+  if ((t|0) !== (showRunTime|0)){
+    showRunTime =t
+  }
+  
+  requestAnimationFrame(tickRunTime);
+}
 
+const ClickhandleWithMainMenu = (basename:string)=>{
+  previewHandle({basename},onmessageListen) 
 }
 const Clickhandle=(k:string|{[key:string]:any}|null)=>{
   if (!k)return;
@@ -56,44 +69,48 @@ const openEditPage = ()=>{
   "editPopup",
   `width=${width},height=${height},left=${left},top=${top}`)
 }
+const errMessageHandle = (e:MessageEvent<{err:any}>)=>{
+  if (e.data.err.message){
+    const p = document.createElement("p")
+    p.textContent = e.data.err.message
+    p.style.color="red"
+    errHtml.appendChild(p)
+  }
+  if (e.data.err.parsedStack){
+    const p = document.createElement("p")
+    
+    errHtml.appendChild(p);
+    (e.data.err.parsedStack as any[]).forEach(v=>{
+        const a =editBtn.cloneNode() as HTMLAnchorElement
+        // document.createElement("a")
+        a.style.color="red"
+        const textContent=JSON.stringify(Object.assign(v,{path:solidControlConfig.title}))
+        a.href=`/edit#${encodeURIComponent(textContent)}`
+        a.textContent=`edit ${v.name} {${v.lineNumber}:${v.columnNumber}}${v.functionName}`
+        a.onclick = openEditPage
+        p.appendChild(a)
+    })
+  } 
+}
+
 const onmessageListen =async (e:MessageEvent  )=>{
   if (e.data.err ){
-    
-    if (e.data.err.message){
-      const p = document.createElement("p")
-      p.textContent = e.data.err.message
-      p.style.color="red"
-      errHtml.appendChild(p)
-    }
-    if (e.data.err.parsedStack){
-      const p = document.createElement("p")
-      
-      errHtml.appendChild(p);
-      (e.data.err.parsedStack as any[]).forEach(v=>{
-          const a =editBtn.cloneNode() as HTMLAnchorElement
-          // document.createElement("a")
-          a.style.color="red"
-          const textContent=JSON.stringify(Object.assign(v,{path:solidControlConfig.title}))
-          a.href=`/edit#${encodeURIComponent(textContent)}`
-          a.textContent=`edit ${v.name} {${v.lineNumber}:${v.columnNumber}}${v.functionName}`
-          a.onclick = openEditPage
-          p.appendChild(a)
-      })
-    } 
+    errMessageHandle(e) 
     return;
   }else{
     if (errHtml)
     errHtml.innerHTML=""
-  }
-  //console.log("get worker data",e.data )
-  if (e.data.module){
-    //console.log(e.data.module)
+  } 
+  if (e.data.module){ 
     moduleInit(Object.assign({
       Clickhandle:ClickhandleWithMainMenu
     }, e.data.module))
-    solidControlConfig.geometrys = []
+    geometrys = []
     solidControlConfig.GridSize=10
     solidControlConfig.MaxSize.set(10,10,10)
+    show=false
+    beginTime=Date.now() 
+    tickRunTime()
     return
   }
   if (e.data.start){
@@ -104,10 +121,14 @@ const onmessageListen =async (e:MessageEvent  )=>{
     //console.log("start")
   }
   if (e.data.end){ 
-    
+   
+    //runTime =( Date.now() - runTime)/1000
+    let t = Date.now()
+    //console.log("end",t)
     refreshCameraInit(solidControlConfig  )
-    solidControlConfig.show = true
-    //console.log("end",solidControlConfig)
+  
+    //console.log("end",Date.now()-t)
+     show = true
     return
  
   }
@@ -115,7 +136,7 @@ const onmessageListen =async (e:MessageEvent  )=>{
     try{
       const geo = csg2Geo(e.data,{} )
       if (geo){ 
-        solidControlConfig.geometrys.push(geo)
+        geometrys.push(geo)
         //console.log('index',e.data.index,solidControlConfig.geometrys.length)
         geo.geometry.computeBoundingBox();
         const box = geo.geometry.boundingBox;
@@ -140,49 +161,15 @@ const onmessageListen =async (e:MessageEvent  )=>{
     
   }
 }  
-onMount(() => { 
-  
+onMount(() => {  
   try{
-    const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))
-    //let path =
-    getDialogDiv().innerHTML=''
+    const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))  
     if (path){
-      dirInfo = createDirInfo(path)
-      /*
-      const broadPage = new BroadcastChannel(path+"_page")
-      broadPage.onmessage = (ev:MessageEvent< string>)=>{
-        console.log(ev.data)
-        switch(ev.data){
-          case "focus":
-            window.focus();
-            broadPage.postMessage("close");
-            return;
-          case "close":
-            try {
-                window.close();
-            } catch(e) {
-              console.log(e)
-            } 
-            broadPage.close()
-            setTimeout(function() {
-                //location.href = 'about:blank';
-                console.log("blank")
-            }, 100);
-            return
-        }
-      }
-      broadPage.postMessage("focus")
-      */
+      dirInfo = createDirInfo(path) 
       solidControlConfig.title = path
-      dirInfo  =createDirInfo(path) 
-      SetEditingHashInfo({path})
-      previewHandle({path },onmessageListen)
-      
-    } 
-    /*
-    return () => { 
-      terminateWorker(); 
-    };*/
+      dirInfo  =createDirInfo(path)  
+      previewHandle({path },onmessageListen) 
+    }  
   }catch(err){
     console.error(err)
   }
@@ -214,15 +201,19 @@ const getContext = (Context: ThrelteContext<WebGLRenderer>)=>{
 }
 let editBtn:HTMLAnchorElement
 </script>
+<svelte:head><title>{solidControlConfig.title||"SolidJScad"}</title></svelte:head>
 <div   class="preview">
+ 
 <Canvas   >
- <OrthoScene  {solidControlConfig}  {getContext} ></OrthoScene>
+ <OrthoScene {geometrys} {solidControlConfig}  {getContext} ></OrthoScene>
 </Canvas>  
+ 
  <Menu    >
-<MainMenu  show={solidControlConfig.show}   ></MainMenu>
-<Camera {Clickhandle} ></Camera>
+<MainMenu   ></MainMenu>
+{#if show}
+<Camera {Clickhandle}   ></Camera>
   <DownMenu  
-  show={solidControlConfig.show} title = {solidControlConfig.title||""} {DownHandle}
+    title = {solidControlConfig.title||""} {DownHandle}
   >
   <button 
   style="height:48:px;line-height:48px;cursor: pointer;" 
@@ -231,7 +222,9 @@ let editBtn:HTMLAnchorElement
      QRCodeHandle(solidControlConfig.title ,dirInfo)
   }} >webRTC P2P</button>     
 </DownMenu>
- 
+{:else}
+  <div style="color:white;text-align: left;"  ><p class="spinner" >...</p><p>{showRunTime}s</p></div>
+ {/if}
 <Exchange {solidControlConfig}  > 
 </Exchange>
   <div style="color:white;text-align: left;">
@@ -240,6 +233,8 @@ let editBtn:HTMLAnchorElement
   }}
   style="color:white;cursor: pointer;height:48px;text-align: left;line-height: 48px;"  
    href="/edit#{encodeURIComponent(JSON.stringify({path:solidControlConfig.title}))}" > {solidControlConfig.title?'Edit':'New'} </a>
+
+   {#if show}<p>{showRunTime}s</p>{/if}
   </div>
  <div style="color:white;text-align: left;" bind:this={errHtml}></div>
 </Menu>
@@ -263,4 +258,13 @@ let editBtn:HTMLAnchorElement
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+ 
+.spinner {
+  width: 24px; height: 24px;
+  border: 3px solid #eee;
+  border-top-color: #333;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
