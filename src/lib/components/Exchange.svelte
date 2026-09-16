@@ -67,11 +67,11 @@ const getConnHostJsonStr = ()=>{
 } 
 
  
-export const QRCodeHandle = (path:string,dirInfo:DirInfoType)=>{  
+export const QRCodeHandle = (path:string,dirInfo?:DirInfoType)=>{  
   ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
     createWebrtcConnFromCenterUrl(db,async (conn)=>{
       const mesh = {conn,files:new Map<string,{d:RTCDataChannel }>()} 
-      dirInfo.DirHandle?.files().then(fs=>{
+      dirInfo?.DirHandle?.files().then(fs=>{
         fs.forEach(f=>{
           const fileHandle = dirInfo.DirHandle?.getFileHandle(f.name)
           fileHandle?.read().then(db=>{

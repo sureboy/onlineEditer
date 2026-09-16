@@ -14,7 +14,7 @@ import Exchange,{QRCodeHandle,previewHandle } from '$lib/components/Exchange.sve
 import { createDirInfo,type DirInfoType } from '$lib/function/fileHandle';  
 import {type ThrelteContext } from '@threlte/core'
 
-let DirInfo:DirInfoType 
+let DirInfo:DirInfoType|undefined =$state(undefined)
 let geometrys:{geometry:any,material:any,type:string}[] = $state([])
 let show = $state(false)
 const solidControlConfig:ConfigType = $state({ 
@@ -167,8 +167,7 @@ const onmessageListen =async (e:MessageEvent  )=>{
 onMount(() => {  
   try{
     const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))  
-    if (path){
-      //dirInfo = createDirInfo(path) 
+    if (path){ 
       solidControlConfig.title = path
       DirInfo  =createDirInfo(path)  
       previewHandle({path },onmessageListen) 
@@ -215,7 +214,7 @@ let editBtn:HTMLAnchorElement
 <MainMenu {show}  ></MainMenu>
 {#if show}
 <Camera {Clickhandle}   ></Camera>
-  <DownMenu  
+  <DownMenu  {DirInfo}
     title = {solidControlConfig.title||""} {DownHandle}
   >
   <button 

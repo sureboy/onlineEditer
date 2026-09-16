@@ -1,7 +1,7 @@
 import { createTarPacker,createTarDecoder } from 'modern-tar';
-import { getWorker } from '$lib/worker/globalWorker';
-import {getDirHandle} from "$lib/function/fileHandle"
-
+//import { getWorker } from '$lib/worker/globalWorker';
+//import {} from "$lib/function/fileHandle"
+import {getDirHandle, type DirInfoType } from '$lib/function/fileHandle'; 
 export async function extractTarStreamToOPFS( tarFile:File) { 
     const fileStream = tarFile.stream(); 
     const decompressedStream = fileStream.pipeThrough(new DecompressionStream('gzip')); 
@@ -51,6 +51,7 @@ export async function extractTarStreamToOPFS( tarFile:File) {
         reader.releaseLock();
     } 
 } 
+/*
 export const getFileData = async (name:string)=>{
   const w =await getWorker()
   return new Promise<{name:string,db:string}>((resolve,reject)=>{
@@ -64,7 +65,7 @@ export const getFileData = async (name:string)=>{
     w.postMessage({name,src:true})
   }) 
 }
-export const getFileList =async (path:string,getFile:(db:{name:string,db:string},_w: Worker)=>void)=>{
+export const getFileList =async (DirInfo:DirInfoType,getFile:(db:{name:string,db:string},_w: Worker)=>void)=>{
   const w =await getWorker()
   await new Promise((resolve,reject)=>{
     const files = new Set<string>() 
@@ -92,27 +93,28 @@ export const getFileList =async (path:string,getFile:(db:{name:string,db:string}
     w?.postMessage({path,files:true})
   }) 
   
-}
-export async function downloadOpfsAsTarGz(path:string, archiveName = 'archive.tar.gz') {
+}*/
+export async function  downloadOpfsAsTarGz(DirInfo?:DirInfoType, archiveName = 'archive.tar.gz') {
   // 1. 创建 tar 打包器
   const { readable, controller } = createTarPacker();
-
-  // 2. 异步遍历目录并添加文件到 tar 包
-  (async () => {
-    try {
-      await getFileList(path,async(db)=>{
-        const fileStream = controller.add({name:db.name,size:db.db.length,type: 'file'})
+  const encoder = new TextEncoder()
+  DirInfo?.DirHandle?.files().then(async (list)=>{ 
+    try{
+      for (let v of list){ 
+        const fileStream = controller.add({name:decodeURIComponent(v.name),size:v.size!,type: 'file'})
         const writer = fileStream.getWriter();
- 
-        await writer.write(new TextEncoder().encode(db.db));
-        await writer.close();
-      })
-       
-    } finally {
+        const db = await DirInfo.DirHandle?.getFileHandle(v.name).read() 
+        await writer.write(encoder.encode(db));
+        await writer.close(); 
+      }
+    }finally {
       // 所有文件添加完成后，必须 finalize
       controller.finalize();
     }
-  })();
+    
+  });
+  
+  //})();
 
   // 3. 使用浏览器原生 API 进行 gzip 压缩
   const compressedStream = readable.pipeThrough(new CompressionStream('gzip'));

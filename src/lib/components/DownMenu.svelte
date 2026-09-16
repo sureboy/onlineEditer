@@ -7,10 +7,12 @@ import { exportTo3MF } from 'three-3mf-exporter';
 import {STLExporter} from "three/addons/exporters/STLExporter.js" ;  
 import {downloadOpfsAsTarGz} from '$lib/function/tar'
 //let Details:HTMLDetailsElement
-
+import { type DirInfoType } from '$lib/function/fileHandle';  
 const {title,DownHandle,
+  DirInfo,
   //show,
   children } :{  
+    DirInfo?:DirInfoType ,
   DownHandle:  (fn:(e:ThrelteContext<WebGLRenderer>)=>any)=>void, 
   title:string,
   //show:boolean,
@@ -81,7 +83,7 @@ const downPngClick=()=>{
       try{
  
         if (window.confirm(`Download ${fileName}  now?`)){ 
-          await downloadOpfsAsTarGz(title,fileName) 
+          await downloadOpfsAsTarGz(DirInfo,fileName) 
         }
       }catch(err){
         
