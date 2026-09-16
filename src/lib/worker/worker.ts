@@ -1,7 +1,7 @@
 import {handleCurrentMsg,getCurrent,objUrlMap,type currentObj} from '$lib/function/ImportParser'
 //import type {currentObj} from '$lib/function/ImportParser'
 //import { javascript } from '@codemirror/lang-javascript';
-import {getCsgObjArray} from '$lib/function/csgChange'
+import {getCsgObjArray,getCsgObj} from '$lib/function/csgChange'
 //import * as Y from 'yjs'
 //import {Doc} from 'yjs'
 //import {getFileHandleFromOPFS} from "$lib/function/OPFS";
@@ -85,18 +85,33 @@ const runCode =async (cur:currentObj,basename?:string )=>{
               tmpDB = await tmpDB
             }
             //console.log(tmpDB)
-            await getCsgObjArray(tmpDB,(msg)=>{ 
-              globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",basename,msg})
+            const fnList = []
+            await getCsgObjArray(tmpDB,async(msg,fn)=>{ 
+              globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",basename,msg,fn:!!fn})
               
               const buf:Transferable[] = [];
-              if ('index' in msg ){ 
-                const keys = Object.keys(msg); 
+              if ('index' in msg  ){   
+                if (fn){
+                //fnList.push(fn)
+                //return
+                const res  = await getCsgObj(fn(),msg.index) 
+                  if (res){
+                    Object.assign(msg,res)
+                  //  self.postMessage(msg)
+                  }
+                
+               // return;
+              }   
+              /*           
+                  const keys = Object.keys(msg); 
                 for (const k of keys){ 
                   if (msg[k] && msg[k].buffer){ 
                     msg[k] = msg[k].buffer
                     buf.push(msg[k])//  = await navigator.storage.getDirectory(); 
                   }
                 };  
+             */
+                
               }  
               self.postMessage(msg,buf )
               
@@ -125,7 +140,8 @@ const runCode =async (cur:currentObj,basename?:string )=>{
   }catch(err){
     //globalOption.indexCurrent=undefined
     self.postMessage({err:parseError(err as Error,objUrlMap)})
-    throw err 
+    //throw err 
+    console.error(err)
   } 
   globalOption.DirHandle?.channeldb?.addEventListener("message",runHandle)
 }  

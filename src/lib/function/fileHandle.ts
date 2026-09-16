@@ -162,12 +162,12 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 if (!workerSet.has(ev.data.basename)){
                     FileInfo.channeldb?.postMessage(ev.data)
                     workerSet.add(ev.data.basename)
-                    console.log("worker server add" )
+                    //console.log("worker server add" )
                 }   
-                console.log("worker server",ev.data,workerSet)
+                //console.log("worker server",ev.data,workerSet)
                 return;
             case "workerData":
-                console.log("worker server workerData",ev.data)
+                //console.log("worker server workerData",ev.data)
                 if (ev.data.msg.end){
                     workerSet.delete(ev.data.basename)
                 }

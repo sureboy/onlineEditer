@@ -56,7 +56,7 @@ interface LineData {
   [key: string]: any;
 }
 
-type ConvertResult = MeshData | LinesData | LineData | RawGeometry;
+type ConvertResult = MeshData | LinesData | LineData | RawGeometry  ;
 
 // ============================================================================
 // 回调消息类型
@@ -66,11 +66,12 @@ type BackMessage =
  ( | { start: true }
   | { end: true }
   | { errMsg: string; end: true }
-  | ({ index: number } &ConvertResult)
+ 
+  | ({ index: number } & (ConvertResult|{[k:string]:any}) )
   | { options: unknown })
   // & {[key:string]:any};
 
-type BackCallback = (msg: BackMessage) => void;
+type BackCallback = (msg: BackMessage,fn?:()=>Geo) =>Promise<void>;
 
 // ============================================================================
 // 类型守卫（用于运行时判断）
@@ -126,15 +127,10 @@ const geometries = {
  * 递归遍历 db（支持嵌套数组），对每个非数组元素调用 getCsgObj 并通过 back 回调
  */
 export const getCsgObjArray =async (db:  (Geo|(()=>Geo))[]|Geo, back: BackCallback) => {
-  const arrayReturn =async (v:  (Geo|(()=>Geo))[]|Geo, fn: (item: Geo ) =>Promise<void>)=> {
+  const arrayReturn =async (v:  (Geo|(()=>Geo))[]|(Geo|(()=>Geo)), fn: (item: (Geo|(()=>Geo)) ) =>Promise<void>)=> {
     if (Array.isArray(v)) {
-      for (let _v of v){
-        if (typeof _v ==="function"){
-          arrayReturn(_v(), fn);
-        }else{
-          await arrayReturn(_v, fn);
-        }
-        
+      for (let _v of v){ 
+        await arrayReturn(_v, fn); 
       }
       
     } else {
@@ -143,18 +139,23 @@ export const getCsgObjArray =async (db:  (Geo|(()=>Geo))[]|Geo, back: BackCallba
   };
 
   try {
-    back({ start: true });
+    await back({ start: true });
     let index = 0;
     await arrayReturn(db,async (v) => {
+      if (typeof v==="function"){
+        back( {index},v );
+        index++;
+        return
+      }
       const result =await getCsgObj(v,index, back);
       if (result){
-        back(Object.assign({index},result) );
+        await back(Object.assign({index},result) );
         index++;
       }      
     });
-    back({ end: true });
+    await back({ end: true });
   } catch (e) {
-    back({ errMsg: e?.toString() ?? "unknown error", end: true });
+    await back({ errMsg: e?.toString() ?? "unknown error", end: true });
   }
 };
 
@@ -184,13 +185,13 @@ export const getCsgObj =async (v:  Geo,index:number, back?: BackCallback):Promis
        
     } else {
     
-        back?.({ options: v });
+        await back?.({ options: v });
     
       return undefined;
     }
   } catch (e) {
    
-      back?.({ errMsg: e?.toString() ?? "unknown error", end: true });
+      await back?.({ errMsg: e?.toString() ?? "unknown error", end: true });
     
     return undefined;
   }

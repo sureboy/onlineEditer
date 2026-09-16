@@ -136,6 +136,7 @@ const onmessageListen =async (e:MessageEvent  )=>{
  
   }
   if ('index' in e.data){ 
+    console.log(e.data)
     try{
       const geo = csg2Geo(e.data,{} )
       if (geo){ 

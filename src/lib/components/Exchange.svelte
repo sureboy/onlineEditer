@@ -92,8 +92,7 @@ export const QRCodeHandle = (path:string,dirInfo?:DirInfoType)=>{
               fileCHannel.onmessage=(ev)=>{
                 console.log(ev)
                 const data = {db:ev.data,origin:fileCHannel.label}
-                fileHandle?.writeAndBroad?.(data) || fileHandle?.write(data)
-                
+                fileHandle?.writeAndBroad?.(data) || fileHandle?.write(data) 
               }              
             }
           })
