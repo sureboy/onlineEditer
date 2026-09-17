@@ -17,6 +17,7 @@ import {type ThrelteContext } from '@threlte/core'
 let DirInfo:DirInfoType|undefined =$state(undefined)
 let geometrys:{geometry:any,material:any,type:string}[] = $state([])
 let show = $state(false)
+//let refreshCameraTimer=0
 const solidControlConfig:ConfigType = $state({ 
   //geometrys: [],
   Light:true,
@@ -93,6 +94,7 @@ const errMessageHandle = (e:MessageEvent<{err:any}>)=>{
 }
 
 const onmessageListen =async (e:MessageEvent  )=>{
+  //console.log(e.data)
   if (e.data.err ){
     errMessageHandle(e) 
     return;
@@ -116,17 +118,11 @@ const onmessageListen =async (e:MessageEvent  )=>{
     }, e.data.module))
     return
   }
-  if (e.data.start){
-    
-
-    return
-    //meshRef?.clear()
-    //console.log("start")
-  }
+ 
   if (e.data.end){ 
    
     //runTime =( Date.now() - runTime)/1000
-    let t = Date.now()
+    //let t = Date.now()
     //console.log("end",t)
     refreshCameraInit(solidControlConfig  )
   
@@ -136,7 +132,7 @@ const onmessageListen =async (e:MessageEvent  )=>{
  
   }
   if ('index' in e.data){ 
-    console.log(e.data)
+    //console.log(e.data)
     try{
       const geo = csg2Geo(e.data,{} )
       if (geo){ 
@@ -158,7 +154,14 @@ const onmessageListen =async (e:MessageEvent  )=>{
         if (helpSize>solidControlConfig.GridSize ){
           solidControlConfig.GridSize  = Math.ceil(helpSize )+1 
         } 
-      } 
+      }  
+      //clearTimeout(refreshCameraTimer)
+      //refreshCameraTimer = window.setTimeout(()=>{
+      //  if (!show){
+      //    refreshCameraInit(solidControlConfig  )
+      //  }
+      //})
+
     }catch(err){
       console.error(err)
     }

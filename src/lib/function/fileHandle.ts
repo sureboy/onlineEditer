@@ -144,8 +144,8 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
             }
         })
     } 
-    const workerSet = new Set<string>()
-    const initHandle =async (ev:MessageEvent)=>{  
+    let workerSet:string[] = [] 
+    const initHandle =async (ev:MessageEvent<{type:string,list:string[],data:any,name:string,key:string}>)=>{  
         switch (ev.data.type){
             case "write":
                 if(ev.data.data && ev.data.name){ 
@@ -159,19 +159,20 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 }
                 return;
             case "worker":
-                if (!workerSet.has(ev.data.basename)){
-                    FileInfo.channeldb?.postMessage(ev.data)
-                    workerSet.add(ev.data.basename)
-                    //console.log("worker server add" )
-                }   
+                
+                //if ( !ev.data.list)return 
+                if (workerSet.length===0 && ev.data.list){
+                    workerSet =  ev.data.list
+                }
+                  
+                const run = workerSet.shift()
+                console.log(ev.data,workerSet,run)
+                if (run){
+                    FileInfo.channeldb?.postMessage({key:ev.data.key,run ,type:"workerRun"})
+                }
                 //console.log("worker server",ev.data,workerSet)
                 return;
-            case "workerData":
-                //console.log("worker server workerData",ev.data)
-                if (ev.data.msg.end){
-                    workerSet.delete(ev.data.basename)
-                }
-                return
+            
             case "init":
                 if (ev.data.key === FileInfo.key){ 
                     messageChannelListenClient(FileInfo)

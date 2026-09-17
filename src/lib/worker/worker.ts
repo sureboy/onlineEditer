@@ -57,52 +57,59 @@ const getIndex = (c:currentObj )=>{
     return c
   } 
 }
+
 const runCode =async (cur:currentObj,basename?:string )=>{
   globalOption.DirHandle?.channeldb?.removeEventListener("message",runHandle)
   try{ 
     const indexCurrent = getIndex(cur)
     const u = await indexCurrent.getUri() 
     const src = await  import(/* @vite-ignore */u) 
-    const list = Object.keys(src)
-    if (list.length){ 
-      if (basename){
-        globalOption.basename = basename 
-      }
-      if (!globalOption.basename || !list.includes(globalOption.basename)){
-        globalOption.basename = list[0] 
-      }
-      const module = {list,basename:globalOption.basename} 
-      self.postMessage({module}) 
- 
-      const workerHandle =async (ev:MessageEvent<{type:string,basename:string,key:string,msg:any}>)=>{
-        switch (ev.data.type){
-          case "worker":
-            if (ev.data.key !== globalOption.DirHandle?.key || ev.data.basename !== basename){
-              return;
-            }
-            let tmpDB = src[module.basename]()
+    const fnlist = Object.keys(src)
+    if (!fnlist){
+      throw "not have function"
+    }
+    const fnlistSet = new Set(fnlist)
+    if (basename){
+      globalOption.basename = basename 
+    }
+    if (!globalOption.basename || !fnlist.includes(globalOption.basename)){
+      globalOption.basename = fnlist[0] 
+    }
+    const module = {list:fnlist,basename:globalOption.DirHandle?.path} 
+    self.postMessage({module}) 
+    //let isBroadcast=false
+    const workerHandle =async (ev:MessageEvent<{type:string,run?:string,key:string,msg:any}>)=>{
+
+      switch (ev.data.type){
+        case "workerRun":
+          if (ev.data.key !== globalOption.DirHandle?.key  ){
+            //if (!isBroadcast)isBroadcast=true
+            break;
+          }
+          if (!ev.data.run ){
+            break
+          }
+          if (!fnlistSet.has(ev.data.run)){
+            break
+          }else{
+            fnlistSet.delete(ev.data.run)
+            //fnlist[fnlist.indexOf(ev.data.run)]=null
+          }
+           console.log(ev.data,globalOption.DirHandle?.key)
+          // for (let fn of fnlist){
+            //console.log(ev.data.run,fnlistSet)
+            let tmpDB = src[ev.data.run]()
             if (tmpDB.then){
               tmpDB = await tmpDB
-            }
+            }     
+            
             //console.log(tmpDB)
-            const fnList = []
-            await getCsgObjArray(tmpDB,async(msg,fn)=>{ 
-              globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",basename,msg,fn:!!fn})
+            //const fnList = []
+            await getCsgObjArray(tmpDB,async(msg)=>{ 
+              globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg })
               
               const buf:Transferable[] = [];
-              if ('index' in msg  ){   
-                if (fn){
-                //fnList.push(fn)
-                //return
-                const res  = await getCsgObj(fn(),msg.index) 
-                  if (res){
-                    Object.assign(msg,res)
-                  //  self.postMessage(msg)
-                  }
-                
-               // return;
-              }   
-              /*           
+              if ('index' in msg    ){                
                   const keys = Object.keys(msg); 
                 for (const k of keys){ 
                   if (msg[k] && msg[k].buffer){ 
@@ -110,32 +117,54 @@ const runCode =async (cur:currentObj,basename?:string )=>{
                     buf.push(msg[k])//  = await navigator.storage.getDirectory(); 
                   }
                 };  
-             */
+            
                 
               }  
               self.postMessage(msg,buf )
               
             })
-            break;
-          case "workerData":
-            console.log("get worker Data",ev.data)
-            if (ev.data.basename !== basename){
-              return;
-            }
-            self.postMessage(ev.data.msg )
-            if (ev.data.msg.end){
-              break
-            }else{
-              return;
-            } 
-        }
-        globalOption.DirHandle?.channeldb?.removeEventListener("message",workerHandle)
-        console.log("worker remove",ev.data)
-      }
-      globalOption.DirHandle?.channeldb?.addEventListener("message",workerHandle)
-      globalOption.DirHandle?.channeldb?.postMessage({type:"worker",basename,key:globalOption.DirHandle.key})
+          //}
+          //console.log("end")
+          //self.postMessage({ end: true });
+          globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg:{ end: true }})
+          break;
+        case "workerData":
+          console.log("get worker Data",ev.data,globalOption.DirHandle?.key)
+          if (!ev.data.run || !fnlistSet.has(ev.data.run)){
+            break
+          }
+          if (ev.data.msg.end){
+            //self.postMessage({ end: true });
+            fnlistSet.delete(ev.data.run)
+          }else{
 
+            self.postMessage(ev.data.msg )
+          }
+          //if (!fnlistSet.has(ev.data.run))
+          
+        //default:
+          //return;
+           
+      }
+     
+      if (fnlistSet.size>0){
+        globalOption.DirHandle?.channeldb?.postMessage({
+          type:"worker",
+           //list:fnlist,
+           key:globalOption.DirHandle.key})
+        return
+      }
+      globalOption.DirHandle?.channeldb?.removeEventListener("message",workerHandle)
+      console.log("worker remove",ev.data)
+      //if (isBroadcast){
+      self.postMessage({ end: true });
+      //  globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",msg:{ end: true }})
+      //}
     }
+    globalOption.DirHandle?.channeldb?.addEventListener("message",workerHandle)
+    globalOption.DirHandle?.channeldb?.postMessage({type:"worker",path:globalOption.DirHandle?.path,list:fnlist,key:globalOption.DirHandle.key})
+
+    
    
   }catch(err){
     //globalOption.indexCurrent=undefined

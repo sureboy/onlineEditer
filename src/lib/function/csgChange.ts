@@ -65,13 +65,13 @@ type ConvertResult = MeshData | LinesData | LineData | RawGeometry  ;
 type BackMessage =
  ( | { start: true }
   | { end: true }
-  | { errMsg: string; end: true }
+  | { errMsg: string }
  
   | ({ index: number } & (ConvertResult|{[k:string]:any}) )
   | { options: unknown })
   // & {[key:string]:any};
 
-type BackCallback = (msg: BackMessage,fn?:()=>Geo) =>Promise<void>;
+type BackCallback = (msg: BackMessage ) =>Promise<void>;
 
 // ============================================================================
 // 类型守卫（用于运行时判断）
@@ -126,8 +126,8 @@ const geometries = {
 /**
  * 递归遍历 db（支持嵌套数组），对每个非数组元素调用 getCsgObj 并通过 back 回调
  */
-export const getCsgObjArray =async (db:  (Geo|(()=>Geo))[]|Geo, back: BackCallback) => {
-  const arrayReturn =async (v:  (Geo|(()=>Geo))[]|(Geo|(()=>Geo)), fn: (item: (Geo|(()=>Geo)) ) =>Promise<void>)=> {
+export const getCsgObjArray =async (db:  Geo[]|Geo, back: BackCallback) => {
+  const arrayReturn =async (v: Geo[]|Geo , fn: (item: Geo ) =>Promise<void>)=> {
     if (Array.isArray(v)) {
       for (let _v of v){ 
         await arrayReturn(_v, fn); 
@@ -139,23 +139,18 @@ export const getCsgObjArray =async (db:  (Geo|(()=>Geo))[]|Geo, back: BackCallba
   };
 
   try {
-    await back({ start: true });
+    //await back({ start: true });
     let index = 0;
     await arrayReturn(db,async (v) => {
-      if (typeof v==="function"){
-        back( {index},v );
-        index++;
-        return
-      }
       const result =await getCsgObj(v,index, back);
       if (result){
         await back(Object.assign({index},result) );
         index++;
       }      
     });
-    await back({ end: true });
+    //await back({ end: true });
   } catch (e) {
-    await back({ errMsg: e?.toString() ?? "unknown error", end: true });
+    await back({ errMsg: e?.toString() ?? "unknown error" });
   }
 };
 
