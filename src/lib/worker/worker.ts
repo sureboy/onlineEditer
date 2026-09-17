@@ -16,7 +16,7 @@ import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
 
 const globalOption:{
  
-  basename?:string
+  //basename?:string
   DirHandle?:DirInfoType
 } = {
  
@@ -58,7 +58,7 @@ const getIndex = (c:currentObj )=>{
   } 
 }
 
-const runCode =async (cur:currentObj,basename?:string )=>{
+const runCode =async (cur:currentObj  )=>{
   globalOption.DirHandle?.channeldb?.removeEventListener("message",runHandle)
   try{ 
     const indexCurrent = getIndex(cur)
@@ -69,12 +69,7 @@ const runCode =async (cur:currentObj,basename?:string )=>{
       throw "not have function"
     }
     const fnlistSet = new Set(fnlist)
-    if (basename){
-      globalOption.basename = basename 
-    }
-    if (!globalOption.basename || !fnlist.includes(globalOption.basename)){
-      globalOption.basename = fnlist[0] 
-    }
+     
     const module = {list:fnlist,basename:globalOption.DirHandle?.path} 
     self.postMessage({module}) 
     //let isBroadcast=false
@@ -82,8 +77,7 @@ const runCode =async (cur:currentObj,basename?:string )=>{
 
       switch (ev.data.type){
         case "workerRun":
-          if (ev.data.key !== globalOption.DirHandle?.key  ){
-            //if (!isBroadcast)isBroadcast=true
+          if (ev.data.key !== globalOption.DirHandle?.key  ){ 
             break;
           }
           if (!ev.data.run ){
@@ -174,20 +168,18 @@ const runCode =async (cur:currentObj,basename?:string )=>{
   } 
   globalOption.DirHandle?.channeldb?.addEventListener("message",runHandle)
 }  
-const run = (name:string,basename?:string)=>{
-  globalOption.DirHandle?.DirHandle?.getFileHandle( name).read().then(db=>{ 
-    //console.log(db)
-    const cur = handleCurrentMsg({
-      db ,
-      name:decodeURIComponent( name) 
-    })
-    if (cur)
-      runCode(cur, basename)
-  })
-}
+ 
 const runHandle =(e:MessageEvent<{type:string,name:string}>)=>{
-    if (e.data.type==="writeRes"){
-      run(e.data.name,globalOption.basename) 
+    if (e.data.type==="writeRes"){ 
+      globalOption.DirHandle?.DirHandle?.getFileHandle( e.data.name).read().then(db=>{ 
+        //console.log(db)
+        const cur = handleCurrentMsg({
+          db ,
+          name:decodeURIComponent( e.data.name) 
+        })
+        if (cur)
+          runCode(cur)
+      })
     }
 }
 self.onmessage   =async (event: MessageEvent) => {  
@@ -199,10 +191,10 @@ self.onmessage   =async (event: MessageEvent) => {
     const db = event.data.db || await globalOption.DirHandle.DirHandle?.getFileHandle(encodeURIComponent(name)).read()
     const cur =    handleCurrentMsg({ db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
     if (cur  ){ 
-      await runCode( cur,event.data.basename);
+      await runCode( cur );
     }
   }else if (event.data.basename ){ 
-    await runCode( await getCurrent("./index.js"),event.data.basename);
+    await runCode( await getCurrent("./index.js") );
   } 
  
 };
