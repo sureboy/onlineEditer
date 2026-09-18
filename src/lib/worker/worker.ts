@@ -1,7 +1,7 @@
 import {handleCurrentMsg,getCurrent,objUrlMap,type currentObj} from '$lib/function/ImportParser'
 //import type {currentObj} from '$lib/function/ImportParser'
 //import { javascript } from '@codemirror/lang-javascript';
-import {getCsgObjArray,getCsgObj} from '$lib/function/csgChange'
+import {getCsgObjArray} from '$lib/function/csgChange'
 //import * as Y from 'yjs'
 //import {Doc} from 'yjs'
 //import {getFileHandleFromOPFS} from "$lib/function/OPFS";
@@ -15,7 +15,7 @@ import {parseError} from '$lib/utils/parseError';
 import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
 
 const globalOption:{
- 
+
   //basename?:string
   DirHandle?:DirInfoType
 } = {
@@ -86,40 +86,27 @@ const runCode =async (cur:currentObj  )=>{
           if (!fnlistSet.has(ev.data.run)){
             break
           }else{
-            fnlistSet.delete(ev.data.run)
-            //fnlist[fnlist.indexOf(ev.data.run)]=null
+            fnlistSet.delete(ev.data.run) 
           }
-           console.log(ev.data,globalOption.DirHandle?.key)
-          // for (let fn of fnlist){
-            //console.log(ev.data.run,fnlistSet)
-            let tmpDB = src[ev.data.run]()
-            if (tmpDB.then){
-              tmpDB = await tmpDB
-            }     
-            
-            //console.log(tmpDB)
-            //const fnList = []
-            await getCsgObjArray(tmpDB,async(msg)=>{ 
-              globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg })
-              
-              const buf:Transferable[] = [];
-              if ('index' in msg    ){                
-                  const keys = Object.keys(msg); 
-                for (const k of keys){ 
-                  if (msg[k] && msg[k].buffer){ 
-                    msg[k] = msg[k].buffer
-                    buf.push(msg[k])//  = await navigator.storage.getDirectory(); 
-                  }
-                };  
-            
-                
-              }  
-              self.postMessage(msg,buf )
-              
-            })
-          //}
-          //console.log("end")
-          //self.postMessage({ end: true });
+          console.log(ev.data,globalOption.DirHandle?.key) 
+          let tmpDB = src[ev.data.run]()
+          if (tmpDB.then){
+            tmpDB = await tmpDB
+          }    
+          await getCsgObjArray(tmpDB,async(msg)=>{ 
+            globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg }) 
+            const buf:Transferable[] = [];
+            if ('index' in msg    ){                
+              const keys = Object.keys(msg); 
+              for (const k of keys){ 
+                if (msg[k] && msg[k].buffer){ 
+                  msg[k] = msg[k].buffer
+                  buf.push(msg[k])  
+                }
+              };   
+            }  
+            self.postMessage(msg,buf ) 
+          }) 
           globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg:{ end: true }})
           break;
         case "workerData":

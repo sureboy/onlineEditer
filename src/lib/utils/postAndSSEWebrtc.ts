@@ -2,7 +2,7 @@ import {
     //createRtcTrack,
     createOffer} from '$lib/utils/webrtc';
 import {pool } from "$lib/utils/webRTCPool";
-import type {connType} from "$lib/utils/webRTCPool";
+import type {connType} from "$lib/utils/webRTCPool"; 
 export const createWebrtcConnFromCenterUrl =async (
     obj:{
         id:string,

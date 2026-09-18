@@ -47,6 +47,7 @@ export type DirInfoType = {
     channeldb?:BroadcastChannel,
     DirHandle?:DirHandleType,
     key?:string
+    workerHandle?:(data:any)=>any
     //islocal?:boolean
 }
 
@@ -129,7 +130,31 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         FileInfo.path,{create:FileInfo.create},) 
     if (FileInfo.channeldb)FileInfo.channeldb.close();
     FileInfo.channeldb = new BroadcastChannel(FileInfo.path+"_db" ); 
-    
+    let workerSet:string[] = [] 
+ 
+    FileInfo.workerHandle = (data:{
+        list?:string[],
+        type:string,
+        key:string})=>{
+        if ((data.type!=="worker")){
+            return;
+        }
+        if (workerSet.length===0 && data.list){
+            workerSet =  data.list
+        }
+        const run = workerSet.shift()
+        
+        if (run){
+            return {key:data.key,run ,type:"workerRun"}
+        }
+        
+    }
+    FileInfo.channeldb.addEventListener("message",(ev)=>{
+        const msg = FileInfo.workerHandle?.(ev.data)
+        if (msg){ 
+            FileInfo.channeldb?.postMessage(msg) 
+        }
+    })
     const oldHandle = FileInfo.DirHandle!.getFileHandle
     FileInfo.DirHandle!.getFileHandle=function(name:string){ 
         const old = oldHandle.call(this,name)
@@ -144,7 +169,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
             }
         })
     } 
-    let workerSet:string[] = [] 
+
     const initHandle =async (ev:MessageEvent<{type:string,list:string[],data:any,name:string,key:string}>)=>{  
         switch (ev.data.type){
             case "write":
@@ -157,25 +182,12 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                         name:ev.data.name
                     })  
                 }
-                return;
-            case "worker":
-                
-                //if ( !ev.data.list)return 
-                if (workerSet.length===0 && ev.data.list){
-                    workerSet =  ev.data.list
-                }
-                  
-                const run = workerSet.shift()
-                console.log(ev.data,workerSet,run)
-                if (run){
-                    FileInfo.channeldb?.postMessage({key:ev.data.key,run ,type:"workerRun"})
-                }
-                //console.log("worker server",ev.data,workerSet)
-                return;
-            
+                return; 
             case "init":
                 if (ev.data.key === FileInfo.key){ 
-                    messageChannelListenClient(FileInfo)
+                    messageChannelListenClient(FileInfo) 
+                    FileInfo.workerHandle  = undefined;
+                    //FileInfo.channeldb?.removeEventListener("message",workerHandle )
                     FileInfo.channeldb?.removeEventListener("message",initHandle)
                 }else{
                     FileInfo.channeldb?.postMessage(ev.data)

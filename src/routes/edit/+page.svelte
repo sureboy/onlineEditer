@@ -4,6 +4,7 @@ import Edit,{type FileInfoType} from "$lib/components/Edit.svelte";
 //import {initDoc,diffUpdate} from '$lib/utils/yjs' 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
 import {getImportAliases} from "$lib/function/parsingCode"  
+import {encodeMessage,decodeMessage} from '$lib/function/rtcDataToBroadData'
 const getFileHandle = (FileInfo:FileInfoType) =>{  
     if (!FileInfo.DirHandle || FileInfo.create){ 
         initFileHandle(FileInfo)
@@ -76,7 +77,19 @@ const saveFile =async (v:string,FileInfo:FileInfoType)=>{
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     const ok  = await createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
         console.log(conn)
-        conn.pc.ondatachannel = async (e)=>{
+        conn.pc.ondatachannel = (e)=>{
+            if (e.channel.label ==="worker"){
+                console.log("worker",e.channel)
+                e.channel.onmessage = (ev:MessageEvent)=>{
+                    //const data = decodeMessage(ev.data)
+                    FileInfo.channeldb?.postMessage(decodeMessage(ev.data))
+                }
+                FileInfo.workerHandle=(data)=>{
+                    e.channel.send(encodeMessage(data))
+
+                }
+                return
+            }
             const filename = e.channel.label.slice(0,e.channel.label.lastIndexOf("_")) 
             const broadcastCh = FileInfo.getFileBroadcastChannel(filename) 
             const bhandle =  (  ev: MessageEvent<{update:any,origin:string}>)=>{

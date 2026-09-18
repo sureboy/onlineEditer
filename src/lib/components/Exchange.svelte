@@ -8,7 +8,10 @@ import { getWorker } from '$lib/worker/globalWorker';
 import QRCode from 'qrcode';
 //import {getFileList,getFileData} from "$lib/function/tar"
 //import {initDoc,diffUpdate} from "$lib/utils/yjs" 
-import { createDirInfo,type DirInfoType  } from '$lib/function/fileHandle'; 
+import { 
+  //createDirInfo,
+  type DirInfoType  } from '$lib/function/fileHandle'; 
+import {encodeMessage,decodeMessage} from '$lib/function/rtcDataToBroadData'
 //import * as Y from 'yjs'
 const FileBroadcastChannelMap = new Map<string,BroadcastChannel>()
 const getFileBroadcastChannel = (name:string)=>{
@@ -69,7 +72,38 @@ const getConnHostJsonStr = ()=>{
  
 export const QRCodeHandle = (path:string,dirInfo?:DirInfoType)=>{  
   ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
-    createWebrtcConnFromCenterUrl(db,async (conn)=>{
+    createWebrtcConnFromCenterUrl(db,async (conn)=>{ 
+      const workerConn = conn.pc.createDataChannel("worker") 
+      workerConn.onopen=()=>{
+        console.log("worker open")
+        workerConn.onmessage=(ev:MessageEvent)=>{
+          const data = decodeMessage(ev.data)
+          if (dirInfo?.workerHandle){
+            const msg = dirInfo.workerHandle(data)
+            if (msg)workerConn.send(encodeMessage(msg))
+            return
+          }
+          dirInfo?.channeldb?.postMessage(data)
+        }
+        const handle = (ev:MessageEvent)=>{
+          switch (ev.data.type){
+            case "workerRun":
+              break
+            case "workerData":
+              break
+            default:
+              return;
+          }
+          workerConn.send(encodeMessage(ev.data))
+        }
+        dirInfo?.channeldb?.addEventListener("message",handle)
+        workerConn.onclose=()=>{
+          dirInfo?.channeldb?.removeEventListener("message",handle)
+        }
+      }
+      
+
+
       const mesh = {conn,files:new Map<string,{d:RTCDataChannel }>()} 
       dirInfo?.DirHandle?.files().then(fs=>{
         fs.forEach(f=>{
