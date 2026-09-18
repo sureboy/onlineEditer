@@ -11,7 +11,7 @@ import QRCode from 'qrcode';
 import { 
   //createDirInfo,
   type DirInfoType  } from '$lib/function/fileHandle'; 
-import {encodeMessage,decodeMessage} from '$lib/function/rtcDataToBroadData'
+import {encodeMessage,decodeMessage,sendChunked,channelMessage} from '$lib/function/rtcDataToBroadData'
 //import * as Y from 'yjs'
 const FileBroadcastChannelMap = new Map<string,BroadcastChannel>()
 const getFileBroadcastChannel = (name:string)=>{
@@ -69,22 +69,28 @@ const getConnHostJsonStr = ()=>{
     }  
 } 
 
- 
-export const QRCodeHandle = (path:string,dirInfo?:DirInfoType)=>{  
-  ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
-    createWebrtcConnFromCenterUrl(db,async (conn)=>{ 
-      const workerConn = conn.pc.createDataChannel("worker") 
+const createWorkerConn = (workerConn: RTCDataChannel,dirInfo?:DirInfoType)=>{
+  //const workerConn = conn.pc.createDataChannel("worker") 
+      workerConn.binaryType = 'arraybuffer'; 
       workerConn.onopen=()=>{
         console.log("worker open")
         workerConn.onmessage=(ev:MessageEvent)=>{
-          const data = decodeMessage(ev.data)
-          if (dirInfo?.workerHandle){
-            const msg = dirInfo.workerHandle(data)
-            if (msg)workerConn.send(encodeMessage(msg))
-            return
-          }
-          dirInfo?.channeldb?.postMessage(data)
+          channelMessage(ev,(data)=>{
+            console.log("rtc get",data)
+            if (dirInfo?.workerHandle ){ 
+              const msg = dirInfo.workerHandle(data)
+              if (msg){
+                sendChunked(workerConn,encodeMessage(msg))
+                //workerConn.send(encodeMessage(msg))
+              } 
+              //return
+            }
+            dirInfo?.channeldb?.postMessage(data)
+          })
+          //const data = decodeMessage(ev.data)
+          
         }
+         
         const handle = (ev:MessageEvent)=>{
           switch (ev.data.type){
             case "workerRun":
@@ -94,46 +100,51 @@ export const QRCodeHandle = (path:string,dirInfo?:DirInfoType)=>{
             default:
               return;
           }
-          workerConn.send(encodeMessage(ev.data))
+          sendChunked(workerConn,encodeMessage(ev.data))
         }
         dirInfo?.channeldb?.addEventListener("message",handle)
         workerConn.onclose=()=>{
           dirInfo?.channeldb?.removeEventListener("message",handle)
         }
       }
-      
-
-
+}
+export const QRCodeHandle = (path:string,dirInfo?:DirInfoType)=>{  
+  ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
+    createWebrtcConnFromCenterUrl(db,async (conn)=>{  
       const mesh = {conn,files:new Map<string,{d:RTCDataChannel }>()} 
-      dirInfo?.DirHandle?.files().then(fs=>{
-        fs.forEach(f=>{
-          const fileHandle = dirInfo.DirHandle?.getFileHandle(f.name)
-          fileHandle?.read().then(db=>{
-            const fileCHannel = conn.pc.createDataChannel(`${f.name}_${conn.dc?.label}`)
-            mesh.files.set(f.name,{d:fileCHannel}); 
-            fileCHannel.onopen=async ()=>{   
-              fileCHannel.send(db)
-              const broadcasthandle = (  ev: MessageEvent<{update:any,origin:string}>)=>{
-                if (ev.data.origin !== fileCHannel.label)
-                  fileCHannel.send(ev.data.update)
-              }
-              const b = getFileBroadcastChannel(f.name)
-              b.addEventListener('message', broadcasthandle )
-
-              fileCHannel.onclose = ()=>{
-                b.removeEventListener('message',broadcasthandle)
-              }
-              fileCHannel.onmessage=(ev)=>{
-                console.log(ev)
-                const data = {db:ev.data,origin:fileCHannel.label}
-                fileHandle?.writeAndBroad?.(data) || fileHandle?.write(data) 
-              }              
+      const fs = await dirInfo?.DirHandle?.files() 
+      for (let f of fs||[]){ 
+        const fileHandle = dirInfo?.DirHandle?.getFileHandle(f.name)
+        fileHandle?.read().then(db=>{
+          const fileCHannel = conn.pc.createDataChannel(`${f.name}_${conn.dc?.label}`)
+          mesh.files.set(f.name,{d:fileCHannel}); 
+          fileCHannel.onopen=async ()=>{   
+            fileCHannel.send(db)
+            const broadcasthandle = (  ev: MessageEvent<{update:any,origin:string}>)=>{
+              if (ev.data.origin !== fileCHannel.label)
+                fileCHannel.send(ev.data.update)
             }
-          })
+            const b = getFileBroadcastChannel(f.name)
+            b.addEventListener('message', broadcasthandle )
+
+            fileCHannel.onclose = ()=>{
+              b.removeEventListener('message',broadcasthandle)
+            }
+            fileCHannel.onmessage=(ev)=>{
+              //console.log(ev)
+              const data = {db:ev.data,origin:fileCHannel.label}
+              fileHandle?.writeAndBroad?.(data) || fileHandle?.write(data) 
+            }              
+          }
         })
-      }) 
+      }
+       
       addMesh(mesh) 
       closeModal()
+      setTimeout(()=>{
+        createWorkerConn(conn.pc.createDataChannel("worker"),dirInfo)
+      },100)
+      
     }).then(ok=>{
       if (!ok){
         return

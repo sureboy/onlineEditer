@@ -73,6 +73,51 @@ function getBinaryTypeName(value: BinaryValue): BinaryTypeName {
  * 将含二进制字段的对象打包为 ArrayBuffer
  * 布局：[metaLen(4)] [meta(JSON)] [len(4) + data]...
  */
+ const CHUNK_SIZE = 16 * 1024; // 16KB
+
+// ========== 发送端：分块 ==========
+export function sendChunked(channel: RTCDataChannel, buffer: ArrayBuffer) {
+  if (channel.readyState !== 'open') return;
+  channel.send(JSON.stringify({ type: 'start', total: buffer.byteLength }));
+  let offset = 0;
+  while (offset < buffer.byteLength) {
+    const end = Math.min(offset + CHUNK_SIZE, buffer.byteLength);
+    channel.send(buffer.slice(offset, end));
+    offset = end;
+  }
+  channel.send(JSON.stringify({ type: 'end' }));
+}
+
+let receivedChunks: ArrayBuffer[] = [];
+
+export const channelMessage = (ev: MessageEvent,postMessage:(obj:any)=>void) => {
+  const data = ev.data;
+
+  // 控制消息
+  if (typeof data === 'string') {
+    const msg = JSON.parse(data);
+    if (msg.type === 'start') {
+      receivedChunks = [];
+    } else if (msg.type === 'end') {
+      const total = receivedChunks.reduce((s, c) => s + c.byteLength, 0);
+      const full = new Uint8Array(total);
+      let pos = 0;
+      for (const c of receivedChunks) {
+        full.set(new Uint8Array(c), pos);
+        pos += c.byteLength;
+      }
+      receivedChunks = [];
+      const obj = decodeMessage(full.buffer);
+       postMessage(obj);
+    }
+    return;
+  }
+
+  // 二进制块
+  if (data instanceof ArrayBuffer) {
+    receivedChunks.push(data);
+  }
+};
 export function encodeMessage(obj: unknown): ArrayBuffer {
   const buffers: BufferEntry[] = [];
 

@@ -150,6 +150,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         
     }
     FileInfo.channeldb.addEventListener("message",(ev)=>{
+        
         const msg = FileInfo.workerHandle?.(ev.data)
         if (msg){ 
             FileInfo.channeldb?.postMessage(msg) 

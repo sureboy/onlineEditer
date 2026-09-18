@@ -4,7 +4,7 @@ import Edit,{type FileInfoType} from "$lib/components/Edit.svelte";
 //import {initDoc,diffUpdate} from '$lib/utils/yjs' 
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
 import {getImportAliases} from "$lib/function/parsingCode"  
-import {encodeMessage,decodeMessage} from '$lib/function/rtcDataToBroadData'
+import {encodeMessage,sendChunked,channelMessage} from '$lib/function/rtcDataToBroadData'
 const getFileHandle = (FileInfo:FileInfoType) =>{  
     if (!FileInfo.DirHandle || FileInfo.create){ 
         initFileHandle(FileInfo)
@@ -71,22 +71,39 @@ const saveFile =async (v:string,FileInfo:FileInfoType)=>{
     //console.log("save edit")
     if (!handle)return
     //const data = {db:v,origin:Originkey}
-    //const w = handle.writeAndBroad ||handle.write
-    await (handle.writeAndBroad ||handle.write)({db:v,origin:Originkey})  
+    //console.log(await navigator.storage.estimate())
+    const w = handle.writeAndBroad ||handle.write
+    await w({db:v,origin:Originkey})  
 } 
 const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     const ok  = await createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
         console.log(conn)
         conn.pc.ondatachannel = (e)=>{
             if (e.channel.label ==="worker"){
-                console.log("worker",e.channel)
+                //console.log("worker",e.channel)
                 e.channel.onmessage = (ev:MessageEvent)=>{
+                    channelMessage(ev,(obj)=>{
+                        console.log("rtc get",obj)
+                        FileInfo.channeldb?.postMessage(obj)
+                    })
                     //const data = decodeMessage(ev.data)
-                    FileInfo.channeldb?.postMessage(decodeMessage(ev.data))
+                  
+                    //FileInfo.channeldb?.postMessage(data)
                 }
-                FileInfo.workerHandle=(data)=>{
-                    e.channel.send(encodeMessage(data))
+                const oldHandle = FileInfo.workerHandle
+                FileInfo.workerHandle=(data:{type:string})=>{
+                    console.log("send rtc",data)
+                    if (data.type.startsWith("worker"))
+                        sendChunked(e.channel,encodeMessage(data))
+                   // e.channel.send(encodeMessage(data))
 
+                }
+                e.channel.onerror = (ev)=>{
+                    console.error(ev)
+                    FileInfo.workerHandle = oldHandle
+                }
+                e.channel.onclose=()=>{
+                    FileInfo.workerHandle = oldHandle
                 }
                 return
             }
@@ -101,11 +118,12 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
             e.channel.onclose = ()=>{
                 broadcastCh.removeEventListener("message",bhandle)
             }
-            e.channel.onmessage=async (ev)=>{
+            e.channel.onmessage= (ev)=>{
                 const data = {db:ev.data,origin:e.channel.label} 
                 const handle = FileInfo.DirHandle?.getFileHandle(filename)
-                if (handle)
-                    await (handle.writeAndBroad ||handle.write)(data)   
+                if (handle){
+                    (handle.writeAndBroad ||handle.write)(data) 
+                } 
             } 
         }            
     }) 

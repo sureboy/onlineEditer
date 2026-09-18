@@ -178,7 +178,8 @@ const appendRtcConn = (
         obj.dc = e.channel;
         console.log("dc open");
         e.channel.onmessage=(e)=>{
-            setRemoteRTCMsg(JSON.parse(e.data),obj);
+            if (typeof e.data ==="string")
+                setRemoteRTCMsg(JSON.parse(e.data),obj);
         };
         conn.dc = e.channel;
         getConn(conn);
