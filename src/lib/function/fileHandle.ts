@@ -129,34 +129,51 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
     if (FileInfo.channeldb)FileInfo.channeldb.close();
     FileInfo.channeldb = new BroadcastChannel(FileInfo.path+"_db" ); 
     let workerSet:string[] = [] 
-    let workerTmp = new Map<string,any>()
+    const workerTmp = new Map<string,any>()
  
     FileInfo.workerHandle = (data:{
         list?:string[],
+        run:string,
         type:string,
         key:string})=>{
         switch (data.type){
-            case "worker": 
-                if (workerSet.length===0 && data.list){
-                    workerSet =  data.list
+            case "worker":  
+                if (workerTmp.size>0 && data.list){
+                    workerTmp.forEach(v=>{
+                        (v as any[]).forEach(l=>{
+                            FileInfo.channeldb?.postMessage(l) 
+                        })
+                    })
+                    return
+                } 
+                if (workerSet.length===0 ){ 
+                    if (data.list){
+                        workerSet =  data.list
+                    }else{
+                        return
+                    }
                 }
                 const run = workerSet.shift() 
                 if (run){
-                    return {key:data.key,run ,type:"workerRun"}
+                    FileInfo.channeldb?.postMessage({
+                        key:data.key,run ,type:"workerRun"}) 
+ 
                 }
-                break
+                return
             case "workerData":
-
-
+                let tmp = workerTmp.get(data.run)
+                if (!tmp){
+                    tmp =[] // {db:[],end:false}
+                    workerTmp.set(data.run,tmp)
+                }
+                tmp.push(data) 
         }
         
     }
     FileInfo.channeldb.addEventListener("message",(ev)=>{
         
-        const msg = FileInfo.workerHandle?.(ev.data)
-        if (msg){ 
-            FileInfo.channeldb?.postMessage(msg) 
-        }
+        FileInfo.workerHandle?.(ev.data)
+        
     })
     const oldHandle = FileInfo.DirHandle!.getFileHandle
     FileInfo.DirHandle!.getFileHandle=function(name:string){ 
@@ -164,6 +181,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         return Object.assign({}, old, {
             writeAndBroad: async (data:{db:string|ArrayBuffer,origin?:string})=>{ 
                 await old.write(data);
+                workerTmp.clear()
                 FileInfo.channeldb?.postMessage({
                     type:"writeRes",
                     key:FileInfo.key,
@@ -178,7 +196,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
             case "write":
                 if(ev.data.data && ev.data.name){ 
                     await FileInfo.DirHandle?.getFileHandle(ev.data.name).write?.(ev.data.data)  
-                    
+                    workerTmp.clear()
                     FileInfo.channeldb?.postMessage({
                         type:"writeRes",
                         key:ev.data.key,
