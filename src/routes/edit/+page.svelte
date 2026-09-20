@@ -79,24 +79,19 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
     const ok  = await createWebrtcConnFromCenterUrl(reqdb,(conn)=>{
         console.log(conn)
         conn.pc.ondatachannel = (e)=>{
-            if (e.channel.label ==="worker"){
-                //console.log("worker",e.channel)
+            if (e.channel.label ==="worker"){ 
                 e.channel.onmessage = (ev:MessageEvent)=>{
                     channelMessage(ev,(obj)=>{
-                        console.log("rtc get",obj)
+                        //console.log("rtc get",obj)
                         FileInfo.channeldb?.postMessage(obj)
-                    })
-                    //const data = decodeMessage(ev.data)
-                  
-                    //FileInfo.channeldb?.postMessage(data)
+                    }) 
                 }
                 const oldHandle = FileInfo.workerHandle
-                FileInfo.workerHandle=(data:{type:string})=>{
-                    console.log("send rtc",data)
-                    if (data.type.startsWith("worker"))
+                FileInfo.workerHandle=(data:{type:string})=>{ 
+                    if (data.type.startsWith("worker")){
+                        //console.log("send rtc",data)
                         sendChunked(e.channel,encodeMessage(data))
-                   // e.channel.send(encodeMessage(data))
-
+                    }
                 }
                 e.channel.onerror = (ev)=>{
                     console.error(ev)
@@ -139,6 +134,8 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
 const ready =async ()=>{
     const hashPath = window.location.hash.slice(1);
     if (hashPath){
+
+        
         const reqdb = JSON.parse(decodeURIComponent(hashPath)) 
         if (reqdb.id && reqdb.host && reqdb.path){
             if (!await initWebrtcConn(reqdb )){ 

@@ -1,13 +1,11 @@
-<script lang="ts">
-//import {Dialog} from '$lib/components/Dialog.svelte'
+<script lang="ts"> 
 import { Canvas } from '@threlte/core'
 import Menu from '$lib/components/Menu.svelte'   
 import { csg2Geo } from "$lib/function/csg2Three"; 
 import { onMount } from 'svelte'; 
 import {  Vector3,WebGLRenderer } from 'three';
 import OrthoScene,{refreshCamera,refreshCameraInit,type ConfigType}  from '$lib/components/OrthoScene.svelte'; 
-import DownMenu from "$lib/components/DownMenu.svelte";
-//import {parseError} from "$lib/utils/parseError"
+import DownMenu from "$lib/components/DownMenu.svelte"; 
 import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
 import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
 import Exchange,{QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte'; 
@@ -15,17 +13,15 @@ import { createDirInfo,type DirInfoType } from '$lib/function/fileHandle';
 import {type ThrelteContext } from '@threlte/core'
 
 let DirInfo:DirInfoType|undefined =$state(undefined)
-let geometrys:{geometry:any,material:any,type:string}[] = $state([])
-let show = $state(false)
-//let refreshCameraTimer=0
-const solidControlConfig:ConfigType = $state({ 
-  //geometrys: [],
+let geometrys:{geometry:any,material:any,type:string,show:boolean,tag:string}[] = $state([])
+let stopTicker = $state(false) 
+let showMenu = $state(false) 
+const solidControlConfig:ConfigType = $state({  
   Light:true,
   Axes:true,Grid:true,main:[],
   isOrthographic:false,
   MaxSize :new Vector3(),
-  GridSize:10,
-  //show:false,
+  GridSize:10, 
   getAspect:()=>{
     if (!solidControlConfig.Context)return 1
     const {size} = solidControlConfig.Context
@@ -36,7 +32,7 @@ let beginTime =  0
 let showRunTime = $state(0)
 const tickRunTime = ()=>{
   let t = ( Date.now() - beginTime)/1000
-  if (show){
+  if (stopTicker){
     showRunTime=t
     return;
   }
@@ -107,18 +103,21 @@ const onmessageListen =async (e:MessageEvent  )=>{
     geometrys = []
     solidControlConfig.GridSize=10
     solidControlConfig.MaxSize.set(10,10,10)
-    show=false
+    showMenu=false
     beginTime=Date.now() 
     tickRunTime()
 
     moduleInit(Object.assign({
+      geometrys,
       Clickhandle:(basename:string)=>{ 
         previewHandle({basename},onmessageListen) 
       }
     }, e.data.module))
     return
   }
- 
+  if (e.data.stopTicker){
+    stopTicker=true
+  }
   if (e.data.end){ 
    
     //runTime =( Date.now() - runTime)/1000
@@ -127,7 +126,8 @@ const onmessageListen =async (e:MessageEvent  )=>{
     refreshCameraInit(solidControlConfig  )
   
     //console.log("end",Date.now()-t)
-     show = true
+     
+    if (!showMenu) showMenu = true
     return
  
   }
@@ -136,7 +136,7 @@ const onmessageListen =async (e:MessageEvent  )=>{
     try{
       const geo = csg2Geo(e.data,{} )
       if (geo){ 
-        geometrys.push(geo)
+        geometrys.push(Object.assign({tag:e.data.tag,show:true},geo))
         //console.log('index',e.data.index,solidControlConfig.geometrys.length)
         geo.geometry.computeBoundingBox();
         const box = geo.geometry.boundingBox;
@@ -173,7 +173,7 @@ onMount(() => {
     const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))  
     if (path){ 
       solidControlConfig.title = path
-      DirInfo  =createDirInfo(path)  
+      DirInfo  = createDirInfo(path)  
       previewHandle({path },onmessageListen) 
     }  
   }catch(err){
@@ -208,15 +208,14 @@ const getContext = (Context: ThrelteContext<WebGLRenderer>)=>{
 let editBtn:HTMLAnchorElement
 </script>
 <svelte:head><title>{solidControlConfig.title||"SolidJScad"}</title></svelte:head>
-<div   class="preview">
- 
+<div   class="preview"> 
 <Canvas   >
  <OrthoScene {geometrys} {solidControlConfig}  {getContext} ></OrthoScene>
 </Canvas>  
  
  <Menu    >
-<MainMenu {show}  ></MainMenu>
-{#if show}
+<MainMenu show={showMenu}  ></MainMenu>
+{#if showMenu}
 <Camera {Clickhandle}   ></Camera>
   <DownMenu  {DirInfo}
     title = {solidControlConfig.title||""} {DownHandle}
@@ -228,7 +227,8 @@ let editBtn:HTMLAnchorElement
      QRCodeHandle(solidControlConfig.title ,DirInfo)
   }} >webRTC P2P</button>     
 </DownMenu>
-{:else}
+{/if}
+{#if !stopTicker}
   <div style="color:white;text-align: left;"  ><p class="spinner" >...</p><p>{showRunTime}s</p></div>
  {/if}
 <Exchange {solidControlConfig}  > 
@@ -240,7 +240,7 @@ let editBtn:HTMLAnchorElement
   style="color:white;cursor: pointer;height:48px;text-align: left;line-height: 48px;"  
    href="/edit#{encodeURIComponent(JSON.stringify({path:solidControlConfig.title}))}" > {solidControlConfig.title?'Edit':'New'} </a>
 
-   {#if show}<p>{showRunTime}s</p>{/if}
+   {#if stopTicker}<p>{showRunTime}s</p>{/if}
   </div>
  <div style="color:white;text-align: left;" bind:this={errHtml}></div>
 </Menu>

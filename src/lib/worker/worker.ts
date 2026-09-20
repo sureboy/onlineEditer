@@ -57,7 +57,19 @@ const getIndex = (c:currentObj )=>{
     return c
   } 
 }
-
+const getArrayBufferList = (msg:any)=>{
+  const buf:Transferable[] = [];
+  if ('index' in msg    ){                
+    const keys = Object.keys(msg); 
+    for (const k of keys){ 
+      if (msg[k] && msg[k].buffer){ 
+        msg[k] = msg[k].buffer
+        buf.push(msg[k])  
+      }
+    };   
+  }  
+  return buf
+}
 const runCode =async (cur:currentObj  )=>{
   globalOption.DirHandle?.channeldb?.removeEventListener("message",runHandle)
   try{ 
@@ -85,9 +97,9 @@ const runCode =async (cur:currentObj  )=>{
           }
           if (!fnlistSet.has(ev.data.run)){
             break
-          }else{
-            fnlistSet.delete(ev.data.run) 
           }
+          //globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg:{ start: true }})
+          fnlistSet.delete(ev.data.run)  
           console.log(ev.data,globalOption.DirHandle?.key) 
           let tmpDB = src[ev.data.run]()
           if (tmpDB.then){
@@ -95,18 +107,10 @@ const runCode =async (cur:currentObj  )=>{
           }    
           await getCsgObjArray(tmpDB,async(msg)=>{ 
             globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg }) 
-            const buf:Transferable[] = [];
-            if ('index' in msg    ){                
-              const keys = Object.keys(msg); 
-              for (const k of keys){ 
-                if (msg[k] && msg[k].buffer){ 
-                  msg[k] = msg[k].buffer
-                  buf.push(msg[k])  
-                }
-              };   
-            }  
-            self.postMessage(msg,buf ) 
+           
+            self.postMessage(Object.assign(msg,{tag:ev.data.run}),getArrayBufferList(msg) ) 
           }) 
+          self.postMessage({ end: true })
           globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg:{ end: true }})
           break;
         case "workerData":
@@ -114,18 +118,11 @@ const runCode =async (cur:currentObj  )=>{
           if (!ev.data.run || !fnlistSet.has(ev.data.run)){
             break
           }
-          if (ev.data.msg.end){
-            //self.postMessage({ end: true });
+          if (ev.data.msg.end){ 
             fnlistSet.delete(ev.data.run)
-          }else{
-
-            self.postMessage(ev.data.msg )
-          }
-          //if (!fnlistSet.has(ev.data.run))
-          
-        //default:
-          //return;
-           
+          }//else{ 
+          self.postMessage(Object.assign(ev.data.msg,{tag:ev.data.run}),getArrayBufferList(ev.data.msg) )
+          //} 
       }
      
       if (fnlistSet.size>0){
@@ -136,11 +133,8 @@ const runCode =async (cur:currentObj  )=>{
         return
       }
       globalOption.DirHandle?.channeldb?.removeEventListener("message",workerHandle)
-      console.log("worker remove",ev.data)
-      //if (isBroadcast){
-      self.postMessage({ end: true });
-      //  globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",msg:{ end: true }})
-      //}
+      //console.log("worker remove",ev.data) 
+      self.postMessage({ stopTicker: true }); 
     }
     globalOption.DirHandle?.channeldb?.addEventListener("message",workerHandle)
     globalOption.DirHandle?.channeldb?.postMessage({type:"worker",path:globalOption.DirHandle?.path,list:fnlist,key:globalOption.DirHandle.key})

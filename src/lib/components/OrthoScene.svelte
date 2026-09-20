@@ -126,18 +126,13 @@ export const refreshCamera = (direction:string,isOrthographic:boolean,MaxSize:Ve
     geometrys, 
     getContext,
     solidControlConfig}:{ 
-      getContext:any
+    getContext:any
     solidControlConfig:ConfigType, 
-    geometrys:{geometry:any,material:any,type:string}[] 
+    geometrys:{geometry:any,material:any,type:string,show:boolean,tag:string}[] 
 } = $props() 
   const Context= useThrelte() 
-onMount(()=>{
-  //console.log("onMount init")
-
-  
-  getContext(Context)
-  //Context.invalidate()
- 
+onMount(()=>{ 
+  getContext(Context) 
 })
 
  
@@ -182,20 +177,19 @@ onMount(()=>{
   {#if solidControlConfig.Axes}
   <T.AxesHelper args={[solidControlConfig.GridSize/2+1]} />
   {/if}
- 
-  {#each geometrys as {geometry,material,type}} 
-    {#if type==="mesh"}
-      
-    
-    <T.Mesh {geometry} {material}  > 
-        {#if !solidControlConfig.Light}
-      <T.MeshNormalMaterial flatShading ></T.MeshNormalMaterial>
-        {/if}
-    </T.Mesh>
-    {:else if type ==="lines"}
-    <T.Line {geometry} {material}></T.Line> 
-    {:else if type ==="line"}
-    <T.Line {geometry} {material}></T.Line> 
+  {#each geometrys as {geometry,material,type,show}} 
+    {#if show}
+      {#if type==="mesh"} 
+      <T.Mesh {geometry} {material}  > 
+          {#if !solidControlConfig.Light}
+        <T.MeshNormalMaterial flatShading ></T.MeshNormalMaterial>
+          {/if}
+      </T.Mesh>
+      {:else if type ==="lines"}
+      <T.Line {geometry} {material}></T.Line> 
+      {:else if type ==="line"}
+      <T.Line {geometry} {material}></T.Line> 
+      {/if}
     {/if}
   {/each}  
  

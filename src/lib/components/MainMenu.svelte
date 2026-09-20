@@ -7,6 +7,7 @@ let basename:string
 //let spinner:HTMLElement;
 export const moduleInit = (opt:{ 
   //show:boolean,
+  geometrys:{geometry:any,material:any,type:string,show:boolean,tag:string}[] ,
   list:string[],
   basename:string,
   Clickhandle?:(name:string)=>void} )=>{ 
@@ -21,12 +22,29 @@ export const moduleInit = (opt:{
     div.style.display='inline'
     //div.disabled=!opt.show
     div.onclick = (e)=>{
-      solidName.textContent=m
-      opt.Clickhandle?.(m)
+      opt.geometrys.forEach((g)=>{
+        if (g.tag!==m){
+          g.show=false
+        }else{
+          g.show=true
+        }
+      })
+      //solidName.textContent=m
+      //opt.Clickhandle?.(m)
     }
     div.textContent = m;
     menu.appendChild(div)
   }) 
+  tmpDiv.style.display = 'inline'
+  tmpDiv.onclick = (e)=>{
+     opt.geometrys.forEach((g)=>{
+        
+        g.show=true
+         
+      })
+  }
+  tmpDiv.textContent="view all"
+  menu.appendChild(tmpDiv)
   //menu.append(tmpDiv)
 }
 </script>

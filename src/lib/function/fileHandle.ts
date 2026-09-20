@@ -51,12 +51,10 @@ export type DirInfoType = {
     //islocal?:boolean
 }
 
- 
 export const getDirHandle =(name:string,create?:ListDirectoryOptions)=>{
   const root = createStorage() 
   const getFileHandle = (file:string ) => {
-    const p = `${name}/${file}` 
-    
+    const p = `${name}/${file}`  
     return { 
         createWriteStream:()=>{
             return root.createWriteStream(p)

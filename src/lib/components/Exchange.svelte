@@ -71,42 +71,37 @@ const getConnHostJsonStr = ()=>{
 
 const createWorkerConn = (workerConn: RTCDataChannel,dirInfo?:DirInfoType)=>{
   //const workerConn = conn.pc.createDataChannel("worker") 
-      workerConn.binaryType = 'arraybuffer'; 
-      workerConn.onopen=()=>{
-        console.log("worker open")
-        workerConn.onmessage=(ev:MessageEvent)=>{
-          channelMessage(ev,(data)=>{
-            console.log("rtc get",data)
-            if (dirInfo?.workerHandle ){ 
-              const msg = dirInfo.workerHandle(data)
-              if (msg){
-                sendChunked(workerConn,encodeMessage(msg))
-                //workerConn.send(encodeMessage(msg))
-              } 
-              //return
-            }
-            dirInfo?.channeldb?.postMessage(data)
-          })
-          //const data = decodeMessage(ev.data)
-          
-        }
-         
-        const handle = (ev:MessageEvent)=>{
-          switch (ev.data.type){
-            case "workerRun":
-              break
-            case "workerData":
-              break
-            default:
-              return;
+  workerConn.binaryType = 'arraybuffer'; 
+  workerConn.onopen=()=>{
+    //console.log("worker open")
+    workerConn.onmessage=(ev:MessageEvent)=>{
+      channelMessage(ev,(data)=>{
+        console.log("rtc get",data)
+        if (data.type ==="worker"){
+          if (dirInfo?.workerHandle ){ 
+            const msg = dirInfo.workerHandle(data)
+            if (msg){
+              sendChunked(workerConn,encodeMessage(msg)) 
+            }  
+            return;
           }
-          sendChunked(workerConn,encodeMessage(ev.data))
         }
-        dirInfo?.channeldb?.addEventListener("message",handle)
-        workerConn.onclose=()=>{
-          dirInfo?.channeldb?.removeEventListener("message",handle)
-        }
+        
+        dirInfo?.channeldb?.postMessage(data)
+      }) 
+    }
+      
+    const handle = (ev:MessageEvent<{type:string}>)=>{
+       
+      if (ev.data.type!== "worker" && ev.data.type.startsWith("worker")){
+        sendChunked(workerConn,encodeMessage(ev.data))
       }
+    }
+    dirInfo?.channeldb?.addEventListener("message",handle)
+    workerConn.onclose=()=>{
+      dirInfo?.channeldb?.removeEventListener("message",handle)
+    }
+  }
 }
 export const QRCodeHandle = (path:string,dirInfo?:DirInfoType)=>{  
   ShowSubmit(getDialogDiv(),getConnHostJsonStr(),(db)=>{  
