@@ -5,6 +5,8 @@ import Edit,{type FileInfoType} from "$lib/components/Edit.svelte";
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
 import {getImportAliases} from "$lib/function/parsingCode"  
 import {encodeMessage,sendChunked,channelMessage} from '$lib/function/rtcDataToBroadData'
+    import { onDestroy, onMount, untrack } from "svelte";
+    import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
 const getFileHandle = (FileInfo:FileInfoType) =>{  
     if (!FileInfo.DirHandle || FileInfo.create){ 
         initFileHandle(FileInfo)
@@ -135,7 +137,7 @@ const ready =async ()=>{
     const hashPath = window.location.hash.slice(1);
     if (hashPath){
 
-        
+
         const reqdb = JSON.parse(decodeURIComponent(hashPath)) 
         if (reqdb.id && reqdb.host && reqdb.path){
             if (!await initWebrtcConn(reqdb )){ 
@@ -148,6 +150,8 @@ const ready =async ()=>{
             ) 
         } 
         await FileInfo.initEditorView()
+        const w = await getWorker()
+        w.postMessage({path:FileInfo.path})
          
     }else{
         value = newPackageCode
@@ -155,5 +159,8 @@ const ready =async ()=>{
     //setTimeout(()=>initPanel(FileInfo))
      
 } 
+onDestroy(()=>{
+    terminateWorker()
+})
 </script> 
 <Edit {ready} {saveFile} {value} {FileInfo}></Edit>   

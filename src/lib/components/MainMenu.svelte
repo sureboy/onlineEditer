@@ -3,19 +3,20 @@
 let menu:HTMLElement
 let tmpDiv:HTMLButtonElement 
 let solidName:HTMLElement;
-let basename:string
+//let basename:string
 //let spinner:HTMLElement;
 export const moduleInit = (opt:{ 
   //show:boolean,
   geometrys:{geometry:any,material:any,type:string,show:boolean,tag:string}[] ,
   list:string[],
-  basename:string,
-  Clickhandle?:(name:string)=>void} )=>{ 
+  path:string,
+  //Clickhandle?:(name:string)=>void
+} )=>{ 
   if (menu)menu.innerHTML="" 
  
   //Details.style.display="inline"
-  if (solidName)solidName.textContent = opt.basename 
-  basename = opt.basename
+  if (solidName)solidName.textContent = opt.path 
+  //basename = opt.basename
   //console.log("change Main name",solidName)
   opt.list.forEach(m=>{
     const div = tmpDiv.cloneNode(true) as HTMLButtonElement

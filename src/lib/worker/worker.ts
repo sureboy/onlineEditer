@@ -82,7 +82,7 @@ const runCode =async (cur:currentObj  )=>{
     }
     const fnlistSet = new Set(fnlist)
      
-    const module = {list:fnlist,basename:globalOption.DirHandle?.path} 
+    const module = {list:fnlist,path:globalOption.DirHandle?.path} 
     self.postMessage({module}) 
     //let isBroadcast=false
     const workerHandle =async (ev:MessageEvent<{type:string,run?:string,key:string,msg:any}>)=>{

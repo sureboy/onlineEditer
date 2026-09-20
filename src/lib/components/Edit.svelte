@@ -178,14 +178,10 @@ theme={isDark ? oneDark : lightTheme}
         "&":{height: "100vh"},
     "& .cm-editor": { padding: "0",border: "none"  },  
     }} 
-    
     onready = {(cm_view)=>{   
         FileInfo.setView(cm_view)
         manager = new FullscreenWakeLockManager();
-        ready()
-        //.then(()=>{
-        //    initPanel(FileInfo) 
-        //})   
+        ready()  
     }}
     bounce={0} 
     onchange = {(v)=>{  

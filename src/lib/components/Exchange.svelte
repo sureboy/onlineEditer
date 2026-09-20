@@ -4,14 +4,17 @@ import {
   //collectFormData,
   ShowSubmit} from '$lib/utils/jsonToForm'   
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
-import { getWorker } from '$lib/worker/globalWorker';
+//import { getWorker } from '$lib/worker/globalWorker';
 import QRCode from 'qrcode';
 //import {getFileList,getFileData} from "$lib/function/tar"
 //import {initDoc,diffUpdate} from "$lib/utils/yjs" 
 import { 
   //createDirInfo,
   type DirInfoType  } from '$lib/function/fileHandle'; 
-import {encodeMessage,decodeMessage,sendChunked,channelMessage} from '$lib/function/rtcDataToBroadData'
+import {
+  encodeMessage,
+  //decodeMessage,
+  sendChunked,channelMessage} from '$lib/function/rtcDataToBroadData'
 //import * as Y from 'yjs'
 const FileBroadcastChannelMap = new Map<string,BroadcastChannel>()
 const getFileBroadcastChannel = (name:string)=>{
@@ -50,13 +53,14 @@ let DialogDiv:HTMLDivElement
 export const getDialogDiv = ()=>{
   return DialogDiv
 }
+/*
 export const previewHandle =async (data: { [k:string]:any},onmessage?: (e: MessageEvent) => void)=>{
   if (!data.basename){
     data.basename="main"
   } 
   (await getWorker( onmessage)).postMessage(data) 
    
-} 
+} */
 const getConnHostJsonStr = ()=>{
     return  {
         _comment:"跨网信令交换服务",

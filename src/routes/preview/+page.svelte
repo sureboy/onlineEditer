@@ -8,10 +8,10 @@ import OrthoScene,{refreshCamera,refreshCameraInit,type ConfigType}  from '$lib/
 import DownMenu from "$lib/components/DownMenu.svelte"; 
 import Camera,{toggleCamera}  from "$lib/components/Camera.svelte";
 import MainMenu ,{moduleInit} from "$lib/components/MainMenu.svelte";  
-import Exchange,{QRCodeHandle,previewHandle } from '$lib/components/Exchange.svelte'; 
+import Exchange,{QRCodeHandle } from '$lib/components/Exchange.svelte'; 
 import { createDirInfo,type DirInfoType } from '$lib/function/fileHandle';  
 import {type ThrelteContext } from '@threlte/core'
-
+import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
 let DirInfo:DirInfoType|undefined =$state(undefined)
 let geometrys:{geometry:any,material:any,type:string,show:boolean,tag:string}[] = $state([])
 let stopTicker = $state(false) 
@@ -98,20 +98,16 @@ const onmessageListen =async (e:MessageEvent  )=>{
     if (errHtml)
     errHtml.innerHTML=""
   } 
-  if (e.data.module){ 
-  
+  if (e.data.module){  
     geometrys = []
     solidControlConfig.GridSize=10
     solidControlConfig.MaxSize.set(10,10,10)
     showMenu=false
+    stopTicker=false
     beginTime=Date.now() 
-    tickRunTime()
-
+    tickRunTime() 
     moduleInit(Object.assign({
-      geometrys,
-      Clickhandle:(basename:string)=>{ 
-        previewHandle({basename},onmessageListen) 
-      }
+      geometrys, 
     }, e.data.module))
     return
   }
@@ -119,20 +115,12 @@ const onmessageListen =async (e:MessageEvent  )=>{
     stopTicker=true
   }
   if (e.data.end){ 
-   
-    //runTime =( Date.now() - runTime)/1000
-    //let t = Date.now()
-    //console.log("end",t)
-    refreshCameraInit(solidControlConfig  )
-  
-    //console.log("end",Date.now()-t)
-     
+    refreshCameraInit(solidControlConfig  ) 
     if (!showMenu) showMenu = true
     return
  
   }
-  if ('index' in e.data){ 
-    //console.log(e.data)
+  if ('index' in e.data){  
     try{
       const geo = csg2Geo(e.data,{} )
       if (geo){ 
@@ -168,16 +156,30 @@ const onmessageListen =async (e:MessageEvent  )=>{
     
   }
 }  
+/*
+const previewHandle =async (data: { [k:string]:any},onmessage?: (e: MessageEvent) => void)=>{
+  if (!data.basename){
+    data.basename="main"
+  } 
+  (await getWorker( onmessage)).postMessage(data) 
+   
+} */
 onMount(() => {  
   try{
     const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))  
     if (path){ 
-      solidControlConfig.title = path
-      DirInfo  = createDirInfo(path)  
-      previewHandle({path },onmessageListen) 
+      solidControlConfig.title = path;
+      DirInfo  = createDirInfo(path)  ;
+      getWorker( onmessageListen).then(w=>{
+        w.postMessage({path }) 
+      })
+      //previewHandle({path },onmessageListen) 
     }  
   }catch(err){
     console.error(err)
+  }
+  return ()=>{
+    terminateWorker()
   }
 });
 function switchView(direction:string) {
