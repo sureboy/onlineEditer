@@ -129,21 +129,25 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
     if (FileInfo.channeldb)FileInfo.channeldb.close();
     FileInfo.channeldb = new BroadcastChannel(FileInfo.path+"_db" ); 
     let workerSet:string[] = [] 
+    let workerTmp = new Map<string,any>()
  
     FileInfo.workerHandle = (data:{
         list?:string[],
         type:string,
         key:string})=>{
-        if ((data.type!=="worker")){
-            return;
-        }
-        if (workerSet.length===0 && data.list){
-            workerSet =  data.list
-        }
-        const run = workerSet.shift()
-        
-        if (run){
-            return {key:data.key,run ,type:"workerRun"}
+        switch (data.type){
+            case "worker": 
+                if (workerSet.length===0 && data.list){
+                    workerSet =  data.list
+                }
+                const run = workerSet.shift() 
+                if (run){
+                    return {key:data.key,run ,type:"workerRun"}
+                }
+                break
+            case "workerData":
+
+
         }
         
     }

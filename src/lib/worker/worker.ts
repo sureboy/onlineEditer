@@ -152,14 +152,16 @@ const runCode =async (cur:currentObj  )=>{
  
 const runHandle =(e:MessageEvent<{type:string,name:string}>)=>{
     if (e.data.type==="writeRes"){ 
+     //console.log("writeRes run",e.data)
       globalOption.DirHandle?.DirHandle?.getFileHandle( e.data.name).read().then(db=>{ 
-        //console.log(db)
+        //console.log("write res",db)
         const cur = handleCurrentMsg({
           db ,
           name:decodeURIComponent( e.data.name) 
-        })
+        },postMessage)
         if (cur)
           runCode(cur)
+         
       })
     }
 }
@@ -167,7 +169,11 @@ self.onmessage   =async (event: MessageEvent) => {
   if ( event.data.path){ 
     if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){  
       globalOption.DirHandle = createDirInfo(event.data.path);  
+      globalOption.DirHandle.channeldb?.addEventListener("message",runHandle)
     }
+    self.postMessage({type:"init"})
+    //console.log("worker init",event.data)
+    /*
     const name = event.data.name||"./index.js"
     const db = event.data.db || await globalOption.DirHandle.DirHandle?.getFileHandle(encodeURIComponent(name)).read()
     const cur =    handleCurrentMsg({ db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
@@ -176,6 +182,7 @@ self.onmessage   =async (event: MessageEvent) => {
     }
   }else if (event.data.basename ){ 
     await runCode( await getCurrent("./index.js") );
+    */
   } 
  
 };

@@ -171,7 +171,19 @@ onMount(() => {
       solidControlConfig.title = path;
       DirInfo  = createDirInfo(path)  ;
       getWorker( onmessageListen).then(w=>{
-        w.postMessage({path }) 
+        const init = (e:MessageEvent<{type:string}>)=>{
+          if (e.data.type==="init"){
+            DirInfo?.channeldb?.postMessage({
+                type:"writeRes",
+                key:DirInfo.key,
+                name :encodeURIComponent("./index.js")
+            }) 
+            w.removeEventListener("message",init)
+          }
+        }
+        w.addEventListener("message",init)
+        w.postMessage({path })   
+        
       })
       //previewHandle({path },onmessageListen) 
     }  
