@@ -90,13 +90,13 @@ const runCode =async (cur:currentObj  )=>{
       switch (ev.data.type){
         case "workerRun":
           if (ev.data.key !== globalOption.DirHandle?.key  ){ 
-            break;
+            return;
           }
           if (!ev.data.run ){
-            break
+            return
           }
           if (!fnlistSet.has(ev.data.run)){
-            break
+            return
           }
           //globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg:{ start: true }})
           fnlistSet.delete(ev.data.run)  
@@ -114,15 +114,17 @@ const runCode =async (cur:currentObj  )=>{
           globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg:{ end: true }})
           break;
         case "workerData":
-          console.log("get worker Data",ev.data,globalOption.DirHandle?.key)
+          //console.log("get worker Data",ev.data,globalOption.DirHandle?.key)
           if (!ev.data.run || !fnlistSet.has(ev.data.run)){
-            break
+            return
           }
           if (ev.data.msg.end){ 
             fnlistSet.delete(ev.data.run)
-          }//else{ 
+          }
           self.postMessage(Object.assign(ev.data.msg,{tag:ev.data.run}),getArrayBufferList(ev.data.msg) )
-          //} 
+          break
+        default:
+          return
       }
      
       if (fnlistSet.size>0){

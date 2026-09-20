@@ -129,7 +129,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
     if (FileInfo.channeldb)FileInfo.channeldb.close();
     FileInfo.channeldb = new BroadcastChannel(FileInfo.path+"_db" ); 
     let workerSet:string[] = [] 
-    const workerTmp = new Map<string,any>()
+    let workerTmp:any[] = []
  
     FileInfo.workerHandle = (data:{
         list?:string[],
@@ -138,11 +138,9 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         key:string})=>{
         switch (data.type){
             case "worker":  
-                if (workerTmp.size>0 && data.list){
-                    workerTmp.forEach(v=>{
-                        (v as any[]).forEach(l=>{
-                            FileInfo.channeldb?.postMessage(l) 
-                        })
+                if (workerTmp.length>0 && data.list){
+                    workerTmp.forEach(v=>{ 
+                        FileInfo.channeldb?.postMessage(v)  
                     })
                     return
                 } 
@@ -155,18 +153,15 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 }
                 const run = workerSet.shift() 
                 if (run){
+                    workerTmp.push({type:"workerData",run,msg:{ start: true }})
                     FileInfo.channeldb?.postMessage({
                         key:data.key,run ,type:"workerRun"}) 
+                    
  
                 }
                 return
             case "workerData":
-                let tmp = workerTmp.get(data.run)
-                if (!tmp){
-                    tmp =[] // {db:[],end:false}
-                    workerTmp.set(data.run,tmp)
-                }
-                tmp.push(data) 
+                workerTmp.push(data) 
         }
         
     }
@@ -181,7 +176,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         return Object.assign({}, old, {
             writeAndBroad: async (data:{db:string|ArrayBuffer,origin?:string})=>{ 
                 await old.write(data);
-                workerTmp.clear()
+                workerTmp = []
                 FileInfo.channeldb?.postMessage({
                     type:"writeRes",
                     key:FileInfo.key,
@@ -196,7 +191,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
             case "write":
                 if(ev.data.data && ev.data.name){ 
                     await FileInfo.DirHandle?.getFileHandle(ev.data.name).write?.(ev.data.data)  
-                    workerTmp.clear()
+                    workerTmp=[]
                     FileInfo.channeldb?.postMessage({
                         type:"writeRes",
                         key:ev.data.key,
