@@ -88,8 +88,12 @@ const errMessageHandle = (e:MessageEvent<{err:any}>)=>{
     })
   } 
 }
-const handleWorkerData = (ev:MessageEvent<{type:string,msg:any,run:string}>)=>{
+const handleWorkerData = (ev:MessageEvent<{update?:string,type:string,msg:any,run:string}>)=>{
   if (ev.data.type !=="workerData"){
+    return
+  }
+  if (ev.data.update && ev.data.update!==DirInfo?.key){
+    //console.log(ev.data,DirInfo?.key)
     return
   }
   if (ev.data.msg.start){
@@ -100,7 +104,7 @@ const handleWorkerData = (ev:MessageEvent<{type:string,msg:any,run:string}>)=>{
     if (!showMenu) showMenu = true
     return 
   }
-  console.log(ev.data)
+  //console.log(ev.data)
   updateGeometrys(Object.assign(ev.data.msg,{tag:ev.data.run}))
 
 }
@@ -136,7 +140,9 @@ const onmessageListen =async (e:MessageEvent  )=>{
   } 
   if (e.data.module){  
     //handleWorkerData
-    
+    if (e.data.update && e.data.update!== DirInfo?.key){
+      return
+    }
     geometrys = []
     solidControlConfig.GridSize=10
     solidControlConfig.MaxSize.set(10,10,10)
@@ -182,19 +188,11 @@ onMount(() => {
       getWorker( onmessageListen).then(w=>{
         const init = (e:MessageEvent<{type:string}>)=>{
           if (e.data.type==="init"){
-            //w.postMessage({name:"./index.js"})
-            /*
-            DirInfo?.channeldb?.postMessage({
-                type:"writeRes",
-                key:DirInfo.key,
-                name :encodeURIComponent("./index.js")
-            }) */
             w.removeEventListener("message",init)
           }
         }
         w.addEventListener("message",init)
-        w.postMessage({path,name:"./index.js" })   
-        
+        w.postMessage({path,name:"./index.js",update:DirInfo?.key })    
       })
       //previewHandle({path },onmessageListen) 
     }  

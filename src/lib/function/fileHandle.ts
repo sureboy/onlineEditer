@@ -136,6 +136,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
     FileInfo.workerHandle = (data:{
         list?:string[],
         run:boolean,
+        update?:string,
         type:string,
         key:string})=>{
         switch (data.type){ 
@@ -143,6 +144,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 if(data.list){
                     if ( workerTmp.length>0 ){ 
                         workerTmp.forEach(v=>{ 
+                            v.update = data.update
                             FileInfo.channeldb?.postMessage(v)  
                         })
                         return 
@@ -172,8 +174,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         getWorker().then(w=>{
             w.postMessage({name:decodeURIComponent(name)})
         })
-        return
-        
+        return 
     }
     FileInfo.DirHandle!.getFileHandle=function(name:string){ 
         const old = oldHandle.call(this,name)

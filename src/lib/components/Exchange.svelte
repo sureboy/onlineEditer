@@ -94,6 +94,7 @@ const createWorkerConn = (workerConn: RTCDataChannel,dirInfo?:DirInfoType)=>{
             }
             return;
           case "workerData":
+            
             dirInfo?.channeldb?.postMessage(data)
             dirInfo?.Preview?.(data)
 
@@ -197,9 +198,8 @@ const {
 } = $props()  
 </script>
 <Dialog title = {solidControlConfig.title||""}  >
-  
-     <div bind:this={DialogDiv}>test</div> 
- </Dialog>
+  <div bind:this={DialogDiv}>test</div> 
+</Dialog>
 {#each meshList as mesh,k }
 {#if mesh}
   <details    >
@@ -210,11 +210,6 @@ const {
         <button onclick={(e)=>{
           console.log(e)
           return;
-            mesh?.conn.dc?.send(JSON.stringify({  
-                name:"local" ,
-                msg: 0,
-                 
-            })) 
         }}>reload </button> 
     </div>
 </details>

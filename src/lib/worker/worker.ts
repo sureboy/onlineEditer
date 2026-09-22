@@ -58,21 +58,17 @@ const getIndex = (c:currentObj )=>{
     return c
   } 
 }
-const runCode = async (indexCurrent:currentObj)=>{
+const runCode = async (indexCurrent:currentObj,update?:string)=>{
     const u = await indexCurrent.getUri() 
     const src = await  import(/* @vite-ignore */u) 
     const fnlist = Object.keys(src)
     if (!fnlist){
       throw "not have function"
     }
-    const fnlistSet = new Set(fnlist)
-     
+    const fnlistSet = new Set(fnlist) 
     const module = {list:fnlist,path:globalOption.DirHandle?.path} 
-    self.postMessage({module}) 
-    //let isBroadcast=false
-    
+    self.postMessage({module,update})  
     const workerHandle =async (ev:MessageEvent<{type:string,run?:string,key:string,msg:any}>)=>{
-
       switch (ev.data.type){
         case "workerRun":
           if (ev.data.key !== globalOption.DirHandle?.key  ){ 
@@ -86,18 +82,21 @@ const runCode = async (indexCurrent:currentObj)=>{
           }
           //globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg:{ start: true }})
           fnlistSet.delete(ev.data.run)  
-          console.log(ev.data,globalOption.DirHandle?.key) 
+          //console.log(ev.data,globalOption.DirHandle?.key) 
           let tmpDB = src[ev.data.run](globalOption.Option)
           if (tmpDB.then){
             tmpDB = await tmpDB
           }    
           await getCsgObjArray(tmpDB,async(msg)=>{ 
             globalOption.DirHandle?.channeldb?.postMessage({
+              update,
               type:"workerData",run:ev.data.run,msg 
             }) 
           }) 
           //self.postMessage({ end: true })
-          globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg:{ end: true }})
+          globalOption.DirHandle?.channeldb?.postMessage({
+            update,
+            type:"workerData",run:ev.data.run,msg:{ end: true }})
           break;
         case "workerData":
           //console.log("get worker Data",ev.data,globalOption.DirHandle?.key)
@@ -116,10 +115,12 @@ const runCode = async (indexCurrent:currentObj)=>{
         globalOption.DirHandle?.channeldb?.postMessage({
           type:"worker",
            //list:fnlist,
-           key:globalOption.DirHandle.key})
+          key:globalOption.DirHandle.key
+        })
         return
       }
-      globalOption.DirHandle?.channeldb?.removeEventListener("message",workerHandle)
+      globalOption.DirHandle?.channeldb?.removeEventListener(
+        "message",workerHandle)
       //console.log("worker remove",ev.data) 
       self.postMessage({ stopTicker: true }); 
     }
@@ -127,21 +128,15 @@ const runCode = async (indexCurrent:currentObj)=>{
 
     return {fnlistSet,src}
 }
-const RunCode =async (indexCurrent:currentObj,initOption:boolean = true,update?:boolean  )=>{
+const RunCode =async (
+  indexCurrent:currentObj,
+  initOption:boolean = true,
+  update?:string  
+)=>{
   globalOption.DirHandle?.channeldb?.removeEventListener("message",runHandle)
   try{ 
-    //const indexCurrent = getIndex(cur)
-    
-    /*
-    globalOption.DirHandle?.channeldb?.postMessage({
-      type:"worker",
-      //path:globalOption.DirHandle?.path,
-      list:fnlist,
-      key:globalOption.DirHandle.key
-    })
-    */
-    const {fnlistSet,src} = await runCode(indexCurrent)
-    if (initOption ){ 
+    const {fnlistSet,src} = await runCode(indexCurrent,update)
+    if (initOption ){
       if (fnlistSet.has("main")){
         globalOption.Option = src['main']()
         if (globalOption.Option.then){
@@ -149,14 +144,17 @@ const RunCode =async (indexCurrent:currentObj,initOption:boolean = true,update?:
         } 
         fnlistSet.delete("main")
       }
-      globalOption.DirHandle?.channeldb?.postMessage({
-        key:globalOption.DirHandle.key,
+      
+      const db = {
+        key:globalOption.DirHandle?.key,
         type:"worker",
         list:[...fnlistSet],
         name:indexCurrent.name,
         update,
         Option:globalOption.Option 
-      }) 
+      }
+      //console.log(db)
+      globalOption.DirHandle?.channeldb?.postMessage(db)
     }else{
       if (fnlistSet.has("main")){
         fnlistSet.delete("main")
@@ -169,52 +167,49 @@ const RunCode =async (indexCurrent:currentObj,initOption:boolean = true,update?:
     console.error(err)
   } 
   globalOption.DirHandle?.channeldb?.addEventListener("message",runHandle)
-}  
- 
-const runHandle =(e:MessageEvent<{list:any,type:string,name:string,Option:any}>)=>{
-  switch (e.data.type){ 
-    
+}
+
+const runHandle =(e:MessageEvent<{
+  list:any,type:string,name:string,update?:string,Option:any}>)=>{
+  switch (e.data.type){  
     case "worker":
+      //console.log(e.data)
       if (e.data.Option && !globalOption.Option){
         globalOption.Option = e.data.Option
       }
       if (e.data.name){
-
         getCurrent(e.data.name,postMessage).then(cur=>{
-          RunCode(cur,false)
-          globalOption.DirHandle?.channeldb?.postMessage({
-            type:"worker",
-            run:true,
-            //list:e.data.list,
-            //path:globalOption.DirHandle.path,
-            key:globalOption.DirHandle.key
+          //console.log(e.data)
+          RunCode(cur,false,e.data.update ).then(()=>{ 
+            globalOption.DirHandle?.channeldb?.postMessage({
+              type:"worker",
+              run:true,
+              update:e.data.update,//?true:false,
+              //list:e.data.list,
+              //path:globalOption.DirHandle.path,
+              key:globalOption.DirHandle.key
+            })
           })
+          
         })
       }      
       return;
   }
 }
-self.onmessage   =async (event: MessageEvent) => {  
+self.onmessage   = async (event: MessageEvent) => {  
   if ( event.data.path){ 
     if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){  
       globalOption.DirHandle = createDirInfo(event.data.path);  
       globalOption.DirHandle.channeldb?.addEventListener("message",runHandle)
     }
     self.postMessage({type:"init"})
-    //console.log("worker init",event.data)
-    /*
-    const name = event.data.name||"./index.js"
-    const db = event.data.db || await globalOption.DirHandle.DirHandle?.getFileHandle(encodeURIComponent(name)).read()
-    const cur =    handleCurrentMsg({ db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
-    if (cur  ){ 
-      await runCode( cur );
-    }*/
   }
   if (event.data.name ){ 
-    await RunCode( 
+    //console.log(event.data)
+    await RunCode(
       await getCurrent(event.data.name,postMessage),
       true,
-      event.data.update?true:false 
+      event.data.update 
     ); 
   }  
 };
