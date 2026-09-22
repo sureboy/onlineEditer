@@ -74,9 +74,9 @@ function getBinaryTypeName(value: BinaryValue): BinaryTypeName {
  * 布局：[metaLen(4)] [meta(JSON)] [len(4) + data]...
  */
  const CHUNK_SIZE = 16 * 1024; // 16KB
-
+const BUFFER_LOW_THRESHOLD = 256 * 1024;  
 // ========== 发送端：分块 ==========
-export function sendChunked(channel: RTCDataChannel, buffer: ArrayBuffer) {
+export function sendChunked_bak(channel: RTCDataChannel, buffer: ArrayBuffer) {
   if (channel.readyState !== 'open') return;
   channel.send(JSON.stringify({ type: 'start', total: buffer.byteLength }));
   let offset = 0;
@@ -87,10 +87,61 @@ export function sendChunked(channel: RTCDataChannel, buffer: ArrayBuffer) {
   }
   channel.send(JSON.stringify({ type: 'end' }));
 }
+export function sendChunked(
+  channel: RTCDataChannel,
+  buffer: ArrayBuffer
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (channel.readyState !== 'open') {
+      reject(new Error('DataChannel is not open'));
+      return;
+    }
 
+    channel.bufferedAmountLowThreshold = BUFFER_LOW_THRESHOLD;
+    channel.send(JSON.stringify({ type: 'start', total: buffer.byteLength }));
+
+    let offset = 0;
+
+    const cleanup = () => {
+      channel.removeEventListener('bufferedamountlow', onLow);
+      channel.removeEventListener('close', onClose);
+      channel.removeEventListener('error', onError);
+    };
+
+    const onLow = () => pump();
+    const onClose = () => { cleanup(); reject(new Error('DataChannel closed')); };
+    const onError = (e: Event) => { cleanup(); reject(e); };
+
+    const pump = () => {
+      if (channel.readyState !== 'open') {
+        cleanup();
+        reject(new Error('DataChannel closed'));
+        return;
+      }
+
+      while (offset < buffer.byteLength) {
+        if (channel.bufferedAmount > channel.bufferedAmountLowThreshold) {
+          channel.addEventListener('bufferedamountlow', onLow, { once: true });
+          return;
+        }
+        const end = Math.min(offset + CHUNK_SIZE, buffer.byteLength);
+        channel.send(buffer.slice(offset, end));
+        offset = end;
+      }
+
+      channel.send(JSON.stringify({ type: 'end' }));
+      cleanup();
+      resolve();
+    };
+
+    channel.addEventListener('close', onClose, { once: true });
+    channel.addEventListener('error', onError, { once: true });
+    pump();
+  });
+}
 let receivedChunks: ArrayBuffer[] = [];
 
-export const channelMessage = (ev: MessageEvent,postMessage:(obj:any)=>void) => {
+export const channelMessage =async (ev: MessageEvent,postMessage:(obj:any)=>void|Promise<void>) => {
   const data = ev.data;
 
   // 控制消息
@@ -108,7 +159,7 @@ export const channelMessage = (ev: MessageEvent,postMessage:(obj:any)=>void) => 
       }
       receivedChunks = [];
       const obj = decodeMessage(full.buffer);
-       postMessage(obj);
+      await postMessage(obj);
     }
     return;
   }

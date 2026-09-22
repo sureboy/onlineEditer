@@ -88,7 +88,43 @@ const errMessageHandle = (e:MessageEvent<{err:any}>)=>{
     })
   } 
 }
+const handleWorkerData = (ev:MessageEvent<{type:string,msg:any,run:string}>)=>{
+  if (ev.data.type !=="workerData"){
+    return
+  }
+  if (ev.data.msg.start){
+    return
+  }
+  if (ev.data.msg.end){ 
+    refreshCameraInit(solidControlConfig  ) 
+    if (!showMenu) showMenu = true
+    return 
+  }
+  console.log(ev.data)
+  updateGeometrys(Object.assign(ev.data.msg,{tag:ev.data.run}))
 
+}
+const updateGeometrys = (data:any)=>{
+  const geo = csg2Geo(data,{} )
+  if (geo){ 
+    geometrys.push(Object.assign({tag:data.tag,show:true},geo)) 
+    geo.geometry.computeBoundingBox();
+    const box = geo.geometry.boundingBox;
+    const size = new Vector3(); 
+    box?.getSize(size) 
+    if (size.x>solidControlConfig.MaxSize.x) solidControlConfig.MaxSize.setX(size.x)
+    if (size.y>solidControlConfig.MaxSize.y) solidControlConfig.MaxSize.setY(size.y)
+    if (size.z>solidControlConfig.MaxSize.z) solidControlConfig.MaxSize.setZ(size.z)
+
+    let helpSize = size.x>size.z?size.x:size.z;
+    if (size.y>helpSize){
+      helpSize =size.y
+    }
+    if (helpSize>solidControlConfig.GridSize ){
+      solidControlConfig.GridSize  = Math.ceil(helpSize )+1 
+    } 
+  }  
+}
 const onmessageListen =async (e:MessageEvent  )=>{
   //console.log(e.data)
   if (e.data.err ){
@@ -99,6 +135,13 @@ const onmessageListen =async (e:MessageEvent  )=>{
     errHtml.innerHTML=""
   } 
   if (e.data.module){  
+    if (DirInfo){
+      DirInfo.channeldb?.addEventListener("message",handleWorkerData)
+      DirInfo.Preview = handleWorkerData
+    }
+
+    //handleWorkerData
+    
     geometrys = []
     solidControlConfig.GridSize=10
     solidControlConfig.MaxSize.set(10,10,10)
@@ -113,6 +156,10 @@ const onmessageListen =async (e:MessageEvent  )=>{
   }
   if (e.data.stopTicker){
     stopTicker=true
+    if (DirInfo){
+     DirInfo.channeldb?.removeEventListener("message",handleWorkerData)
+     DirInfo.Preview = undefined
+    }
   }
   if (e.data.end){ 
     refreshCameraInit(solidControlConfig  ) 
@@ -122,38 +169,10 @@ const onmessageListen =async (e:MessageEvent  )=>{
   }
   if ('index' in e.data){  
     try{
-      const geo = csg2Geo(e.data,{} )
-      if (geo){ 
-        geometrys.push(Object.assign({tag:e.data.tag,show:true},geo))
-        //console.log('index',e.data.index,solidControlConfig.geometrys.length)
-        geo.geometry.computeBoundingBox();
-        const box = geo.geometry.boundingBox;
-        const size = new Vector3(); 
-        box?.getSize(size)
-        //MaxSize.max()
-        if (size.x>solidControlConfig.MaxSize.x) solidControlConfig.MaxSize.setX(size.x)
-        if (size.y>solidControlConfig.MaxSize.y) solidControlConfig.MaxSize.setY(size.y)
-        if (size.z>solidControlConfig.MaxSize.z) solidControlConfig.MaxSize.setZ(size.z)
-
-        let helpSize = size.x>size.z?size.x:size.z;
-        if (size.y>helpSize){
-          helpSize =size.y
-        }
-        if (helpSize>solidControlConfig.GridSize ){
-          solidControlConfig.GridSize  = Math.ceil(helpSize )+1 
-        } 
-      }  
-      //clearTimeout(refreshCameraTimer)
-      //refreshCameraTimer = window.setTimeout(()=>{
-      //  if (!show){
-      //    refreshCameraInit(solidControlConfig  )
-      //  }
-      //})
-
+      updateGeometrys(e.data) 
     }catch(err){
       console.error(err)
-    }
-    
+    }    
   }
 }  
 /*

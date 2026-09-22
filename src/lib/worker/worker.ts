@@ -58,13 +58,14 @@ const getIndex = (c:currentObj )=>{
   } 
 }
 const getArrayBufferList = (msg:any)=>{
+  //return []
   const buf:Transferable[] = [];
   if ('index' in msg    ){                
     const keys = Object.keys(msg); 
     for (const k of keys){ 
       if (msg[k] && msg[k].buffer){ 
-        msg[k] = msg[k].buffer
-        buf.push(msg[k])  
+        //msg[k] = msg[k].buffer
+        buf.push(msg[k].buffer)  
       }
     };   
   }  
@@ -108,9 +109,9 @@ const runCode =async (cur:currentObj  )=>{
           await getCsgObjArray(tmpDB,async(msg)=>{ 
             globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg }) 
            
-            self.postMessage(Object.assign(msg,{tag:ev.data.run}),getArrayBufferList(msg) ) 
+            //self.postMessage(Object.assign(msg,{tag:ev.data.run}),getArrayBufferList(msg) ) 
           }) 
-          self.postMessage({ end: true })
+          //self.postMessage({ end: true })
           globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg:{ end: true }})
           break;
         case "workerData":
@@ -121,12 +122,11 @@ const runCode =async (cur:currentObj  )=>{
           if (ev.data.msg.end){ 
             fnlistSet.delete(ev.data.run)
           }
-          self.postMessage(Object.assign(ev.data.msg,{tag:ev.data.run}),getArrayBufferList(ev.data.msg) )
+          //self.postMessage(Object.assign(ev.data.msg,{tag:ev.data.run}),getArrayBufferList(ev.data.msg) )
           break
         default:
           return
       }
-     
       if (fnlistSet.size>0){
         globalOption.DirHandle?.channeldb?.postMessage({
           type:"worker",

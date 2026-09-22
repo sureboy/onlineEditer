@@ -49,6 +49,7 @@ export type DirInfoType = {
     key?:string
     workerHandle?:(data:any)=>any
     //islocal?:boolean
+    Preview?:(data:any)=>any
 }
 
 export const getDirHandle =(name:string,create?:ListDirectoryOptions)=>{
@@ -129,7 +130,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
     if (FileInfo.channeldb)FileInfo.channeldb.close();
     FileInfo.channeldb = new BroadcastChannel(FileInfo.path+"_db" ); 
     let workerSet:string[] = [] 
-    let workerTmp:any[] = []
+    const workerTmp:any[] = []
  
     FileInfo.workerHandle = (data:{
         list?:string[],
@@ -165,10 +166,8 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         }
         
     }
-    FileInfo.channeldb.addEventListener("message",(ev)=>{
-        
-        FileInfo.workerHandle?.(ev.data)
-        
+    FileInfo.channeldb.addEventListener("message",(ev)=>{ 
+        FileInfo.workerHandle?.(ev.data) 
     })
     const oldHandle = FileInfo.DirHandle!.getFileHandle
     FileInfo.DirHandle!.getFileHandle=function(name:string){ 
@@ -176,7 +175,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         return Object.assign({}, old, {
             writeAndBroad: async (data:{db:string|ArrayBuffer,origin?:string})=>{ 
                 await old.write(data);
-                workerTmp = []
+                workerTmp.length = 0
                 FileInfo.channeldb?.postMessage({
                     type:"writeRes",
                     key:FileInfo.key,
@@ -191,7 +190,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
             case "write":
                 if(ev.data.data && ev.data.name){ 
                     await FileInfo.DirHandle?.getFileHandle(ev.data.name).write?.(ev.data.data)  
-                    workerTmp=[]
+                    workerTmp.length = 0
                     FileInfo.channeldb?.postMessage({
                         type:"writeRes",
                         key:ev.data.key,
@@ -203,7 +202,6 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 if (ev.data.key === FileInfo.key){ 
                     messageChannelListenClient(FileInfo) 
                     FileInfo.workerHandle  = undefined;
-                    //FileInfo.channeldb?.removeEventListener("message",workerHandle )
                     FileInfo.channeldb?.removeEventListener("message",initHandle)
                 }else{
                     FileInfo.channeldb?.postMessage(ev.data)

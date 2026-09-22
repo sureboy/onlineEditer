@@ -89,10 +89,10 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
                     }) 
                 }
                 const oldHandle = FileInfo.workerHandle
-                FileInfo.workerHandle=(data:{type:string})=>{ 
+                FileInfo.workerHandle=async(data:{type:string})=>{ 
                     if (data.type.startsWith("worker")){
                         //console.log("send rtc",data)
-                        sendChunked(e.channel,encodeMessage(data))
+                        await sendChunked(e.channel,encodeMessage(data))
                     }
                 }
                 e.channel.onerror = (ev)=>{

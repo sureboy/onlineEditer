@@ -79,26 +79,36 @@ const createWorkerConn = (workerConn: RTCDataChannel,dirInfo?:DirInfoType)=>{
   workerConn.onopen=()=>{
     //console.log("worker open")
     workerConn.onmessage=(ev:MessageEvent)=>{
-      channelMessage(ev,(data)=>{
-        console.log("rtc get",data)
-        if (data.type ==="worker"){
-          if (dirInfo?.workerHandle ){ 
-            const msg = dirInfo.workerHandle(data)
-            if (msg){
-              sendChunked(workerConn,encodeMessage(msg)) 
-            }  
+      channelMessage(ev,async (data)=>{
+        //console.log("rtc get",data)
+        switch (data.type){
+          case "worker":  
+            if (dirInfo?.workerHandle ){ 
+              const msg = dirInfo.workerHandle(data)
+              if (msg){
+                await sendChunked(workerConn,encodeMessage(msg)) 
+              }  
+              //return;
+            }else{
+              dirInfo?.channeldb?.postMessage(data)
+            }
             return;
-          }
+          case "workerData":
+            dirInfo?.channeldb?.postMessage(data)
+            dirInfo?.Preview?.(data)
+
+
+          
         }
         
-        dirInfo?.channeldb?.postMessage(data)
+        
       }) 
     }
       
-    const handle = (ev:MessageEvent<{type:string}>)=>{
+    const handle =async (ev:MessageEvent<{type:string}>)=>{
        
       if (ev.data.type!== "worker" && ev.data.type.startsWith("worker")){
-        sendChunked(workerConn,encodeMessage(ev.data))
+        await sendChunked(workerConn,encodeMessage(ev.data))
       }
     }
     dirInfo?.channeldb?.addEventListener("message",handle)
