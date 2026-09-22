@@ -142,7 +142,9 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         switch (data.type){ 
             case "worker":  
                 if(data.list){
-                    if ( workerTmp.length>0 ){ 
+                    console.log(workerTmp.length,data)
+                    if ( workerTmp.length>0 && data.update ){ 
+                        console.log("read tmp")
                         workerTmp.forEach(v=>{ 
                             v.update = data.update
                             FileInfo.channeldb?.postMessage(v)  
