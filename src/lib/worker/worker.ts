@@ -13,10 +13,12 @@ const includeImport:{[key:string]:string} = {
 }
 import {parseError} from '$lib/utils/parseError';
 import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
+import { Array } from 'yjs';
 
 const globalOption:{
 
   //basename?:string
+  Option?:any
   DirHandle?:DirInfoType
 } = {
  
@@ -41,7 +43,6 @@ const postMessage = async (e:any)=>{
   }  
 }
 const getIndex = (c:currentObj )=>{
- 
   if (c.persons && c.persons.size>0){
     const li:currentObj[] = []
     c.persons.forEach(_c=>{
@@ -57,24 +58,7 @@ const getIndex = (c:currentObj )=>{
     return c
   } 
 }
-const getArrayBufferList = (msg:any)=>{
-  //return []
-  const buf:Transferable[] = [];
-  if ('index' in msg    ){                
-    const keys = Object.keys(msg); 
-    for (const k of keys){ 
-      if (msg[k] && msg[k].buffer){ 
-        //msg[k] = msg[k].buffer
-        buf.push(msg[k].buffer)  
-      }
-    };   
-  }  
-  return buf
-}
-const runCode =async (cur:currentObj  )=>{
-  globalOption.DirHandle?.channeldb?.removeEventListener("message",runHandle)
-  try{ 
-    const indexCurrent = getIndex(cur)
+const runCode = async (indexCurrent:currentObj)=>{
     const u = await indexCurrent.getUri() 
     const src = await  import(/* @vite-ignore */u) 
     const fnlist = Object.keys(src)
@@ -86,6 +70,7 @@ const runCode =async (cur:currentObj  )=>{
     const module = {list:fnlist,path:globalOption.DirHandle?.path} 
     self.postMessage({module}) 
     //let isBroadcast=false
+    
     const workerHandle =async (ev:MessageEvent<{type:string,run?:string,key:string,msg:any}>)=>{
 
       switch (ev.data.type){
@@ -102,14 +87,14 @@ const runCode =async (cur:currentObj  )=>{
           //globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg:{ start: true }})
           fnlistSet.delete(ev.data.run)  
           console.log(ev.data,globalOption.DirHandle?.key) 
-          let tmpDB = src[ev.data.run]()
+          let tmpDB = src[ev.data.run](globalOption.Option)
           if (tmpDB.then){
             tmpDB = await tmpDB
           }    
           await getCsgObjArray(tmpDB,async(msg)=>{ 
-            globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg }) 
-           
-            //self.postMessage(Object.assign(msg,{tag:ev.data.run}),getArrayBufferList(msg) ) 
+            globalOption.DirHandle?.channeldb?.postMessage({
+              type:"workerData",run:ev.data.run,msg 
+            }) 
           }) 
           //self.postMessage({ end: true })
           globalOption.DirHandle?.channeldb?.postMessage({type:"workerData",run:ev.data.run,msg:{ end: true }})
@@ -139,10 +124,44 @@ const runCode =async (cur:currentObj  )=>{
       self.postMessage({ stopTicker: true }); 
     }
     globalOption.DirHandle?.channeldb?.addEventListener("message",workerHandle)
-    globalOption.DirHandle?.channeldb?.postMessage({type:"worker",path:globalOption.DirHandle?.path,list:fnlist,key:globalOption.DirHandle.key})
 
+    return {fnlistSet,src}
+}
+const RunCode =async (indexCurrent:currentObj,initOption:boolean = true,update?:boolean  )=>{
+  globalOption.DirHandle?.channeldb?.removeEventListener("message",runHandle)
+  try{ 
+    //const indexCurrent = getIndex(cur)
     
-   
+    /*
+    globalOption.DirHandle?.channeldb?.postMessage({
+      type:"worker",
+      //path:globalOption.DirHandle?.path,
+      list:fnlist,
+      key:globalOption.DirHandle.key
+    })
+    */
+    const {fnlistSet,src} = await runCode(indexCurrent)
+    if (initOption ){ 
+      if (fnlistSet.has("main")){
+        globalOption.Option = src['main']()
+        if (globalOption.Option.then){
+          globalOption.Option = await globalOption.Option
+        } 
+        fnlistSet.delete("main")
+      }
+      globalOption.DirHandle?.channeldb?.postMessage({
+        key:globalOption.DirHandle.key,
+        type:"worker",
+        list:[...fnlistSet],
+        name:indexCurrent.name,
+        update,
+        Option:globalOption.Option 
+      }) 
+    }else{
+      if (fnlistSet.has("main")){
+        fnlistSet.delete("main")
+      }
+    }
   }catch(err){
     //globalOption.indexCurrent=undefined
     self.postMessage({err:parseError(err as Error,objUrlMap)})
@@ -152,20 +171,28 @@ const runCode =async (cur:currentObj  )=>{
   globalOption.DirHandle?.channeldb?.addEventListener("message",runHandle)
 }  
  
-const runHandle =(e:MessageEvent<{type:string,name:string}>)=>{
-    if (e.data.type==="writeRes"){ 
-     //console.log("writeRes run",e.data)
-      globalOption.DirHandle?.DirHandle?.getFileHandle( e.data.name).read().then(db=>{ 
-        //console.log("write res",db)
-        const cur = handleCurrentMsg({
-          db ,
-          name:decodeURIComponent( e.data.name) 
-        },postMessage)
-        if (cur)
-          runCode(cur)
-         
-      })
-    }
+const runHandle =(e:MessageEvent<{list:any,type:string,name:string,Option:any}>)=>{
+  switch (e.data.type){ 
+    
+    case "worker":
+      if (e.data.Option && !globalOption.Option){
+        globalOption.Option = e.data.Option
+      }
+      if (e.data.name){
+
+        getCurrent(e.data.name,postMessage).then(cur=>{
+          RunCode(cur,false)
+          globalOption.DirHandle?.channeldb?.postMessage({
+            type:"worker",
+            run:true,
+            //list:e.data.list,
+            //path:globalOption.DirHandle.path,
+            key:globalOption.DirHandle.key
+          })
+        })
+      }      
+      return;
+  }
 }
 self.onmessage   =async (event: MessageEvent) => {  
   if ( event.data.path){ 
@@ -181,12 +208,15 @@ self.onmessage   =async (event: MessageEvent) => {
     const cur =    handleCurrentMsg({ db,name },postMessage ); // getCurrentObjFromFileSystem(fh,name)
     if (cur  ){ 
       await runCode( cur );
-    }
-  }else if (event.data.basename ){ 
-    await runCode( await getCurrent("./index.js") );
-    */
-  } 
- 
+    }*/
+  }
+  if (event.data.name ){ 
+    await RunCode( 
+      await getCurrent(event.data.name,postMessage),
+      true,
+      event.data.update?true:false 
+    ); 
+  }  
 };
  
 

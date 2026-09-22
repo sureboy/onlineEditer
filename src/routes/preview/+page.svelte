@@ -135,11 +135,6 @@ const onmessageListen =async (e:MessageEvent  )=>{
     errHtml.innerHTML=""
   } 
   if (e.data.module){  
-    if (DirInfo){
-      DirInfo.channeldb?.addEventListener("message",handleWorkerData)
-      DirInfo.Preview = handleWorkerData
-    }
-
     //handleWorkerData
     
     geometrys = []
@@ -156,10 +151,10 @@ const onmessageListen =async (e:MessageEvent  )=>{
   }
   if (e.data.stopTicker){
     stopTicker=true
-    if (DirInfo){
-     DirInfo.channeldb?.removeEventListener("message",handleWorkerData)
-     DirInfo.Preview = undefined
-    }
+    //if (DirInfo){
+    // DirInfo.channeldb?.removeEventListener("message",handleWorkerData)
+    // DirInfo.Preview = undefined
+    //}
   }
   if (e.data.end){ 
     refreshCameraInit(solidControlConfig  ) 
@@ -175,33 +170,30 @@ const onmessageListen =async (e:MessageEvent  )=>{
     }    
   }
 }  
-/*
-const previewHandle =async (data: { [k:string]:any},onmessage?: (e: MessageEvent) => void)=>{
-  if (!data.basename){
-    data.basename="main"
-  } 
-  (await getWorker( onmessage)).postMessage(data) 
-   
-} */
+ 
 onMount(() => {  
   try{
     const {path} = JSON.parse(decodeURIComponent(window.location.hash.slice(1)))  
     if (path){ 
       solidControlConfig.title = path;
       DirInfo  = createDirInfo(path)  ;
+      DirInfo.channeldb?.addEventListener("message",handleWorkerData)
+      DirInfo.Preview = handleWorkerData
       getWorker( onmessageListen).then(w=>{
         const init = (e:MessageEvent<{type:string}>)=>{
           if (e.data.type==="init"){
+            //w.postMessage({name:"./index.js"})
+            /*
             DirInfo?.channeldb?.postMessage({
                 type:"writeRes",
                 key:DirInfo.key,
                 name :encodeURIComponent("./index.js")
-            }) 
+            }) */
             w.removeEventListener("message",init)
           }
         }
         w.addEventListener("message",init)
-        w.postMessage({path })   
+        w.postMessage({path,name:"./index.js" })   
         
       })
       //previewHandle({path },onmessageListen) 

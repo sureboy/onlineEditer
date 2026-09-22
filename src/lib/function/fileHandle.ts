@@ -1,6 +1,7 @@
 import type {EntryInfo,ListDirectoryOptions,WriteStream} from "$lib/storage-adapter/types"
 import {createStorage} from '$lib/storage-adapter/factory' 
 import {initDoc,diffUpdate,updateDoc,initDocEasy} from '$lib/utils/yjs' 
+import { getWorker } from "$lib/worker/globalWorker"
 export const newPackageCode:string = `/*
 import modeling from '@jscad/modeling';
 import  manifold from 'manifold-3d';
@@ -134,31 +135,27 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
  
     FileInfo.workerHandle = (data:{
         list?:string[],
-        run:string,
+        run:boolean,
         type:string,
         key:string})=>{
-        switch (data.type){
+        switch (data.type){ 
             case "worker":  
-                if (workerTmp.length>0 && data.list){
-                    workerTmp.forEach(v=>{ 
-                        FileInfo.channeldb?.postMessage(v)  
-                    })
-                    return
-                } 
-                if (workerSet.length===0 ){ 
-                    if (data.list){
-                        workerSet =  data.list
+                if(data.list){
+                    if ( workerTmp.length>0 ){ 
+                        workerTmp.forEach(v=>{ 
+                            FileInfo.channeldb?.postMessage(v)  
+                        })
+                        return 
                     }else{
-                        return
+                        workerSet =  data.list
                     }
                 }
+               
                 const run = workerSet.shift() 
                 if (run){
                     workerTmp.push({type:"workerData",run,msg:{ start: true }})
                     FileInfo.channeldb?.postMessage({
-                        key:data.key,run ,type:"workerRun"}) 
-                    
- 
+                        key:data.key,run ,type:"workerRun"})  
                 }
                 return
             case "workerData":
@@ -170,17 +167,20 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         FileInfo.workerHandle?.(ev.data) 
     })
     const oldHandle = FileInfo.DirHandle!.getFileHandle
+    const writeAndBroad = (name:string)=>{
+        workerTmp.length = 0
+        getWorker().then(w=>{
+            w.postMessage({name:decodeURIComponent(name)})
+        })
+        return
+        
+    }
     FileInfo.DirHandle!.getFileHandle=function(name:string){ 
         const old = oldHandle.call(this,name)
         return Object.assign({}, old, {
             writeAndBroad: async (data:{db:string|ArrayBuffer,origin?:string})=>{ 
                 await old.write(data);
-                workerTmp.length = 0
-                FileInfo.channeldb?.postMessage({
-                    type:"writeRes",
-                    key:FileInfo.key,
-                    name 
-                })  
+                writeAndBroad(name) 
             }
         })
     } 
@@ -190,12 +190,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
             case "write":
                 if(ev.data.data && ev.data.name){ 
                     await FileInfo.DirHandle?.getFileHandle(ev.data.name).write?.(ev.data.data)  
-                    workerTmp.length = 0
-                    FileInfo.channeldb?.postMessage({
-                        type:"writeRes",
-                        key:ev.data.key,
-                        name:ev.data.name
-                    })  
+                    writeAndBroad(ev.data.name) 
                 }
                 return; 
             case "init":
