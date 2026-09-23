@@ -1,21 +1,14 @@
 <script lang="ts" module>
-import {
-  //jsonToForm,
-  //collectFormData,
-  ShowSubmit} from '$lib/utils/jsonToForm'   
-import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc"
-//import { getWorker } from '$lib/worker/globalWorker';
-import QRCode from 'qrcode';
-//import {getFileList,getFileData} from "$lib/function/tar"
-//import {initDoc,diffUpdate} from "$lib/utils/yjs" 
 import { 
-  //createDirInfo,
+  ShowSubmit
+} from '$lib/utils/jsonToForm'   
+import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
+import QRCode from 'qrcode'; 
+import {  
   type DirInfoType  } from '$lib/function/fileHandle'; 
 import {
-  encodeMessage,
-  //decodeMessage,
-  sendChunked,channelMessage} from '$lib/function/rtcDataToBroadData'
-//import * as Y from 'yjs'
+  encodeMessage, 
+  sendChunked,channelMessage} from '$lib/function/rtcDataToBroadData' 
 const FileBroadcastChannelMap = new Map<string,BroadcastChannel>()
 const getFileBroadcastChannel = (name:string)=>{
   //name = decodeURIComponent(name)
@@ -82,10 +75,10 @@ const createWorkerConn = (workerConn: RTCDataChannel,dirInfo?:DirInfoType)=>{
         console.log("rtc get",data)
         switch (data.type){
           case "worker":  
-            const rundb = dirInfo?.workerHandle?.(data)  
-            if (rundb){
-              sendChunked(workerConn,encodeMessage(rundb))
-            }
+            dirInfo?.workerHandle?.(data,(db)=>{
+              sendChunked(workerConn,encodeMessage(db))
+              dirInfo.channeldb?.postMessage(db) 
+            })
             break;
           case "workerData":  
             dirInfo?.Preview?.({data})

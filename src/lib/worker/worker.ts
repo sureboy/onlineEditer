@@ -1,11 +1,9 @@
-import {clearCurrent,handleCurrentMsg,getCurrent,objUrlMap,type currentObj} from '$lib/function/ImportParser'
-//import type {currentObj} from '$lib/function/ImportParser'
-//import { javascript } from '@codemirror/lang-javascript';
-import {getCsgObjArray} from '$lib/function/csgChange'
-//import * as Y from 'yjs'
-//import {Doc} from 'yjs'
-//import {getFileHandleFromOPFS} from "$lib/function/OPFS";
-//import modeling from '@jscad/modeling'
+import {
+  clearCurrent,
+  handleCurrentMsg,
+  getCurrent,
+  objUrlMap,type currentObj} from '$lib/function/ImportParser'
+import {getCsgObjArray} from '$lib/function/csgChange' 
 const includeImport:{[key:string]:string} = {
   "@jscad/modeling": "./lib/modeling.esm.js",
   //"csgChange": "./lib/csgChange.js",
@@ -13,7 +11,6 @@ const includeImport:{[key:string]:string} = {
 }
 import {parseError} from '$lib/utils/parseError';
 import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
-//import { Array } from 'yjs';
 
 const globalOption:{
 
@@ -36,6 +33,7 @@ const postMessage = async (e:any)=>{
       }
       
     }catch(err){  
+      //console.error(err,globalOption,e)
         handleCurrentMsg({name:e.path})!.getUri = async ()=>new URL(
         includeImport[e.path] ||e.path  ,
         new URL(import.meta.url).origin).toString();    

@@ -1,6 +1,6 @@
 import type {EntryInfo,ListDirectoryOptions,WriteStream} from "$lib/storage-adapter/types"
 import {createStorage} from '$lib/storage-adapter/factory' 
-import {initDoc,diffUpdate,updateDoc,initDocEasy} from '$lib/utils/yjs' 
+import {diffUpdate,updateDoc,initDocEasy} from '$lib/utils/yjs' 
 import { getWorker } from "$lib/worker/globalWorker"
 export const newPackageCode:string = `/*
 import modeling from '@jscad/modeling';
@@ -48,7 +48,7 @@ export type DirInfoType = {
     channeldb?:BroadcastChannel,
     DirHandle?:DirHandleType,
     key?:string
-    workerHandle?:(data:any)=>any
+    workerHandle?:(data:any,send?:(data:any)=>void)=>any
     //islocal?:boolean
     Preview?:(data:any)=>any
 }
@@ -138,16 +138,21 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         run:boolean,
         update?:string,
         type:string,
-        key:string})=>{
+        key:string},postMsg?:(data:any)=>void)=>{
         switch (data.type){ 
             case "worker":  
                 if(data.list){
                     //console.log(workerTmp.length,data)
                     if ( workerTmp.length>0 && data.update ){ 
                         //console.log("read tmp")
-                        workerTmp.forEach(v=>{ 
-                            v.update = data.update
-                            FileInfo.channeldb?.postMessage(v)  
+                        workerTmp.forEach(db=>{ 
+                            db.update = data.update
+                            //FileInfo.channeldb?.postMessage(db) 
+                            if (postMsg){
+                                postMsg(db)
+                            }else{
+                                FileInfo.channeldb?.postMessage(db) 
+                            } 
                         })
                         return 
                     }else{
@@ -158,9 +163,13 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 const run = workerSet.shift() 
                 if (run){
                     workerTmp.push({type:"workerData",run,msg:{ start: true }})
-                    const db = {key:data.key,run ,type:"workerRun"}
-                    FileInfo.channeldb?.postMessage(db)  
-                    return db
+                    const db = {key:data.key,run,update:data.update ,type:"workerRun"}
+                    if (postMsg){
+                        postMsg(db)
+                    }else{
+                        FileInfo.channeldb?.postMessage(db) 
+                    }
+                    
                 }
                 return
             case "workerData":
