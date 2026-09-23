@@ -142,9 +142,9 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         switch (data.type){ 
             case "worker":  
                 if(data.list){
-                    console.log(workerTmp.length,data)
+                    //console.log(workerTmp.length,data)
                     if ( workerTmp.length>0 && data.update ){ 
-                        console.log("read tmp")
+                        //console.log("read tmp")
                         workerTmp.forEach(v=>{ 
                             v.update = data.update
                             FileInfo.channeldb?.postMessage(v)  
@@ -158,14 +158,14 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 const run = workerSet.shift() 
                 if (run){
                     workerTmp.push({type:"workerData",run,msg:{ start: true }})
-                    FileInfo.channeldb?.postMessage({
-                        key:data.key,run ,type:"workerRun"})  
+                    const db = {key:data.key,run ,type:"workerRun"}
+                    FileInfo.channeldb?.postMessage(db)  
+                    return db
                 }
                 return
             case "workerData":
                 workerTmp.push(data) 
-        }
-        
+        } 
     }
     FileInfo.channeldb.addEventListener("message",(ev)=>{ 
         FileInfo.workerHandle?.(ev.data) 

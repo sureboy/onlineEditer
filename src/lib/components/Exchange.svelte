@@ -73,43 +73,34 @@ const getConnHostJsonStr = ()=>{
     }  
 } 
 
-const createWorkerConn = (workerConn: RTCDataChannel,dirInfo?:DirInfoType)=>{
-  //const workerConn = conn.pc.createDataChannel("worker") 
+const createWorkerConn = (workerConn: RTCDataChannel,dirInfo?:DirInfoType)=>{ 
   workerConn.binaryType = 'arraybuffer'; 
   workerConn.onopen=()=>{
     //console.log("worker open")
     workerConn.onmessage=(ev:MessageEvent)=>{
-      channelMessage(ev,async (data)=>{
-        //console.log("rtc get",data)
+      channelMessage(ev, (data:any)=>{
+        console.log("rtc get",data)
         switch (data.type){
           case "worker":  
-            if (dirInfo?.workerHandle ){ 
-              const msg = dirInfo.workerHandle(data)
-              if (msg){
-                await sendChunked(workerConn,encodeMessage(msg)) 
-              }  
-              //return;
-            }else{
-              dirInfo?.channeldb?.postMessage(data)
+            const rundb = dirInfo?.workerHandle?.(data)  
+            if (rundb){
+              sendChunked(workerConn,encodeMessage(rundb))
             }
-            return;
-          case "workerData":
-            
-            dirInfo?.channeldb?.postMessage(data)
-            dirInfo?.Preview?.(data)
-
-
-          
-        }
-        
-        
+            break;
+          case "workerData":  
+            dirInfo?.Preview?.({data})
+            break;
+          default:
+            return
+            //console.log("rtc get",data)
+        }  
+        dirInfo?.channeldb?.postMessage(data)     
       }) 
-    }
-      
-    const handle =async (ev:MessageEvent<{type:string}>)=>{
-       
-      if (ev.data.type!== "worker" && ev.data.type.startsWith("worker")){
-        await sendChunked(workerConn,encodeMessage(ev.data))
+    }      
+    const handle = (ev:MessageEvent<{type:string}>)=>{       
+      if (ev.data.type.startsWith("worker")){
+        console.log("rtc send",ev.data)
+        sendChunked(workerConn,encodeMessage(ev.data))
       }
     }
     dirInfo?.channeldb?.addEventListener("message",handle)
@@ -152,7 +143,7 @@ export const QRCodeHandle = (path:string,dirInfo?:DirInfoType)=>{
       addMesh(mesh) 
       closeModal()
       setTimeout(()=>{
-        createWorkerConn(conn.pc.createDataChannel("worker"),dirInfo)
+        createWorkerConn(conn.pc.createDataChannel("worker",{ordered:true}),dirInfo)
       },100)
       
     }).then(ok=>{

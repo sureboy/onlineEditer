@@ -16,6 +16,12 @@ const currentMap = new Map<string,currentObj>();
 const waitGetMap = new Map<string,(c:currentObj)=>void>();
 const decoder = new TextDecoder();
 export const objUrlMap = new Map<string,string>();
+
+export const clearCurrent = ()=>{
+    currentMap.clear();
+    objUrlMap.clear();
+    //waitGetMap.clear();
+}
 const updateCurrent = (c:currentObj)=>{
     //console.log("update",c.name);
     if (!c.url){

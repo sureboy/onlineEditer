@@ -1,4 +1,4 @@
-import {handleCurrentMsg,getCurrent,objUrlMap,type currentObj} from '$lib/function/ImportParser'
+import {clearCurrent,handleCurrentMsg,getCurrent,objUrlMap,type currentObj} from '$lib/function/ImportParser'
 //import type {currentObj} from '$lib/function/ImportParser'
 //import { javascript } from '@codemirror/lang-javascript';
 import {getCsgObjArray} from '$lib/function/csgChange'
@@ -13,7 +13,7 @@ const includeImport:{[key:string]:string} = {
 }
 import {parseError} from '$lib/utils/parseError';
 import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
-import { Array } from 'yjs';
+//import { Array } from 'yjs';
 
 const globalOption:{
 
@@ -92,14 +92,12 @@ const runCode = async (indexCurrent:currentObj,update?:string)=>{
               update,
               type:"workerData",run:ev.data.run,msg 
             }) 
-          }) 
-          //self.postMessage({ end: true })
+          })  
           globalOption.DirHandle?.channeldb?.postMessage({
             update,
             type:"workerData",run:ev.data.run,msg:{ end: true }})
           break;
         case "workerData":
-          //console.log("get worker Data",ev.data,globalOption.DirHandle?.key)
           if (!ev.data.run || !fnlistSet.has(ev.data.run)){
             return
           }
@@ -113,19 +111,16 @@ const runCode = async (indexCurrent:currentObj,update?:string)=>{
       }
       if (fnlistSet.size>0){
         globalOption.DirHandle?.channeldb?.postMessage({
-          type:"worker",
-           //list:fnlist,
+          type:"worker", 
           key:globalOption.DirHandle.key
         })
         return
       }
       globalOption.DirHandle?.channeldb?.removeEventListener(
-        "message",workerHandle)
-      //console.log("worker remove",ev.data) 
+        "message",workerHandle) 
       self.postMessage({ stopTicker: true }); 
     }
     globalOption.DirHandle?.channeldb?.addEventListener("message",workerHandle)
-
     return {fnlistSet,src}
 }
 const RunCode =async (
@@ -178,6 +173,10 @@ const runHandle =(e:MessageEvent<{
         globalOption.Option = e.data.Option
       }
       if (e.data.name){
+        //handleCurrentMsg({})
+        if (!e.data.update){
+          clearCurrent()
+        }
         getCurrent(e.data.name,postMessage).then(cur=>{
           //console.log(e.data)
           RunCode(cur,false,e.data.update ).then(()=>{ 
@@ -204,8 +203,10 @@ self.onmessage   = async (event: MessageEvent) => {
     }
     self.postMessage({type:"init"})
   }
-  if (event.data.name ){ 
-    //console.log(event.data)
+  if (event.data.name ){
+    if (!event.data.update){
+      clearCurrent()
+    }
     await RunCode(
       await getCurrent(event.data.name,postMessage),
       true,

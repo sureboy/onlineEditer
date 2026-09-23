@@ -5,8 +5,8 @@ import Edit,{type FileInfoType} from "$lib/components/Edit.svelte";
 import {createWebrtcConnFromCenterUrl} from "$lib/utils/postAndSSEWebrtc" 
 import {getImportAliases} from "$lib/function/parsingCode"  
 import {encodeMessage,sendChunked,channelMessage} from '$lib/function/rtcDataToBroadData'
-    import { onDestroy, onMount, untrack } from "svelte";
-    import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
+import { onDestroy } from "svelte";
+import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
 const getFileHandle = (FileInfo:FileInfoType) =>{  
     if (!FileInfo.DirHandle || FileInfo.create){ 
         initFileHandle(FileInfo)
@@ -83,16 +83,16 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
         conn.pc.ondatachannel = (e)=>{
             if (e.channel.label ==="worker"){ 
                 e.channel.onmessage = (ev:MessageEvent)=>{
-                    channelMessage(ev,(obj)=>{
-                        //console.log("rtc get",obj)
+                    channelMessage(ev,(obj)=>{ 
+                        console.log("edit rtc get",obj)
                         FileInfo.channeldb?.postMessage(obj)
                     }) 
                 }
                 const oldHandle = FileInfo.workerHandle
-                FileInfo.workerHandle=async(data:{type:string})=>{ 
-                    if (data.type.startsWith("worker")){
-                        //console.log("send rtc",data)
-                        await sendChunked(e.channel,encodeMessage(data))
+                FileInfo.workerHandle=(data:{type:string})=>{ 
+                    if (data.type.startsWith("worker")){ 
+                        console.log("edit rtc send",data)
+                        sendChunked(e.channel,encodeMessage(data))
                     }
                 }
                 e.channel.onerror = (ev)=>{

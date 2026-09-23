@@ -66,109 +66,235 @@ function getBinaryTypeName(value: BinaryValue): BinaryTypeName {
   if (isTypedArrayName(name)) return name;
   throw new TypeError(`Unsupported binary type: ${name}`);
 }
+const CHUNK_SIZE = 16 * 1024;
+const BUFFER_LOW_THRESHOLD = 256 * 1024;
+const SEND_TIMEOUT = 60_000;
 
-// ========== 编码 ==========
+const HEADER_SIZE = 13;
+const FLAG_LAST = 0x01;
+const MAX_PAYLOAD = CHUNK_SIZE - HEADER_SIZE;
 
-/**
- * 将含二进制字段的对象打包为 ArrayBuffer
- * 布局：[metaLen(4)] [meta(JSON)] [len(4) + data]...
- */
- const CHUNK_SIZE = 16 * 1024; // 16KB
-const BUFFER_LOW_THRESHOLD = 256 * 1024;  
-// ========== 发送端：分块 ==========
-export function sendChunked_bak(channel: RTCDataChannel, buffer: ArrayBuffer) {
-  if (channel.readyState !== 'open') return;
-  channel.send(JSON.stringify({ type: 'start', total: buffer.byteLength }));
-  let offset = 0;
-  while (offset < buffer.byteLength) {
-    const end = Math.min(offset + CHUNK_SIZE, buffer.byteLength);
-    channel.send(buffer.slice(offset, end));
-    offset = end;
-  }
-  channel.send(JSON.stringify({ type: 'end' }));
-}
+let nextMsgId = 1;
+
 export function sendChunked(
   channel: RTCDataChannel,
-  buffer: ArrayBuffer
+  buffer: ArrayBuffer,
+  signal?: AbortSignal
 ): Promise<void> {
+  return doSend(channel, buffer, signal);
+}
+
+async function doSend(
+  channel: RTCDataChannel,
+  buffer: ArrayBuffer,
+  signal?: AbortSignal
+): Promise<void> {
+  if (channel.readyState !== 'open') {
+    throw new Error('DataChannel is not open');
+  }
+  const totalLen = buffer.byteLength;
+  if (totalLen === 0) throw new Error('empty payload');
+
+  const msgId = nextMsgId++ >>> 0;
+  if (nextMsgId > 0xFFFFFFFF) nextMsgId = 1;
+
+  const view = new Uint8Array(buffer);
+  const totalChunks = Math.ceil(totalLen / MAX_PAYLOAD);
+
+  channel.bufferedAmountLowThreshold = BUFFER_LOW_THRESHOLD;
+
+  const deadline = Date.now() + SEND_TIMEOUT;
+
+  for (let seq = 0; seq < totalChunks; seq++) {
+    if (signal?.aborted) throw new Error('aborted');
+    if (channel.readyState !== 'open') throw new Error('DataChannel closed');
+    if (Date.now() > deadline) throw new Error('send timeout');
+
+    const offset = seq * MAX_PAYLOAD;
+    const isLast = seq === totalChunks - 1;
+    const payloadLen = isLast ? totalLen - offset : MAX_PAYLOAD;
+
+    const frame = new Uint8Array(HEADER_SIZE + payloadLen);
+    const fv = new DataView(frame.buffer);
+    fv.setUint32(0, msgId, true);
+    fv.setUint32(4, seq, true);
+    fv.setUint32(8, totalLen, true);
+    fv.setUint8(12, isLast ? FLAG_LAST : 0);
+    frame.set(view.subarray(offset, offset + payloadLen), HEADER_SIZE);
+
+    await waitForDrain(channel, signal, deadline);
+    channel.send(frame);
+  }
+}
+
+function waitForDrain(
+  channel: RTCDataChannel,
+  signal: AbortSignal | undefined,
+  deadline: number
+): Promise<void> {
+  if (channel.bufferedAmount <= channel.bufferedAmountLowThreshold) {
+    return Promise.resolve();
+  }
   return new Promise((resolve, reject) => {
-    if (channel.readyState !== 'open') {
-      reject(new Error('DataChannel is not open'));
-      return;
-    }
-
-    channel.bufferedAmountLowThreshold = BUFFER_LOW_THRESHOLD;
-    channel.send(JSON.stringify({ type: 'start', total: buffer.byteLength }));
-
-    let offset = 0;
-
+    let settled = false;
     const cleanup = () => {
       channel.removeEventListener('bufferedamountlow', onLow);
       channel.removeEventListener('close', onClose);
       channel.removeEventListener('error', onError);
+      signal?.removeEventListener('abort', onAbort);
+      clearTimeout(timer);
     };
-
-    const onLow = () => pump();
-    const onClose = () => { cleanup(); reject(new Error('DataChannel closed')); };
-    const onError = (e: Event) => { cleanup(); reject(e); };
-
-    const pump = () => {
-      if (channel.readyState !== 'open') {
-        cleanup();
-        reject(new Error('DataChannel closed'));
-        return;
-      }
-
-      while (offset < buffer.byteLength) {
-        if (channel.bufferedAmount > channel.bufferedAmountLowThreshold) {
-          channel.addEventListener('bufferedamountlow', onLow, { once: true });
-          return;
-        }
-        const end = Math.min(offset + CHUNK_SIZE, buffer.byteLength);
-        channel.send(buffer.slice(offset, end));
-        offset = end;
-      }
-
-      channel.send(JSON.stringify({ type: 'end' }));
+    const done = (err?: Error) => {
+      if (settled) return;
+      settled = true;
       cleanup();
-      resolve();
+      err ? reject(err) : resolve();
     };
-
+    const onLow = () => done();
+    const onClose = () => done(new Error('DataChannel closed'));
+    const onError = () => done(new Error('DataChannel error'));
+    const onAbort = () => done(new Error('aborted'));
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) return done(new Error('send timeout'));
+    const timer = setTimeout(() => done(new Error('send timeout')), remaining);
+    channel.addEventListener('bufferedamountlow', onLow, { once: true });
     channel.addEventListener('close', onClose, { once: true });
     channel.addEventListener('error', onError, { once: true });
-    pump();
+    signal?.addEventListener('abort', onAbort, { once: true });
   });
 }
-let receivedChunks: ArrayBuffer[] = [];
 
-export const channelMessage =async (ev: MessageEvent,postMessage:(obj:any)=>void|Promise<void>) => {
-  const data = ev.data;
+type StreamState = {
+  msgId: number;
+  totalLen: number;
+  totalChunks: number | null;
+  parts: Map<number, Uint8Array>;
+  received: number;
+  startedAt: number;
+};
 
-  // 控制消息
-  if (typeof data === 'string') {
-    const msg = JSON.parse(data);
-    if (msg.type === 'start') {
-      receivedChunks = [];
-    } else if (msg.type === 'end') {
-      const total = receivedChunks.reduce((s, c) => s + c.byteLength, 0);
-      const full = new Uint8Array(total);
-      let pos = 0;
-      for (const c of receivedChunks) {
-        full.set(new Uint8Array(c), pos);
-        pos += c.byteLength;
-      }
-      receivedChunks = [];
-      const obj = decodeMessage(full.buffer);
-      await postMessage(obj);
+const streams = new Map<number, StreamState>();
+const STREAM_TIMEOUT = 30_000;
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, st] of streams) {
+    if (now - st.startedAt > STREAM_TIMEOUT) {
+      console.warn(`[rtc] msg ${id} timeout, discarded (have ${st.parts.size}/${st.totalChunks ?? '?'})`);
+      streams.delete(id);
     }
+  }
+}, 10_000);
+
+export const channelMessage = async (
+  ev: MessageEvent,
+  postMessage: (obj: unknown) => void | Promise<void>
+) => {
+  const data = ev.data;
+  let frame: Uint8Array;
+  if (data instanceof ArrayBuffer) {
+    frame = new Uint8Array(data);
+  } else if (ArrayBuffer.isView(data)) {
+    const v = data as ArrayBufferView;
+    frame = new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
+  } else if (typeof Blob !== 'undefined' && data instanceof Blob) {
+    frame = new Uint8Array(await data.arrayBuffer());
+  } else {
+    console.warn('[rtc] unexpected frame type', data);
     return;
   }
 
-  // 二进制块
-  if (data instanceof ArrayBuffer) {
-    receivedChunks.push(data);
+  if (frame.byteLength < HEADER_SIZE) {
+    console.warn('[rtc] frame too short', frame.byteLength);
+    return;
   }
+
+  const fv = new DataView(frame.buffer, frame.byteOffset, frame.byteLength);
+  const msgId = fv.getUint32(0, true);
+  const seq = fv.getUint32(4, true);
+  const totalLen = fv.getUint32(8, true);
+  const isLast = (fv.getUint8(12) & FLAG_LAST) !== 0;
+  const payload = frame.subarray(HEADER_SIZE);
+
+  // 空 payload 只有在 totalLen === 0 时合法，但我们已经禁止空消息
+  if (payload.byteLength === 0) {
+    console.warn(`[rtc] msg ${msgId} seq ${seq} empty payload`);
+    streams.delete(msgId);
+    return;
+  }
+
+  let st = streams.get(msgId);
+
+  // msgId 冲突检测：同 msgId 但 totalLen 不一致，说明回绕冲突
+  if (st && st.totalLen !== totalLen) {
+    console.warn(`[rtc] msg ${msgId} totalLen conflict (${st.totalLen} vs ${totalLen}), discarding old`);
+    streams.delete(msgId);
+    st = undefined;
+  }
+
+  if (!st) {
+    st = {
+      msgId,
+      totalLen,
+      totalChunks: null,
+      parts: new Map(),
+      received: 0,
+      startedAt: Date.now(),
+    };
+    streams.set(msgId, st);
+  }
+
+  // 重复分片
+  if (st.parts.has(seq)) {
+    console.warn(`[rtc] msg ${msgId} duplicate seq ${seq}, ignoring`);
+    return;
+  }
+
+  st.parts.set(seq, payload.slice());
+  st.received += payload.byteLength;
+  if (isLast) {
+    st.totalChunks = seq + 1;
+  }
+
+  // 完成判定
+  if (st.totalChunks === null) return;
+  if (st.parts.size !== st.totalChunks) return;
+
+  // 检查 seq 范围完整
+  for (let i = 0; i < st.totalChunks; i++) {
+    if (!st.parts.has(i)) {
+      console.warn(`[rtc] msg ${msgId} missing seq ${i}`);
+      return;  // 等超时清理
+    }
+  }
+
+  if (st.received !== st.totalLen) {
+    console.warn(`[rtc] msg ${msgId} length mismatch: expected ${st.totalLen}, got ${st.received}`);
+    streams.delete(msgId);
+    return;
+  }
+
+  // 按 seq 升序拼装
+  const full = new Uint8Array(st.totalLen);
+  let pos = 0;
+  for (let i = 0; i < st.totalChunks; i++) {
+    const p = st.parts.get(i)!;
+    full.set(p, pos);
+    pos += p.byteLength;
+  }
+  streams.delete(msgId);
+
+  let obj: unknown;
+  try {
+    obj = decodeMessage(full.buffer);
+  } catch (e) {
+    console.error(`[rtc] msg ${msgId} decode failed`, e);
+    return;
+  }
+
+  await postMessage(obj);
 };
+
 export function encodeMessage(obj: unknown): ArrayBuffer {
   const buffers: BufferEntry[] = [];
 
