@@ -177,7 +177,9 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         } 
     }
     FileInfo.channeldb.addEventListener("message",(ev)=>{ 
-        FileInfo.workerHandle?.(ev.data) 
+        FileInfo.workerHandle?.(ev.data,(data)=>{
+            FileInfo.channeldb?.postMessage(data)
+        }) 
     })
     const oldHandle = FileInfo.DirHandle!.getFileHandle
     const writeAndBroad = (name:string)=>{

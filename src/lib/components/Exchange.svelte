@@ -8,7 +8,9 @@ import {
   type DirInfoType  } from '$lib/function/fileHandle'; 
 import {
   encodeMessage, 
-  sendChunked,channelMessage} from '$lib/function/rtcDataToBroadData' 
+  sendChunked,
+  channelMessage
+} from '$lib/function/rtcDataToBroadData' 
 const FileBroadcastChannelMap = new Map<string,BroadcastChannel>()
 const getFileBroadcastChannel = (name:string)=>{
   //name = decodeURIComponent(name)
@@ -55,15 +57,15 @@ export const previewHandle =async (data: { [k:string]:any},onmessage?: (e: Messa
    
 } */
 const getConnHostJsonStr = ()=>{
-    return  {
-        _comment:"跨网信令交换服务",
-        id:Date.now().toString(32).slice(4),
-        id_comment:"[加入]端需要输入[生成]端的id",
-        create:true,
-        create_comment:"[生成/加入]WebRtc会话",
-        host_comment:"信令交换服务公共网址",
-        host:"https://www.zaddone.com/rtc"
-    }  
+  return  {
+    _comment:"跨网信令交换服务",
+    id:Date.now().toString(32).slice(4),
+    id_comment:"[加入]端需要输入[生成]端的id",
+    create:true,
+    create_comment:"[生成/加入]WebRtc会话",
+    host_comment:"信令交换服务公共网址",
+    host:"https://www.zaddone.com/rtc"
+  }  
 } 
 
 const createWorkerConn = (workerConn: RTCDataChannel,dirInfo?:DirInfoType)=>{ 
@@ -75,26 +77,38 @@ const createWorkerConn = (workerConn: RTCDataChannel,dirInfo?:DirInfoType)=>{
         console.log("rtc get",data)
         switch (data.type){
           case "worker":  
-            dirInfo?.workerHandle?.(data,(db)=>{
-              sendChunked(workerConn,encodeMessage(db))
-              dirInfo.channeldb?.postMessage(db) 
-            })
+            if (dirInfo?.workerHandle){
+              dirInfo.workerHandle(data,(db)=>{
+                sendChunked(workerConn,encodeMessage(db))
+                //dirInfo.channeldb?.postMessage(db) 
+              })
+            }else{
+              if (data.list)
+                dirInfo?.channeldb?.postMessage(data)  
+            }
             break;
-          case "workerData":  
-            dirInfo?.Preview?.({data})
+          case "workerData":   
+            dirInfo?.Preview?.({data}) 
+            dirInfo?.channeldb?.postMessage(data) 
             break;
           default:
             return
             //console.log("rtc get",data)
         }  
-        dirInfo?.channeldb?.postMessage(data)     
+           
       }) 
     }      
-    const handle = (ev:MessageEvent<{type:string}>)=>{       
-      if (ev.data.type.startsWith("worker")){
-        console.log("rtc send",ev.data)
-        sendChunked(workerConn,encodeMessage(ev.data))
+    const handle = (ev:MessageEvent<{type:string,list:any}>)=>{       
+      switch (ev.data.type){
+        case "worker":  
+          if (!ev.data.list)
+            return;
+          else
+            break
+        case "workerData":
+          break
       }
+      sendChunked(workerConn,encodeMessage(ev.data))
     }
     dirInfo?.channeldb?.addEventListener("message",handle)
     workerConn.onclose=()=>{
@@ -136,7 +150,7 @@ export const QRCodeHandle = (path:string,dirInfo?:DirInfoType)=>{
       addMesh(mesh) 
       closeModal()
       setTimeout(()=>{
-        createWorkerConn(conn.pc.createDataChannel("worker",{ordered:true}),dirInfo)
+        createWorkerConn(conn.pc.createDataChannel("worker",{ordered:false}),dirInfo)
       },100)
       
     }).then(ok=>{

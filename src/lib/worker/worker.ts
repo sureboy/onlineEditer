@@ -22,6 +22,7 @@ const globalOption:{
 }
   
 const postMessage = async (e:any)=>{ 
+  console.log("postMsg",e.path)
   if (e.path){  
     try{ 
       //const name = 
@@ -29,7 +30,9 @@ const postMessage = async (e:any)=>{
         encodeURIComponent(e.path),
       ) 
       if (handle){
-        const cur = handleCurrentMsg({db:await handle?.read() ,name:e.path },postMessage)  
+        const db = await handle.read()
+        
+        handleCurrentMsg({ db,name:e.path },postMessage)  
       }
       
     }catch(err){  
@@ -137,7 +140,6 @@ const RunCode =async (
         } 
         fnlistSet.delete("main")
       }
-      
       const db = {
         key:globalOption.DirHandle?.key,
         type:"worker",
@@ -166,6 +168,9 @@ const runHandle =(e:MessageEvent<{
   list:any,type:string,name:string,update?:string,Option:any}>)=>{
   switch (e.data.type){  
     case "worker":
+      if (!e.data.list){
+        return;
+      }
       //console.log(e.data)
       if (e.data.Option && !globalOption.Option){
         globalOption.Option = e.data.Option
