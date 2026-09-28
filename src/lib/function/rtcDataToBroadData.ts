@@ -68,7 +68,7 @@ function getBinaryTypeName(value: BinaryValue): BinaryTypeName {
 }
 const CHUNK_SIZE = 16 * 1024;
 const BUFFER_LOW_THRESHOLD = 256 * 1024;
-const SEND_TIMEOUT = 60_000;
+//const SEND_TIMEOUT = 60_000;
 
 const HEADER_SIZE = 13;
 const FLAG_LAST = 0x01;
@@ -79,16 +79,21 @@ let nextMsgId = 1;
 export function sendChunked(
   channel: RTCDataChannel,
   buffer: ArrayBuffer,
-  signal?: AbortSignal
-): Promise<void> {
-  return doSend(channel, buffer, signal);
+  //signal?: AbortSignal
+) {
+  try{
+    doSend(channel, buffer);
+  }catch(err){
+    console.error(err)
+  }
+  
 }
 
-async function doSend(
+function doSend(
   channel: RTCDataChannel,
   buffer: ArrayBuffer,
-  signal?: AbortSignal
-): Promise<void> {
+  //signal?: AbortSignal
+)  {
   if (channel.readyState !== 'open') {
     throw new Error('DataChannel is not open');
   }
@@ -103,12 +108,12 @@ async function doSend(
 
   channel.bufferedAmountLowThreshold = BUFFER_LOW_THRESHOLD;
 
-  const deadline = Date.now() + SEND_TIMEOUT;
+  //const deadline = Date.now() + SEND_TIMEOUT;
 
   for (let seq = 0; seq < totalChunks; seq++) {
-    if (signal?.aborted) throw new Error('aborted');
-    if (channel.readyState !== 'open') throw new Error('DataChannel closed');
-    if (Date.now() > deadline) throw new Error('send timeout');
+    //if (signal?.aborted) throw new Error('aborted');
+    //if (channel.readyState !== 'open') throw new Error('DataChannel closed');
+    //if (Date.now() > deadline) throw new Error('send timeout');
 
     const offset = seq * MAX_PAYLOAD;
     const isLast = seq === totalChunks - 1;
@@ -122,53 +127,17 @@ async function doSend(
     fv.setUint8(12, isLast ? FLAG_LAST : 0);
     frame.set(view.subarray(offset, offset + payloadLen), HEADER_SIZE);
 
-    await waitForDrain(channel, signal, deadline);
+    //await waitForDrain(channel, signal, deadline);
     channel.send(frame);
   }
 }
-
-function waitForDrain(
-  channel: RTCDataChannel,
-  signal: AbortSignal | undefined,
-  deadline: number
-): Promise<void> {
-  if (channel.bufferedAmount <= channel.bufferedAmountLowThreshold) {
-    return Promise.resolve();
-  }
-  return new Promise((resolve, reject) => {
-    let settled = false;
-    const cleanup = () => {
-      channel.removeEventListener('bufferedamountlow', onLow);
-      channel.removeEventListener('close', onClose);
-      channel.removeEventListener('error', onError);
-      signal?.removeEventListener('abort', onAbort);
-      clearTimeout(timer);
-    };
-    const done = (err?: Error) => {
-      if (settled) return;
-      settled = true;
-      cleanup();
-      err ? reject(err) : resolve();
-    };
-    const onLow = () => done();
-    const onClose = () => done(new Error('DataChannel closed'));
-    const onError = () => done(new Error('DataChannel error'));
-    const onAbort = () => done(new Error('aborted'));
-    const remaining = deadline - Date.now();
-    if (remaining <= 0) return done(new Error('send timeout'));
-    const timer = setTimeout(() => done(new Error('send timeout')), remaining);
-    channel.addEventListener('bufferedamountlow', onLow, { once: true });
-    channel.addEventListener('close', onClose, { once: true });
-    channel.addEventListener('error', onError, { once: true });
-    signal?.addEventListener('abort', onAbort, { once: true });
-  });
-}
-
+ 
 type StreamState = {
   msgId: number;
   totalLen: number;
   totalChunks: number | null;
-  parts: Map<number, Uint8Array>;
+  full:Uint8Array<ArrayBuffer>;
+  parts: Set<number>;
   received: number;
   startedAt: number;
 };
@@ -237,24 +206,42 @@ export const channelMessage = async (
       msgId,
       totalLen,
       totalChunks: null,
-      parts: new Map(),
+      parts: new Set(),
+      full :new Uint8Array(totalLen),
       received: 0,
       startedAt: Date.now(),
     };
     streams.set(msgId, st);
+  }else{
+    if (st.parts.has(seq)) {
+      console.warn(`[rtc] msg ${msgId} duplicate seq ${seq}, ignoring`);
+      return;
+    }
   }
-
-  // 重复分片
-  if (st.parts.has(seq)) {
-    console.warn(`[rtc] msg ${msgId} duplicate seq ${seq}, ignoring`);
+  if (isLast) {
+    st.totalChunks = seq + 1;
+  }
+  st.full.set(payload,isLast?(totalLen-payload.byteLength):(seq*MAX_PAYLOAD)) 
+  st.parts.add(seq );
+  if (st.parts.size!== st.totalChunks)return ;
+  streams.delete(msgId);
+  let obj: unknown;
+  try {
+    obj = decodeMessage(st.full.buffer);
+  } catch (e) {
+    console.error(`[rtc] msg ${msgId} decode failed`, e);
     return;
   }
 
-  st.parts.set(seq, payload.slice());
+  await postMessage(obj);
+  return;
+  /*
+
   st.received += payload.byteLength;
   if (isLast) {
     st.totalChunks = seq + 1;
   }
+  
 
   // 完成判定
   if (st.totalChunks === null) return;
@@ -292,7 +279,7 @@ export const channelMessage = async (
     return;
   }
 
-  await postMessage(obj);
+  await postMessage(obj);*/
 };
 
 export function encodeMessage(obj: unknown): ArrayBuffer {

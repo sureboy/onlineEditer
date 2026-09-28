@@ -50,7 +50,8 @@ export type DirInfoType = {
     key?:string
     workerHandle?:(data:any,send?:(data:any)=>void)=>any
     //islocal?:boolean
-    Preview?:(data:any)=>any
+    Preview?:(data:any)=>any,
+    RunWorker?:(name:string)=>void
 }
 
 export const getDirHandle =(name:string,create?:ListDirectoryOptions)=>{
@@ -131,16 +132,51 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
     if (FileInfo.channeldb)FileInfo.channeldb.close();
     FileInfo.channeldb = new BroadcastChannel(FileInfo.path+"_db" ); 
     let workerSet:string[] = [] 
-    const workerTmp:any[] = []
+    //const workerTmp:any[] = []
+
+    const sendWorkerRun = (data:{key:string,update?:string},postMsg?:(data:any)=>void)=>{
+        const run = workerSet.shift() 
+        if (run){
+            //workerTmp.push({type:"workerData",run,msg:{ start: true }})
+            const db = {key:data.key,run,update:data.update ,type:"workerRun"}
+            if (postMsg){
+                postMsg(db)
+            }else{
+                FileInfo.channeldb?.postMessage(db) 
+            }
+            
+        }
+    }
  
     FileInfo.workerHandle = (data:{
         list?:string[],
-        run:boolean,
+        //run:boolean,
         update?:string,
         type:string,
         key:string},postMsg?:(data:any)=>void)=>{
         switch (data.type){ 
+            case "workerInit":
+                workerSet =  data.list || []
+                sendWorkerRun(data,postMsg)
+                break;
+                /*
+                if ( workerTmp.length>0 && data.update ){ 
+                    //console.log("read tmp")
+                    workerTmp.forEach(db=>{ 
+                        db.update = data.update
+                        //FileInfo.channeldb?.postMessage(db) 
+                        if (postMsg){
+                            postMsg(db)
+                        }else{
+                            FileInfo.channeldb?.postMessage(db) 
+                        } 
+                    })
+                    return 
+                }else{
+                    workerSet =  data.list || []
+                }*/
             case "worker":  
+            /*
                 if(data.list){
                     //console.log(workerTmp.length,data)
                     if ( workerTmp.length>0 && data.update ){ 
@@ -159,7 +195,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                         workerSet =  data.list
                     }
                 }
-               
+                 
                 const run = workerSet.shift() 
                 if (run){
                     workerTmp.push({type:"workerData",run,msg:{ start: true }})
@@ -171,9 +207,12 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                     }
                     
                 }
+                    */
+                sendWorkerRun(data,postMsg)
                 return
-            case "workerData":
-                workerTmp.push(data) 
+            //case "workerData":
+                //workerTmp.push(data) 
+            //    return;
         } 
     }
     FileInfo.channeldb.addEventListener("message",(ev)=>{ 
@@ -182,19 +221,19 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         }) 
     })
     const oldHandle = FileInfo.DirHandle!.getFileHandle
-    const writeAndBroad = (name:string)=>{
-        workerTmp.length = 0
+    FileInfo.RunWorker = (name:string)=>{
+        //workerTmp.length = 0
         getWorker().then(w=>{
             w.postMessage({name:decodeURIComponent(name)})
         })
-        return 
+        //return 
     }
     FileInfo.DirHandle!.getFileHandle=function(name:string){ 
         const old = oldHandle.call(this,name)
         return Object.assign({}, old, {
             writeAndBroad: async (data:{db:string|ArrayBuffer,origin?:string})=>{ 
                 await old.write(data);
-                writeAndBroad(name) 
+                FileInfo.RunWorker?.(name) 
             }
         })
     } 
@@ -204,7 +243,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
             case "write":
                 if(ev.data.data && ev.data.name){ 
                     await FileInfo.DirHandle?.getFileHandle(ev.data.name).write?.(ev.data.data)  
-                    writeAndBroad(ev.data.name) 
+                    FileInfo.RunWorker?.(ev.data.name) 
                 }
                 return; 
             case "init":

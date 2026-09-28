@@ -84,23 +84,27 @@ const initWebrtcConn =async (reqdb:{id:string,host:string,path:string} )=>{
             if (e.channel.label ==="worker"){ 
                 e.channel.onmessage = (ev:MessageEvent)=>{
                     channelMessage(ev,(obj)=>{ 
-                        //console.log("edit rtc get",obj)
+                        console.log("edit rtc get",obj)
                         FileInfo.channeldb?.postMessage(obj)
                     }) 
                 }
                 const oldHandle = FileInfo.workerHandle
+                const runWorker = FileInfo.RunWorker
+                FileInfo.RunWorker = undefined
                 FileInfo.workerHandle=(data:{type:string})=>{ 
                     if (data.type.startsWith("worker")){ 
-                        //console.log("edit rtc send",data)
+                        console.log("edit rtc send",data)
                         sendChunked(e.channel,encodeMessage(data))
                     }
                 }
                 e.channel.onerror = (ev)=>{
                     console.error(ev)
                     FileInfo.workerHandle = oldHandle
+                    FileInfo.RunWorker = runWorker
                 }
                 e.channel.onclose=()=>{
                     FileInfo.workerHandle = oldHandle
+                    FileInfo.RunWorker = runWorker
                 }
                 return
             }
