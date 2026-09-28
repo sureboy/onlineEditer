@@ -135,10 +135,12 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
     //const workerTmp:any[] = []
 
     const sendWorkerRun = (data:{key:string,update?:string},postMsg?:(data:any)=>void)=>{
+        if (!workerSet)return;
         const run = workerSet.shift() 
         if (run){
             //workerTmp.push({type:"workerData",run,msg:{ start: true }})
             const db = {key:data.key,run,update:data.update ,type:"workerRun"}
+            //console.log("send worker",db)
             if (postMsg){
                 postMsg(db)
             }else{
@@ -150,6 +152,7 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
  
     FileInfo.workerHandle = (data:{
         list?:string[],
+        msg:any,
         //run:boolean,
         update?:string,
         type:string,
@@ -159,61 +162,18 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 workerSet =  data.list || []
                 sendWorkerRun(data,postMsg)
                 break;
-                /*
-                if ( workerTmp.length>0 && data.update ){ 
-                    //console.log("read tmp")
-                    workerTmp.forEach(db=>{ 
-                        db.update = data.update
-                        //FileInfo.channeldb?.postMessage(db) 
-                        if (postMsg){
-                            postMsg(db)
-                        }else{
-                            FileInfo.channeldb?.postMessage(db) 
-                        } 
-                    })
-                    return 
-                }else{
-                    workerSet =  data.list || []
-                }*/
+                
             case "worker":  
-            /*
-                if(data.list){
-                    //console.log(workerTmp.length,data)
-                    if ( workerTmp.length>0 && data.update ){ 
-                        //console.log("read tmp")
-                        workerTmp.forEach(db=>{ 
-                            db.update = data.update
-                            //FileInfo.channeldb?.postMessage(db) 
-                            if (postMsg){
-                                postMsg(db)
-                            }else{
-                                FileInfo.channeldb?.postMessage(db) 
-                            } 
-                        })
-                        return 
-                    }else{
-                        workerSet =  data.list
-                    }
-                }
-                 
-                const run = workerSet.shift() 
-                if (run){
-                    workerTmp.push({type:"workerData",run,msg:{ start: true }})
-                    const db = {key:data.key,run,update:data.update ,type:"workerRun"}
-                    if (postMsg){
-                        postMsg(db)
-                    }else{
-                        FileInfo.channeldb?.postMessage(db) 
-                    }
-                    
-                }
-                    */
+            
                 sendWorkerRun(data,postMsg)
-                return
-            //case "workerData":
-                //workerTmp.push(data) 
-            //    return;
+                break
+            case "workerData":
+                if (data.msg.end){
+                    sendWorkerRun(data,postMsg)
+                }
+                break 
         } 
+
     }
     FileInfo.channeldb.addEventListener("message",(ev)=>{ 
         FileInfo.workerHandle?.(ev.data,(data)=>{

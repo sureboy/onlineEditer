@@ -91,12 +91,14 @@ const runCode = async (indexCurrent:currentObj,update?:string)=>{
         }    
         await getCsgObjArray(tmpDB,async(msg)=>{ 
           globalOption.DirHandle?.channeldb?.postMessage({
+            key:globalOption.DirHandle.key,
             update,
             type:"workerData",run:ev.data.run,msg 
           }) 
         })  
         globalOption.DirHandle?.channeldb?.postMessage({
           update,
+          key:globalOption.DirHandle.key,
           type:"workerData",run:ev.data.run,msg:{ end: true }})
         break;
       case "workerData":
@@ -111,11 +113,14 @@ const runCode = async (indexCurrent:currentObj,update?:string)=>{
       default:
         return
     }
+
     if (fnlistSet.size>0){
+      /*
       globalOption.DirHandle?.channeldb?.postMessage({
         type:"worker", 
+        update,
         key:globalOption.DirHandle.key
-      })
+      })*/
       return
     }
     globalOption.DirHandle?.channeldb?.removeEventListener(
@@ -220,7 +225,7 @@ self.onmessage   = async (event: MessageEvent) => {
       true,
       event.data.update ,
       (db)=>{
-        console.log("main",db)
+        //console.log("main",db)
         globalOption.DirHandle?.channeldb?.postMessage(db)
       }
     ); 
