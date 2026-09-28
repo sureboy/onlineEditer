@@ -158,7 +158,6 @@ provide: (f) => EditorView.decorations.from(f),
 });
 </script>
 
- 
 <CodeMirror  
 lineWrapping={true}
 theme={isDark ? oneDark : lightTheme}

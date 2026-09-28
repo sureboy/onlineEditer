@@ -33,8 +33,8 @@ export const wordHover = hoverTooltip((view, pos, side) => {
             return false
     })
     
-    if (opt.length===0)return null
-   // console.log(code,opt)
+    if (opt.length!==1)return null
+    //console.log(code,opt)
   return {
     pos: start,
     end,
@@ -49,6 +49,7 @@ export const wordHover = hoverTooltip((view, pos, side) => {
                 p.textContent = JSON.stringify(item.info)
                 dom.appendChild(p) 
             }else{
+                 
                  const objdom = await item.info?.(item)
                  if (objdom &&  'dom' in objdom){
                     //(objdom.dom as HTMLElement).style.width="500px"
@@ -57,7 +58,7 @@ export const wordHover = hoverTooltip((view, pos, side) => {
                     textareaDom.style.minWidth="300px"
                     dom.appendChild(textareaDom)
                  }
-                
+                 
             }
             
             
