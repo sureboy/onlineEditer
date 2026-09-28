@@ -33,21 +33,44 @@ export const wordHover = hoverTooltip((view, pos, side) => {
             return false
     })
     
-    if (opt.length!==1)return null
+    if (opt.length===0)return null
     //console.log(code,opt)
   return {
     pos: start,
     end,
     above: true,
-    create(view) {
+    create: (view)=> {
         let dom = document.createElement("div") 
         //dom.style.width="100%"
-        opt.forEach(async item => { 
-            //if (!item.info)return
+        if (opt.length===1){
+            const item = opt[0]
             if (  typeof item.info ===  'string'){
                 const p = document.createElement("p")
                 p.textContent = JSON.stringify(item.info)
                 dom.appendChild(p) 
+            }else{
+                  
+                 const objdom =  item.info?.(item)
+                 if (objdom &&  'dom' in objdom){
+                    //(objdom.dom as HTMLElement).style.width="500px"
+                    const textareaDom = objdom.dom as HTMLTextAreaElement
+                    textareaDom.style.width = `${window.innerWidth/2}px`;
+                    textareaDom.style.minWidth="300px"
+                    dom.appendChild(textareaDom)
+                 }
+                 
+            }
+        }else
+        opt.forEach(item => { 
+            //if (!item.info)return
+            //if (  typeof item.info ===  'string'){
+            //console.log(item)
+            if (item.sortText){
+                const p = document.createElement("p")
+                p.textContent =  (item.sortText as string ) 
+                dom.appendChild(p)
+            }
+                /*
             }else{
                  
                  const objdom = await item.info?.(item)
@@ -59,9 +82,7 @@ export const wordHover = hoverTooltip((view, pos, side) => {
                     dom.appendChild(textareaDom)
                  }
                  
-            }
-            
-            
+            }*/ 
         }) 
         return {dom} 
     }
@@ -200,8 +221,10 @@ const handleTreeCursorImport  = (iter:TreeCursor,doc: string)=>{
         r.json().then(v=>{
             
             cadImport[importInfo.as] = v.list.map((l:any)=>{
-                l.oriLabel = l.label 
+                const oriLabel = (l.label as string)
+                l.oriLabel = oriLabel
                 l.label = importInfo.as +'.'+l.oriLabel
+                l.sortText=  oriLabel.slice( oriLabel.lastIndexOf("."))
                 const info = l.info
                 l.info = ()=>{
                     const dom = document.createElement("textarea")
