@@ -15,6 +15,7 @@ export type BinaryValue =
 /** 编码时二进制字段的占位符 */
 interface BufferRef {
   __buf: number;
+  __t:BinaryTypeName;
 }
 
 /** 编码时内部收集的 buffer 描述 */
@@ -76,20 +77,15 @@ const MAX_PAYLOAD = CHUNK_SIZE - HEADER_SIZE;
 
 let nextMsgId = 1;
 
-export function sendChunked(
+export async function sendChunked(
   channel: RTCDataChannel,
   buffer: ArrayBuffer,
   //signal?: AbortSignal
-) {
-  try{
-    doSend(channel, buffer);
-  }catch(err){
-    console.error(err)
-  }
-  
+) { 
+  await  doSend(channel, buffer); 
 }
 
-function doSend(
+async function doSend(
   channel: RTCDataChannel,
   buffer: ArrayBuffer,
   //signal?: AbortSignal
@@ -127,34 +123,57 @@ function doSend(
     fv.setUint8(12, isLast ? FLAG_LAST : 0);
     frame.set(view.subarray(offset, offset + payloadLen), HEADER_SIZE);
 
-    //await waitForDrain(channel, signal, deadline);
+    await waitForDrain(channel);
     channel.send(frame);
   }
 }
- 
+ async function waitForDrain(channel: RTCDataChannel): Promise<void> {
+  if (channel.bufferedAmount <= channel.bufferedAmountLowThreshold) return;
+  await new Promise<void>((resolve, reject) => {
+    const onLow = () => { cleanup(); resolve(); };
+    const onClose = () => { cleanup(); reject(new Error('closed')); };
+    const cleanup = () => {
+      channel.removeEventListener('bufferedamountlow', onLow);
+      channel.removeEventListener('close', onClose);
+    };
+    channel.addEventListener('bufferedamountlow', onLow, { once: true });
+    channel.addEventListener('close', onClose, { once: true });
+  });
+}
 type StreamState = {
   msgId: number;
   totalLen: number;
-  totalChunks: number | null;
+  totalChunks: number  ;
   full:Uint8Array<ArrayBuffer>;
-  parts: Set<number>;
-  received: number;
-  startedAt: number;
+  parts: Set<number>; 
+  update:number;
+  //del?:()=>void;
 };
 
 const streams = new Map<number, StreamState>();
 const STREAM_TIMEOUT = 30_000;
-
-setInterval(() => {
+const MAX_MESSAGE_SIZE = 16 * 1024 * 1024;
+let timeoutInterval:ReturnType<typeof setInterval> | undefined;
+const startTimeoutSweeper = ()=>{
+  if (timeoutInterval!==undefined)return
+  timeoutInterval = setInterval(() => {
   const now = Date.now();
   for (const [id, st] of streams) {
-    if (now - st.startedAt > STREAM_TIMEOUT) {
+    if (now - st.update > STREAM_TIMEOUT) {
       console.warn(`[rtc] msg ${id} timeout, discarded (have ${st.parts.size}/${st.totalChunks ?? '?'})`);
       streams.delete(id);
     }
   }
+  if (streams.size===0){
+    if (timeoutInterval !== undefined) {
+      clearInterval(timeoutInterval)
+      timeoutInterval = undefined
+    }
+  }
+
 }, 10_000);
 
+}
 export const channelMessage = async (
   ev: MessageEvent,
   postMessage: (obj: unknown) => void | Promise<void>
@@ -182,21 +201,25 @@ export const channelMessage = async (
   const msgId = fv.getUint32(0, true);
   const seq = fv.getUint32(4, true);
   const totalLen = fv.getUint32(8, true);
-  const isLast = (fv.getUint8(12) & FLAG_LAST) !== 0;
-  const payload = frame.subarray(HEADER_SIZE);
-
-  // 空 payload 只有在 totalLen === 0 时合法，但我们已经禁止空消息
-  if (payload.byteLength === 0) {
-    console.warn(`[rtc] msg ${msgId} seq ${seq} empty payload`);
-    streams.delete(msgId);
+  if (totalLen === 0 || totalLen > MAX_MESSAGE_SIZE) {
+    console.warn(`[rtc] msg ${msgId} invalid totalLen ${totalLen}`);
     return;
   }
-
-  let st = streams.get(msgId);
-
-  // msgId 冲突检测：同 msgId 但 totalLen 不一致，说明回绕冲突
+  //const isLast = (fv.getUint8(12) & FLAG_LAST) !== 0;
+  const payload = frame.subarray(HEADER_SIZE);
+  if (payload.byteLength > MAX_PAYLOAD) {
+    console.warn(`[rtc] msg ${msgId} seq ${seq} payload too large ${payload.byteLength}`);
+    return;
+  }
+ 
+  // 空 payload 只有在 totalLen === 0 时合法，但我们已经禁止空消息
+  if (payload.byteLength === 0) {
+    console.warn(`[rtc] msg ${msgId} seq ${seq} empty payload`); 
+    return;
+  } 
+  let st = streams.get(msgId); 
   if (st && st.totalLen !== totalLen) {
-    console.warn(`[rtc] msg ${msgId} totalLen conflict (${st.totalLen} vs ${totalLen}), discarding old`);
+    console.warn(`[rtc] msg ${msgId} totalLen conflict (${st.totalLen} vs ${totalLen}), discarding old`); 
     streams.delete(msgId);
     st = undefined;
   }
@@ -205,82 +228,140 @@ export const channelMessage = async (
     st = {
       msgId,
       totalLen,
-      totalChunks: null,
+      update:0,
+      totalChunks: Math.ceil(totalLen / MAX_PAYLOAD),
       parts: new Set(),
-      full :new Uint8Array(totalLen),
-      received: 0,
-      startedAt: Date.now(),
+      full :new Uint8Array(totalLen),  
     };
+    console.log("totalLen",totalLen/(1024*1024))
     streams.set(msgId, st);
+    startTimeoutSweeper();
   }else{
     if (st.parts.has(seq)) {
       console.warn(`[rtc] msg ${msgId} duplicate seq ${seq}, ignoring`);
       return;
     }
   }
-  if (isLast) {
-    st.totalChunks = seq + 1;
-  }
-  st.full.set(payload,isLast?(totalLen-payload.byteLength):(seq*MAX_PAYLOAD)) 
-  st.parts.add(seq );
-  if (st.parts.size!== st.totalChunks)return ;
-  streams.delete(msgId);
-  let obj: unknown;
-  try {
-    obj = decodeMessage(st.full.buffer);
-  } catch (e) {
-    console.error(`[rtc] msg ${msgId} decode failed`, e);
+  if ( seq >=  st.totalChunks ) {
+    console.warn(`[rtc] msg ${msgId} seq ${seq} out of range`);
     return;
   }
-
-  await postMessage(obj);
-  return;
-  /*
-
-  st.received += payload.byteLength;
-  if (isLast) {
-    st.totalChunks = seq + 1;
-  }
-  
-
-  // 完成判定
-  if (st.totalChunks === null) return;
-  if (st.parts.size !== st.totalChunks) return;
-
-  // 检查 seq 范围完整
-  for (let i = 0; i < st.totalChunks; i++) {
-    if (!st.parts.has(i)) {
-      console.warn(`[rtc] msg ${msgId} missing seq ${i}`);
-      return;  // 等超时清理
-    }
-  }
-
-  if (st.received !== st.totalLen) {
-    console.warn(`[rtc] msg ${msgId} length mismatch: expected ${st.totalLen}, got ${st.received}`);
+ 
+  const offset = seq*MAX_PAYLOAD
+  if ((offset + payload.byteLength) > totalLen){
+    console.warn(`[rtc] msg ${msgId} seq ${seq} overflow`);
+    //st.del?.();
     streams.delete(msgId);
     return;
   }
-
-  // 按 seq 升序拼装
-  const full = new Uint8Array(st.totalLen);
-  let pos = 0;
-  for (let i = 0; i < st.totalChunks; i++) {
-    const p = st.parts.get(i)!;
-    full.set(p, pos);
-    pos += p.byteLength;
-  }
+ 
+  st.full.set(payload,offset) 
+  st.parts.add(seq );
+  st.update = Date.now()
+  if (st.parts.size!== st.totalChunks)return ;
+  //streams.delete(msgId);
+  //st.del?.()
   streams.delete(msgId);
-
   let obj: unknown;
   try {
-    obj = decodeMessage(full.buffer);
+    obj = decodeMessage(st.full.buffer,true);
   } catch (e) {
     console.error(`[rtc] msg ${msgId} decode failed`, e);
     return;
   }
 
-  await postMessage(obj);*/
+  try {
+    await postMessage(obj);
+  } catch (e) {
+    console.error(`[rtc] msg ${msgId} postMessage failed`, e);
+  }
+   
 };
+
+// ========== 解码 ==========
+
+/** 判断是否为占位符 */
+function isBufferRef(node: unknown): node is BufferRef {
+  return (
+    typeof node === 'object' &&
+    node !== null &&
+    '__buf' in node &&
+    typeof (node as BufferRef).__buf === 'number'
+  );
+}
+function restoreTyped(type: BinaryTypeName, bytes: Uint8Array): BinaryValue {
+  if (type === 'ArrayBuffer') return bytes.slice().buffer;
+  const Ctor = TYPED_ARRAY_CTORS[type as TypedArrayName];
+  if (bytes.byteLength % Ctor.BYTES_PER_ELEMENT !== 0) {
+    throw new Error(`Invalid byteLength for ${type}`);
+  }
+  return new Ctor(bytes.slice().buffer) as BinaryValue;
+}
+/**
+ * 将 ArrayBuffer 还原为原始对象
+ * @param buffer 编码后的数据
+ * @param copy 是否复制二进制数据（默认 true，避免共享大包内存）
+ */
+export function decodeMessage<T = unknown>(
+  buffer: ArrayBuffer,
+  copy = true
+): T {
+  const view = new DataView(buffer);
+  let offset = 0;
+
+  const metaLen = view.getUint32(offset, true);
+  offset += 4;
+  const meta = JSON.parse(
+    new TextDecoder().decode(new Uint8Array(buffer, offset, metaLen))
+  ) as unknown;
+  offset += metaLen;
+
+  const restore = (node: unknown): unknown => {
+    if (Array.isArray(node)) return node.map(restore);
+
+    if (node !== null && typeof node === 'object') {
+      if (isBufferRef(node)) {
+        /*
+        const len = view.getUint32(offset, true);
+        offset += 4;
+        const slice = new Uint8Array(buffer, offset, len);
+        offset += len;
+        return copy ? slice.slice() : slice;
+ */
+       
+        const len = view.getUint32(offset, true);
+        offset += 4;
+        const slice = new Uint8Array(buffer, offset, len);
+        offset += len;
+        const bytes = copy ? slice.slice() : slice;
+        return restoreTyped(node.__t, bytes);
+       /*
+        //const bytes = copy ? slice.slice() : slice;
+
+        // 需要知道类型：占位符里没存类型，所以类型信息必须从 meta 结构里还原
+        // —— 见下方说明，这里改为读取编码时写入的类型
+        //return bytes.buffer;
+
+        if (copy) {
+          return slice.slice().buffer;
+        }
+        // 不复制，但只返回该块对应的精确范围
+        return buffer.slice(slice.byteOffset, slice.byteOffset + slice.byteLength);*/
+      }
+
+      const result: Record<string, unknown> = {};
+      for (const key of Object.keys(node)) {
+        result[key] = restore((node as Record<string, unknown>)[key]);
+      }
+      return result;
+    }
+
+    return node;
+  };
+
+  return restore(meta) as T;
+}
+
 
 export function encodeMessage(obj: unknown): ArrayBuffer {
   const buffers: BufferEntry[] = [];
@@ -301,8 +382,8 @@ export function encodeMessage(obj: unknown): ArrayBuffer {
           byteLength: view.byteLength,
           view,
         });
-
-        const ref: BufferRef = { __buf: index };
+        const ref: BufferRef = { __buf: index, __t: getBinaryTypeName(value) };
+        //const ref: BufferRef = { __buf: index };
         return ref;
       }
       return value;
@@ -334,63 +415,3 @@ export function encodeMessage(obj: unknown): ArrayBuffer {
   return out;
 }
 
-// ========== 解码 ==========
-
-/** 判断是否为占位符 */
-function isBufferRef(node: unknown): node is BufferRef {
-  return (
-    typeof node === 'object' &&
-    node !== null &&
-    '__buf' in node &&
-    typeof (node as BufferRef).__buf === 'number'
-  );
-}
-
-/**
- * 将 ArrayBuffer 还原为原始对象
- * @param buffer 编码后的数据
- * @param copy 是否复制二进制数据（默认 true，避免共享大包内存）
- */
-export function decodeMessage<T = unknown>(
-  buffer: ArrayBuffer,
-  copy = true
-): T {
-  const view = new DataView(buffer);
-  let offset = 0;
-
-  const metaLen = view.getUint32(offset, true);
-  offset += 4;
-  const meta = JSON.parse(
-    new TextDecoder().decode(new Uint8Array(buffer, offset, metaLen))
-  ) as unknown;
-  offset += metaLen;
-
-  const restore = (node: unknown): unknown => {
-    if (Array.isArray(node)) return node.map(restore);
-
-    if (node !== null && typeof node === 'object') {
-      if (isBufferRef(node)) {
-        const len = view.getUint32(offset, true);
-        offset += 4;
-        const slice = new Uint8Array(buffer, offset, len);
-        offset += len;
-
-        const bytes = copy ? slice.slice() : slice;
-
-        // 需要知道类型：占位符里没存类型，所以类型信息必须从 meta 结构里还原
-        // —— 见下方说明，这里改为读取编码时写入的类型
-        return bytes.buffer;
-      }
-
-      const result: Record<string, unknown> = {};
-      for (const key of Object.keys(node)) {
-        result[key] = restore((node as Record<string, unknown>)[key]);
-      }
-      return result;
-    }
-
-    return node;
-  };
-
-  return restore(meta) as T;
-}
