@@ -118,7 +118,7 @@ const handleWorkerData = (
     clearTimeout(refreshCameraTimer)
     refreshCameraTimer = setTimeout(()=>{
       refreshCameraInit(solidControlConfig  )
-    },500) as any
+    },1000) as any
      
     if (!showMenu) showMenu = true
     return 

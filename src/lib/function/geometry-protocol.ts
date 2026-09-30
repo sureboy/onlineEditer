@@ -9,7 +9,7 @@ export const FLAG_LAST = 0x01;
 export const FLAG_META = 0x02;
 
 export const HEADER_SIZE = 20;
-export const CHUNK_SIZE  = 64 * 1024;
+export const CHUNK_SIZE  = 8 * 1024 * 1024;
 export const MAX_PAYLOAD = CHUNK_SIZE - HEADER_SIZE;
 
 export type ComponentType = 'Float32' | 'Uint16' | 'Uint32';
