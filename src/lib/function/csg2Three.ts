@@ -27,7 +27,7 @@ export interface csgObj {
     //csg:Geometry;
 }   
 const flatShading = false;
-const materials:Record<string,any> = {
+export const materials:Record<string,any> = {
   mesh: {
     def: new MeshPhongMaterial({ color: 0x0084d1, flatShading }),
     make: (params:MeshPhongMaterialParameters) => new MeshPhongMaterial({ ...params,flatShading }),

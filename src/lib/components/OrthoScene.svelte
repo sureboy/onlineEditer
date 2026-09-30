@@ -65,6 +65,7 @@ export const refreshCameraInit =(opt:{
   const {MaxSize,isOrthographic,getAspect} = opt 
   const groupSize = (MaxSize.length() || 10) 
   const aspect = getAspect() 
+  //console.log("aspect",aspect,MaxSize)
   if (isOrthographic){ 
     const s = groupSize/2;
     const cam = (camera as OrthographicCamera )

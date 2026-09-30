@@ -12,10 +12,27 @@ import Exchange,{QRCodeHandle } from '$lib/components/Exchange.svelte';
 import { createDirInfo,type DirInfoType } from '$lib/function/fileHandle';  
 import {type ThrelteContext } from '@threlte/core'
 import { getWorker,terminateWorker } from '$lib/worker/globalWorker';
+import {
+  BufferGeometry,
+} from "three"; 
+import {type GeometryMeta,
+  MAX_PAYLOAD,
+  decodeFrame,
+  decodeMeta
+ } from "$lib/function/geometry-protocol";
+ import {
+  onMeta,
+  finalizeGeometry,
+  disposeStream,
+  //buildMaterial,
+  isComplete,streams,MAX_MESSAGE_SIZE,onDataFrame} from "$lib/function/geoGet"
+  
 let DirInfo:DirInfoType|undefined =$state(undefined)
 let geometrys:{geometry:any,material:any,type:string,show:boolean,tag:string}[] = $state([])
 let stopTicker = $state(false) 
 let showMenu = $state(false) 
+let errHtml:HTMLElement
+let refreshCameraTimer:any
 const solidControlConfig:ConfigType = $state({  
   Light:true,
   Axes:true,Grid:true,main:[],
@@ -41,9 +58,7 @@ const tickRunTime = ()=>{
   }
   
   requestAnimationFrame(tickRunTime);
-}
-
- 
+} 
 const Clickhandle=(k:string|{[key:string]:any}|null)=>{
   if (!k)return;
   if (typeof k === 'string'){
@@ -55,7 +70,7 @@ const Clickhandle=(k:string|{[key:string]:any}|null)=>{
       (solidControlConfig as {[key:string]:any})[k.id] = k.checked
   }
 }
-let errHtml:HTMLElement
+
 const openEditPage = ()=>{
   const width =window.screen.width/2;
   const height =window.screen.height ;
@@ -88,7 +103,8 @@ const errMessageHandle = (e:MessageEvent<{err:any}>)=>{
     })
   } 
 }
-const handleWorkerData = (ev:MessageEvent<{update?:string,type:string,msg:any,run:string}>)=>{
+const handleWorkerData = (
+  ev:MessageEvent<{end:boolean,mesh?:boolean,update?:string,type:string,msg:any,run:string}>)=>{
   if (ev.data.type !=="workerData"){
     return
   }
@@ -96,37 +112,97 @@ const handleWorkerData = (ev:MessageEvent<{update?:string,type:string,msg:any,ru
     //console.log(ev.data,DirInfo?.key)
     return
   }
-  if (ev.data.msg.start){
-    return
-  }
-  if (ev.data.msg.end){ 
-    refreshCameraInit(solidControlConfig  ) 
+ 
+  if (ev.data.end){ 
+    
+    clearTimeout(refreshCameraTimer)
+    refreshCameraTimer = setTimeout(()=>{
+      refreshCameraInit(solidControlConfig  )
+    },500) as any
+     
     if (!showMenu) showMenu = true
     return 
   }
   //console.log(ev.data)
-  updateGeometrys(Object.assign(ev.data.msg,{tag:ev.data.run}))
+  if (ev.data.mesh){
+    //console.log(ev.data)
+    handleMeshMessage(ev.data)
+    return;
+  }
+  //console.log(ev.data)
+  if (ev.data.msg && ev.data.msg.index )
+    updateGeometrys(Object.assign(ev.data.msg,{tag:ev.data.run}))
 
 }
+
+function handleMeshMessage(data:any) {
+  const frame = decodeFrame(data.msg.db);
+  if (!frame) return;
+
+  const { msgId, seq, totalLen, attrId, offset, payload, isLast, isMeta } = frame;
+
+  // 基本校验
+  if (totalLen === 0 || totalLen > MAX_MESSAGE_SIZE) {
+    console.warn(`[rtc] msg ${msgId} invalid totalLen ${totalLen}`);
+    return;
+  }
+  if (payload.byteLength > MAX_PAYLOAD) {
+    console.warn(`[rtc] msg ${msgId} payload too large ${payload.byteLength}`);
+    return;
+  }
+
+  // meta 帧
+  if (isMeta) {
+    let meta: GeometryMeta;
+    try {
+      meta = decodeMeta(payload);
+    } catch (e) {
+      console.error(`[rtc] msg ${msgId} meta parse failed`, e);
+      return;
+    } 
+    const st = onMeta(msgId, totalLen, meta); 
+    streams.set(msgId,st)
+    geometrys.push( {tag:data.run,show:true,...st}) 
+    return;
+  }
+
+  // 数据帧
+  const st = streams.get(msgId);
+  if (!st) {
+    console.warn(`[rtc] msg ${msgId} data before meta`);
+    return;
+  }
+  onDataFrame(st, attrId, offset, payload);
+  if (isComplete(st)) {
+    finalizeGeometry(st);
+    setMaxSize(st.geometry)
+    disposeStream(st.msgId);
+  }
+}
+const setMaxSize = (geometry:BufferGeometry)=>{
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+  const size = new Vector3(); 
+  box?.getSize(size) 
+  if (size.x>solidControlConfig.MaxSize.x) solidControlConfig.MaxSize.setX(size.x)
+  if (size.y>solidControlConfig.MaxSize.y) solidControlConfig.MaxSize.setY(size.y)
+  if (size.z>solidControlConfig.MaxSize.z) solidControlConfig.MaxSize.setZ(size.z)
+
+  let helpSize = size.x>size.z?size.x:size.z;
+  if (size.y>helpSize){
+    helpSize =size.y
+  }
+  if (helpSize>solidControlConfig.GridSize ){
+    solidControlConfig.GridSize  = Math.ceil(helpSize )+1 
+  } 
+}
 const updateGeometrys = (data:any)=>{
+  //console.log("old update")
   const geo = csg2Geo(data,{} )
   if (geo){ 
     geometrys.push(Object.assign({tag:data.tag,show:true},geo)) 
-    geo.geometry.computeBoundingBox();
-    const box = geo.geometry.boundingBox;
-    const size = new Vector3(); 
-    box?.getSize(size) 
-    if (size.x>solidControlConfig.MaxSize.x) solidControlConfig.MaxSize.setX(size.x)
-    if (size.y>solidControlConfig.MaxSize.y) solidControlConfig.MaxSize.setY(size.y)
-    if (size.z>solidControlConfig.MaxSize.z) solidControlConfig.MaxSize.setZ(size.z)
-
-    let helpSize = size.x>size.z?size.x:size.z;
-    if (size.y>helpSize){
-      helpSize =size.y
-    }
-    if (helpSize>solidControlConfig.GridSize ){
-      solidControlConfig.GridSize  = Math.ceil(helpSize )+1 
-    } 
+    setMaxSize(geo.geometry)
+     
   }  
 }
 const onmessageListen =async (e:MessageEvent  )=>{
@@ -162,6 +238,7 @@ const onmessageListen =async (e:MessageEvent  )=>{
     // DirInfo.Preview = undefined
     //}
   }
+  /*
   if (e.data.end){ 
     refreshCameraInit(solidControlConfig  ) 
     if (!showMenu) showMenu = true
@@ -174,7 +251,7 @@ const onmessageListen =async (e:MessageEvent  )=>{
     }catch(err){
       console.error(err)
     }    
-  }
+  }*/
 }  
  
 onMount(() => {  
@@ -185,14 +262,14 @@ onMount(() => {
       DirInfo  = createDirInfo(path)  ;
       DirInfo.channeldb?.addEventListener("message",handleWorkerData)
       DirInfo.Preview = handleWorkerData
-      getWorker( onmessageListen).then(w=>{
-        const init = (e:MessageEvent<{type:string}>)=>{
+      getWorker( onmessageListen).then(w=>{ 
+        const init = (e:MessageEvent<{type:string}>)=>{ 
           if (e.data.type==="init"){
             w.removeEventListener("message",init)
           }
         }
         w.addEventListener("message",init)
-        w.postMessage({path,name:"./index.js",update:DirInfo?.key })    
+        w.postMessage({path,name:"./index.js",update:DirInfo?.key })  
       })
       //previewHandle({path },onmessageListen) 
     }  

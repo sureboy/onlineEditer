@@ -153,27 +153,32 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
     FileInfo.workerHandle = (data:{
         list?:string[],
         msg:any,
+        end:boolean,
         //run:boolean,
         update?:string,
         type:string,
         key:string},postMsg?:(data:any)=>void)=>{
+            
         switch (data.type){ 
             case "workerInit":
                 workerSet =  data.list || []
-                sendWorkerRun(data,postMsg)
+                //sendWorkerRun(data,postMsg)
                 break;
                 
             case "worker":  
             
-                sendWorkerRun(data,postMsg)
+                //sendWorkerRun(data,postMsg)
                 break
             case "workerData":
-                if (data.msg.end){
-                    sendWorkerRun(data,postMsg)
+                if (!data.end){
+                    return 
                 }
                 break 
+            default:
+                return;
         } 
-
+        //console.log(data)
+        sendWorkerRun(data,postMsg)
     }
     FileInfo.channeldb.addEventListener("message",(ev)=>{ 
         FileInfo.workerHandle?.(ev.data,(data)=>{

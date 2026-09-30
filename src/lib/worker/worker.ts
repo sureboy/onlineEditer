@@ -4,6 +4,7 @@ import {
   getCurrent,
   objUrlMap,type currentObj} from '$lib/function/ImportParser'
 import {getCsgObjArray} from '$lib/function/csgChange' 
+import {sendGeometry} from '$lib/function/geoSend'
 const includeImport:{[key:string]:string} = {
   "@jscad/modeling": "./lib/modeling.esm.js",
   //"csgChange": "./lib/csgChange.js",
@@ -11,7 +12,15 @@ const includeImport:{[key:string]:string} = {
 }
 import {parseError} from '$lib/utils/parseError';
 import {type DirInfoType,createDirInfo} from "$lib/function/fileHandle"
-
+/*
+import {type csgObj } from "$lib/function/csg2Three";
+  const sendGeometry = (
+    channel: {send:(db:any)=>void},
+    obj: csgObj,
+    options: { smooth?: boolean } = {}
+  )=>{
+    console.log(1)
+  }*/
 const globalOption:{
 
   //basename?:string
@@ -20,7 +29,7 @@ const globalOption:{
 } = {
  
 }
-  
+
 const postMessage = async (e:any)=>{ 
   console.log("postMsg",e.path)
   if (e.path){  
@@ -59,6 +68,7 @@ const getIndex = (c:currentObj )=>{
     return c
   } 
 }
+//  console.log("listen worker")
 const runCode = async (indexCurrent:currentObj,update?:string)=>{
   globalOption.DirHandle?.channeldb?.removeEventListener("message",runHandle)
   const u = await indexCurrent.getUri() 
@@ -68,9 +78,10 @@ const runCode = async (indexCurrent:currentObj,update?:string)=>{
     throw "not have function"
   }
   const fnlistSet = new Set(fnlist) 
-  const module = {list:fnlist,path:globalOption.DirHandle?.path} 
-  self.postMessage({module,update})  
-  const workerHandle =async (ev:MessageEvent<{type:string,run?:string,key:string,msg:any}>)=>{
+  //const module = {list:fnlist,path:globalOption.DirHandle?.path} 
+  //self.postMessage({module,update})  
+  const workerHandle =async (ev:MessageEvent<{
+    type:string,run?:string,key:string,msg:any,end:boolean}>)=>{
     switch (ev.data.type){
       case "workerRun":
         if (ev.data.key !== globalOption.DirHandle?.key  ){ 
@@ -89,23 +100,35 @@ const runCode = async (indexCurrent:currentObj,update?:string)=>{
         if (tmpDB.then){
           tmpDB = await tmpDB
         }    
-        await getCsgObjArray(tmpDB,async(msg)=>{ 
-          globalOption.DirHandle?.channeldb?.postMessage({
-            key:globalOption.DirHandle.key,
-            update,
-            type:"workerData",run:ev.data.run,msg 
-          }) 
+        //console.log("worker open")
+        await getCsgObjArray(tmpDB,async(msg:any)=>{ 
+          
+          // console.log(msg)
+          if (msg.type==="mesh") 
+            await sendGeometry({send:(db)=>{ 
+              globalOption.DirHandle?.channeldb?.postMessage({
+                key:globalOption.DirHandle.key,
+                update,
+                type:"workerData",mesh:true,run:ev.data.run,msg:{db} 
+              })  
+            }},msg as any)
+          else  
+            globalOption.DirHandle?.channeldb?.postMessage({
+              key:globalOption.DirHandle.key,
+              update,
+              type:"workerData",run:ev.data.run,msg 
+            })
         })  
         globalOption.DirHandle?.channeldb?.postMessage({
           update,
           key:globalOption.DirHandle.key,
-          type:"workerData",run:ev.data.run,msg:{ end: true }})
+          type:"workerData",run:ev.data.run,  end: true })
         break;
       case "workerData":
         if (!ev.data.run || !fnlistSet.has(ev.data.run)){
           return
         }
-        if (ev.data.msg.end){ 
+        if (ev.data.end){ 
           fnlistSet.delete(ev.data.run)
         }
         //self.postMessage(Object.assign(ev.data.msg,{tag:ev.data.run}),getArrayBufferList(ev.data.msg) )
@@ -140,13 +163,14 @@ const RunCode =async (
   
   try{ 
     const {fnlistSet,src} = await runCode(indexCurrent,update)
+ 
     if (initOption ){
-      if (fnlistSet.has("main")){
-        globalOption.Option = src['main']()
+      if (fnlistSet.has("default")){
+        globalOption.Option = src['default']()
         if (globalOption.Option.then){
           globalOption.Option = await globalOption.Option
         } 
-        fnlistSet.delete("main")
+        fnlistSet.delete("default")
       }
       const db = {
         key:globalOption.DirHandle?.key,
@@ -172,6 +196,8 @@ const RunCode =async (
               key:globalOption.DirHandle?.key
             })
     }
+    const module = {list:[...fnlistSet],path:globalOption.DirHandle?.path} 
+    self.postMessage({module,update}) 
   }catch(err){
     //globalOption.indexCurrent=undefined
     self.postMessage({err:parseError(err as Error,objUrlMap)})
@@ -209,17 +235,20 @@ const runHandle =(e:MessageEvent<{
   }
 }
 self.onmessage   = async (event: MessageEvent) => {  
+
   if ( event.data.path){ 
     if (!globalOption.DirHandle || globalOption.DirHandle.path!==event.data.path ){  
       globalOption.DirHandle = createDirInfo(event.data.path);  
       
     }
     self.postMessage({type:"init"})
+    //return;
   }
   if (event.data.name ){
     if (!event.data.update){
       clearCurrent()
     }
+    //console.log("run code")
     await RunCode(
       await getCurrent(event.data.name,postMessage),
       true,
