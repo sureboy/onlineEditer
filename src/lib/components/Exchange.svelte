@@ -24,8 +24,8 @@ const getFileBroadcastChannel = (name:string)=>{
 //let dirInfo:DirInfoType
 
 type meshInfoType = {
-    conn:connType, 
-    files:Map<string,{d:RTCDataChannel }>
+  conn:connType, 
+  files:Map<string,{d:RTCDataChannel }>
 } 
 //let channel:BroadcastChannel|undefined=$state(undefined)
 const meshList:(meshInfoType|null)[] =$state([])
@@ -122,7 +122,7 @@ const createWorkerConn = (workerConn: RTCDataChannel,dirInfo?:DirInfoType)=>{
         default:
           return
       }
-     console.log("rtc send",ev.data)
+      console.log("rtc send",ev.data)
       sendChunked(workerConn,encodeMessage(ev.data))
     }
     dirInfo?.channeldb?.addEventListener("message",handle)

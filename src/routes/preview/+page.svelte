@@ -25,7 +25,8 @@ import {type GeometryMeta,
   finalizeGeometry,
   disposeStream,
   //buildMaterial,
-  isComplete,streams,MAX_MESSAGE_SIZE,onDataFrame} from "$lib/function/geoGet"
+  isComplete,streams,MAX_MESSAGE_SIZE,
+  onDataFrame} from "$lib/function/geoGet"
   
 let DirInfo:DirInfoType|undefined =$state(undefined)
 let geometrys:{geometry:any,material:any,type:string,show:boolean,tag:string}[] = $state([])
@@ -207,6 +208,9 @@ const updateGeometrys = (data:any)=>{
 }
 const onmessageListen =async (e:MessageEvent  )=>{
   //console.log(e.data)
+  if (e.data.update && e.data.update!== DirInfo?.key){
+    return
+  }
   if (e.data.err ){
     errMessageHandle(e) 
     return;
@@ -214,22 +218,26 @@ const onmessageListen =async (e:MessageEvent  )=>{
     if (errHtml)
     errHtml.innerHTML=""
   } 
+
   if (e.data.module){  
     //handleWorkerData
-    if (e.data.update && e.data.update!== DirInfo?.key){
-      return
-    }
+
     geometrys = []
     solidControlConfig.GridSize=10
     solidControlConfig.MaxSize.set(10,10,10)
+    
+    console.log(e.data)
+    moduleInit(geometrys, Object.assign({ 
+      key:DirInfo?.key
+    }, e.data.module),DirInfo)
+    return
+  }
+  if (e.data.startTicker){
     showMenu=false
     stopTicker=false
     beginTime=Date.now() 
     tickRunTime() 
-    moduleInit(Object.assign({
-      geometrys, 
-    }, e.data.module))
-    return
+    return;
   }
   if (e.data.stopTicker){
     stopTicker=true

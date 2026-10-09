@@ -1,29 +1,41 @@
 <script lang="ts" module>
+import {getDialogDiv} from '$lib/components/Exchange.svelte';  
+import {openModal,closeModal} from '$lib/components/Dialog.svelte';  
+import {ShowSubmit} from "$lib/utils/jsonToForm"
+//import { getWorker } from '$lib/worker/globalWorker';
+import { type DirInfoType } from '$lib/function/fileHandle';  
+
 //let Details:HTMLDetailsElement
 let menu:HTMLElement
 let tmpDiv:HTMLButtonElement 
 let solidName:HTMLElement;
 //let basename:string
 //let spinner:HTMLElement;
-export const moduleInit = (opt:{ 
-  //show:boolean,
-  geometrys:{geometry:any,material:any,type:string,show:boolean,tag:string}[] ,
+export const moduleInit = (  geometrys:{
+    geometry:any,
+    material:any,
+    type:string,
+    show:boolean,
+    tag:string}[] ,opt:{  
+
   list:string[],
   path:string,
-  //Clickhandle?:(name:string)=>void
-} )=>{ 
+  key?:string,
+  option?:{[k:string]:any}, 
+}, DirInfo: DirInfoType | undefined )=>{ 
   if (menu)menu.innerHTML="" 
  
   //Details.style.display="inline"
   if (solidName)solidName.textContent = opt.path 
+  tmpDiv.style.display = 'inline'
   //basename = opt.basename
   //console.log("change Main name",solidName)
   opt.list.forEach(m=>{
-    const div = tmpDiv.cloneNode(true) as HTMLButtonElement
-    div.style.display='inline'
+    const btn = tmpDiv.cloneNode(true) as HTMLButtonElement
+    //div.style.display='inline'
     //div.disabled=!opt.show
-    div.onclick = (e)=>{
-      opt.geometrys.forEach((g)=>{
+    btn.onclick = (e)=>{
+      geometrys.forEach((g)=>{
         if (g.tag!==m){
           g.show=false
         }else{
@@ -33,16 +45,39 @@ export const moduleInit = (opt:{
       //solidName.textContent=m
       //opt.Clickhandle?.(m)
     }
-    div.textContent = m;
-    menu.appendChild(div)
+    btn.textContent = m;
+    menu.appendChild(btn)
   }) 
-  tmpDiv.style.display = 'inline'
-  tmpDiv.onclick = (e)=>{
-     opt.geometrys.forEach((g)=>{
-        
-        g.show=true
+  if (opt.option){
+    const btn = tmpDiv.cloneNode(true) as HTMLButtonElement
+    btn.onclick = (e)=>{
+      console.log(opt.option)
+      ShowSubmit(getDialogDiv(),opt.option,(db)=>{ 
+        opt.option = Object.assign(opt.option||{},db)
+        console.log(db,opt)
+        const msg = {name:"./index.js",onlyInit:true,update:opt.key,type:"workerInit",...opt}
+        //console.log(DirInfo?.workerHandle)
          
+        DirInfo?.workerHandle?.(msg)  
+        DirInfo?.channeldb?.postMessage(msg)
+        //}
+        closeModal()
+        /*
+        getWorker().then(w=>{ 
+          w.postMessage({name:"./index.js",...opt})  
+        })*/
+              
       })
+      openModal()
+    }
+    btn.textContent = "Option";
+    menu.appendChild(btn)
+  }
+  
+  tmpDiv.onclick = (e)=>{
+    geometrys.forEach((g)=>{  
+      g.show=true         
+    })
   }
   tmpDiv.textContent="view all"
   menu.appendChild(tmpDiv)
@@ -50,11 +85,15 @@ export const moduleInit = (opt:{
 }
 </script>
 <script lang="ts">
+
  const {show}:{show:boolean}  = $props() 
+
+ //let DialogDiv:HTMLDivElement 
 </script>
  
-<details      >
-  <summary bind:this={solidName} style="cursor: pointer;height:48px;text-align: left;line-height: 48px;"  >
+<details>
+<summary bind:this={solidName} style="
+cursor: pointer;height:48px;text-align: left;line-height: 48px;"  >
 ...
 </summary> 
 
@@ -65,6 +104,8 @@ export const moduleInit = (opt:{
 </div> 
 
 </details>
+
+ 
 
  
  

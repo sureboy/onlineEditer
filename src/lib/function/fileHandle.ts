@@ -131,38 +131,59 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
         FileInfo.path,{create:FileInfo.create},) 
     if (FileInfo.channeldb)FileInfo.channeldb.close();
     FileInfo.channeldb = new BroadcastChannel(FileInfo.path+"_db" ); 
-    let workerSet:string[] = [] 
+    let workerSet:(string|null)[] = [] 
+    const workerRunHistory = new Map<string,string[]>()
     //const workerTmp:any[] = []
 
     const sendWorkerRun = (data:{key:string,update?:string},postMsg?:(data:any)=>void)=>{
         if (!workerSet)return;
-        const run = workerSet.shift() 
+        const runList  = workerRunHistory.get(data.key)  
+        let run =null
+        if (runList){
+            for (let v in runList){
+                const i = workerSet.indexOf(v)
+                if (i>=0){
+                    run = v
+                    workerSet[i] = null
+                    break
+                }
+            } 
+        } 
+        while(run===null){
+            run = workerSet.shift()  
+        }    
         if (run){
             //workerTmp.push({type:"workerData",run,msg:{ start: true }})
-            const db = {key:data.key,run,update:data.update ,type:"workerRun"}
+            const db = {
+                key:data.key,run,update:data.update,
+                //list:workerSet ,
+                type:"workerRun"
+            }
             //console.log("send worker",db)
             if (postMsg){
                 postMsg(db)
             }else{
                 FileInfo.channeldb?.postMessage(db) 
-            }
-            
-        }
+            }            
+        } 
     }
  
     FileInfo.workerHandle = (data:{
         list?:string[],
-        msg:any,
+        //msg:any,
+        onlyInit?:boolean,
         end:boolean,
-        //run:boolean,
+        run:string,
         update?:string,
         type:string,
         key:string},postMsg?:(data:any)=>void)=>{
             
         switch (data.type){ 
+            
             case "workerInit":
                 workerSet =  data.list || []
                 //sendWorkerRun(data,postMsg)
+                if (data.onlyInit)return;
                 break;
                 
             case "worker":  
@@ -173,6 +194,12 @@ export const initFileHandle = (FileInfo:DirInfoType) =>{
                 if (!data.end){
                     return 
                 }
+                const runList = workerRunHistory.get(data.key) ||[]
+                if (!runList.includes(data.run)){
+                    runList.push(data.run)
+                    workerRunHistory.set(data.key,runList)
+                }
+                
                 break 
             default:
                 return;
